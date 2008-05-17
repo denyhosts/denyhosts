@@ -2,6 +2,8 @@ import sys
 import os
 import time
 from smtplib import SMTP
+from smtplib import SMTPResponseException
+from smtplib import SMTPHeloError
 import logging
 from constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from regex import TIME_SPEC_REGEX
@@ -132,8 +134,34 @@ Date: %s
 
     msg += report_str
     try:
-        smtp = SMTP(prefs.get('SMTP_HOST'),
-                    prefs.get('SMTP_PORT'))
+        smtp = SMTP()
+
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            smtp.set_debuglevel(1)
+
+        smtp.connect(prefs.get('SMTP_HOST'),
+                     prefs.get('SMTP_PORT'))
+
+        # If the server supports ESMTP and TLS, then convert the message exchange to TLS via the
+        # STARTTLS command.
+        if smtp.ehlo()[0] == 250:
+            if smtp.has_extn('starttls'):
+                (code, resp) = smtp.starttls()
+                if code != 220:
+                    raise SMTPResponseException(code, resp)
+                (code, resp) = smtp.ehlo()
+                if code != 250:
+                    raise SMTPResponseException(code, resp)
+        else:
+            # The server does not support esmtp.
+
+            # The Python library SMTP class handles executing HELO/EHLO commands inside
+            # login/sendmail methods when neither helo()/ehlo() methods have been
+            # previously called.  Because we have already called ehlo() above, we must
+            # manually fallback to calling helo() here.
+            (code, resp) = self.helo()
+            if not (200 <= code <= 299):
+                raise SMTPHeloError(code, resp)
 
         username = prefs.get('SMTP_USERNAME')
         password = prefs.get('SMTP_PASSWORD')
