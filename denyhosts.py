@@ -306,12 +306,13 @@ class LoginAttempt:
             self.__new_suspicious_logins[user_host_key] += 1
             
         elif not success:
+            self.__abusive_hosts[host] += 1
             if invalid:
                 self.__invalid_users[user] += 1                
             else:
                 self.__valid_users[user] += 1
                 self.__valid_users_and_hosts[user_host_key] += 1
-                self.__abusive_hosts[host] += 1
+
 
     def get_abusive_hosts(self):
         return self.__get_stats(ABUSIVE_HOSTS)
