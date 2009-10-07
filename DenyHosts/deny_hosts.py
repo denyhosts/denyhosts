@@ -235,13 +235,13 @@ class DenyHosts:
         new_warned_hosts = self.__allowed_hosts.get_new_warned_hosts()
         if new_warned_hosts:
             self.__allowed_hosts.save_warned_hosts()
-            
+                
             text = """WARNING: The following hosts appear in %s but should be
 allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                                      os.path.join(self.__prefs.get("WORK_DIR"),
                                                   ALLOWED_HOSTS))
             self.__report.add_section(text, new_warned_hosts)
-            
+            self.__allowed_hosts.clear_warned_hosts()
 
     def update_hosts_deny(self, deny_hosts):
         if not deny_hosts: return None, None

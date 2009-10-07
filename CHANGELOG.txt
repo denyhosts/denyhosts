@@ -1,5 +1,16 @@
 DENYHOSTS CHANGELOG
 
+1.1.3
+=====
+
+- Bug fix: duplicate entries were being added to allowed-warned-hosts file as well as 
+  sending out duplicate email messages.
+
+- If the prefs parameter DENY_THRESHOLD_INVALID isn't found but the deprecated DENY_THRESHOLD is
+  found then the user is alerted of this.  Additionally, the latter value will be used for
+  the missing DENY_THRESHOLD_INVALID parameter such that DenyHosts will continue to run
+  without intervention.
+
 1.1.2
 =====
 
@@ -14,6 +25,9 @@ DENYHOSTS CHANGELOG
   benefit.
 
 - Better handling of illegal values in denyhosts.cfg.
+
+- Fixed a bug in non-daemon mode when --purge flag was used.
+
 
 1.1.1
 =====

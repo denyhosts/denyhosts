@@ -1,10 +1,11 @@
-import os
+import os, sys
 from util import die, calculate_seconds
 from regex import PREFS_REGEX
 import logging
 
 debug = logging.getLogger("prefs").debug
 info = logging.getLogger("prefs").info
+
 
 try:
     set = set
@@ -60,9 +61,10 @@ class Prefs:
                          'DAEMON_LOG')
 
         # these settings are converted to numeric values
-        self.to_int = set(('DENY_THRESHOLD_INVALID', 
-                          'DENY_THRESHOLD_VALID',
-                          'DENY_THRESHOLD_ROOT'))
+        self.to_int = set(('DENY_THRESHOLD',
+                           'DENY_THRESHOLD_INVALID', 
+                           'DENY_THRESHOLD_VALID',
+                           'DENY_THRESHOLD_ROOT'))
 
         # these settings are converted from timespec format
         # to number of seconds (ie. "1m" -> 60)
@@ -120,10 +122,18 @@ class Prefs:
             if not self.__data.has_key(name_reqd):
                 print "Missing configuration parameter: %s" % name_reqd
                 if name_reqd == 'DENY_THRESHOLD_INVALID':
-                    print "Note: The configuration parameter DENY_THRESHOLD has been renamed"
+                    print "\nNote: The configuration parameter DENY_THRESHOLD has been renamed"
                     print "      DENY_THRESHOLD_INVALID.  Please update your DenyHosts configuration"
                     print "      file to reflect this change."
-                ok = 0
+
+                    if self.__data.has_key('DENY_THRESHOLD'):
+                        print "\n*** Using deprecated DENY_THRESHOLD value for DENY_THRESHOLD_INVALID ***"
+                        self.__data['DENY_THRESHOLD_INVALID'] = self.__data['DENY_THRESHOLD']
+                    else:
+                        ok = 0                        
+
+                else:
+                    ok = 0
             elif val_reqd and not self.__data[name_reqd]:
                 print "Missing configuration value for: %s" % name_reqd
                 ok = 0
@@ -145,6 +155,7 @@ class Prefs:
     
     def dump_to_logger(self):
         keys = self.__data.keys()
+        keys.sort()
         info("DenyHosts configuration settings:")
         for key in keys:
             info("   %s: [%s]", key, self.__data[key])

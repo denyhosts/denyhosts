@@ -84,8 +84,13 @@ class AllowedHosts:
 
 
     def add_warned_host(self, host):
+        #debug("warned_hosts: %s", self.warned_hosts.keys())
+
         if host not in self.warned_hosts:
+            debug("%s not in warned hosts" % host)
             self.new_warned_hosts.append(host)
+            self.warned_hosts[host] = None
+
             
     def get_new_warned_hosts(self):
         return self.new_warned_hosts
@@ -110,3 +115,8 @@ class AllowedHosts:
             fp.close()
         except Exception, e:
             print e
+
+
+    def clear_warned_hosts(self):
+        self.new_warned_hosts = []
+

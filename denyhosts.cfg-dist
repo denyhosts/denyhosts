@@ -8,10 +8,10 @@
 # The file to process can be overridden with the --file command line
 # argument
 #
-# Redhat:
+# Redhat or Fedora Core:
 SECURE_LOG = /var/log/secure
 #
-# Mandrake or FreeBSD: 
+# Mandrake, FreeBSD or OpenBSD: 
 #SECURE_LOG = /var/log/auth.log
 #
 # SuSE:
