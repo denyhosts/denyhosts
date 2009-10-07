@@ -1,3 +1,4 @@
+       ############ THESE SETTINGS ARE REQUIRED ############
 
 ########################################################################
 #
@@ -133,11 +134,11 @@ HOSTNAME_LOOKUP=YES
 LOCK_FILE = /var/lock/subsys/denyhosts
 #
 #LOCK_FILE = /tmp/denyhosts.lock
+
 ######################################################################
 
 
        ############ THESE SETTINGS ARE OPTIONAL ############
-
 
 
 #######################################################################
@@ -157,6 +158,44 @@ SMTP_HOST = localhost
 SMTP_PORT = 25
 SMTP_FROM = DenyHosts
 SMTP_SUBJECT = DenyHosts Report
+#
+#######################################################################
+
+
+
+#######################################################################
+#
+# DAEMON_LOG: when DenyHosts is run in daemon mode (--daemon flag)
+# this is the logfile that DenyHosts uses to report it's status.
+# To disable logging, leave blank.  (default is: /var/log/denyhosts)
+#
+DAEMON_LOG = /var/log/denyhosts
+#
+# disable logging:
+#DAEMON_LOG = 
+#
+######################################################################
+
+
+
+#######################################################################
+#
+# DAEMON_SLEEP: when DenyHosts is run in daemon mode (--daemon flag)
+# this is the amount of time DenyHosts will sleep between polling
+# the SECURE_LOG.  This value is in seconds (default is 30)
+#
+DAEMON_SLEEP = 30
+#
+#######################################################################
+
+#######################################################################
+#
+# DAEMON_PURGE: How often should DenyHosts, when run in daemon mode
+# run the purge mechanism to expire old entries in HOSTS_DENY
+# This value is in seconds (default is 3600 seconds = 1 hour)
+# This has no effect if PURGE_DENY is blank.
+#
+DAEMON_PURGE = 60
 #
 #######################################################################
 

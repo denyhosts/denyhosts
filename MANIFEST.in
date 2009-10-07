@@ -10,3 +10,4 @@ include denyhosts.py
 include denyhosts.cfg-dist
 include setup.py
 include version.py
+include daemon-control-dist

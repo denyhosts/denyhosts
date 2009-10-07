@@ -1,13 +1,18 @@
 import os
 from util import die
 from regex import PREFS_REGEX
+import logging
 
+debug = logging.getLogger("prefs").debug
 
 class Prefs:
     def __init__(self, path=None):
         self.__data = {'ADMIN_EMAIL': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
-                       'HOSTNAME_LOOKUP': 'yes'}
+                       'HOSTNAME_LOOKUP': 'yes',
+                       'DAEMON_LOG': '/var/log/denyhosts',
+                       'DAEMON_SLEEP': 30,
+                       'DAEMON_PURGE': 3600}
 
         # reqd[0]: required field name
         # reqd[1]: is value required? (False = value can be blank)
@@ -19,7 +24,18 @@ class Prefs:
                      ('HOSTS_DENY', True),
                      ('WORK_DIR', True))
 
-        self.to_int = ('DENY_THRESHOLD', )
+        # the paths for these keys will be converted to
+        # absolute pathnames (in the event they are relative)
+        # since the --daemon mode requires absolute pathnames
+        self.make_abs = ('WORK_DIR',
+                         'LOCK_FILE',
+                         'SECURE_LOG',
+                         'HOSTS_DENY',
+                         'DAEMON_LOG')
+
+        self.to_int = ('DENY_THRESHOLD',
+                       'DAEMON_PURGE',
+                       'DAEMON_SLEEP')
                 
         if path: self.load_settings(path)
 
@@ -46,6 +62,14 @@ class Prefs:
                 self.__data[name] = value
         fp.close()
         self.check_required(path)
+        self.make_absolute()
+
+
+    def make_absolute(self):
+        for key in self.make_abs:
+            val = self.__data[key]
+            if val:
+                self.__data[key] = os.path.abspath(val)
 
 
     def check_required(self, path):
@@ -73,3 +97,8 @@ class Prefs:
             print "   %s: [%s]" % (key, self.__data[key])
 
     
+    def dump_to_logger(self):
+        keys = self.__data.keys()
+        debug("DenyHosts configuration settings:")
+        for key in keys:
+            debug("   %s: [%s]", key, self.__data[key])

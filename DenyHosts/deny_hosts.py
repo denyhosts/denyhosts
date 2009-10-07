@@ -6,6 +6,7 @@ import gzip
 import bz2
 import traceback
 import logging
+import signal
 
 from util import die, is_true, is_false, send_email
 from allowedhosts import AllowedHosts
@@ -17,6 +18,8 @@ from report import Report
 from version import VERSION
 from constants import *
 from regex import *
+from daemon import createDaemon
+from denyfileutil import Purge
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
@@ -31,17 +34,19 @@ else:
     
 class DenyHosts:
     def __init__(self, logfile, prefs, lock_file,
-                 ignore_offset=0, first_time=0, noemail=0):
+                 ignore_offset=0, first_time=0,
+                 noemail=0, daemon=0):
         self.__denied_hosts = {}
         self.__prefs = prefs
         self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
         self.__report = Report(self.__prefs.get("HOSTNAME_LOOKUP"))
-
+        self.__daemon = daemon
+        
         try:
-            file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
-                                       logfile)
+            self.file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
+                                            logfile)
         except Exception, e:
             self.__lock_file.remove()
             die("Can't read: %s" % logfile, e)
@@ -51,7 +56,8 @@ class DenyHosts:
         if ignore_offset:
             last_offset = 0
         else:
-            last_offset = file_tracker.get_offset()
+            last_offset = self.file_tracker.get_offset()
+
 
         if last_offset != None:
             self.get_denied_hosts()
@@ -60,10 +66,109 @@ class DenyHosts:
                  last_offset)
             offset = self.process_log(logfile, last_offset)
             if offset != last_offset:
-                file_tracker.save_offset(offset)
-        else:
+                self.file_tracker.save_offset(offset)
+        elif not daemon:
             info("Log file size has not changed.  Nothing to do.")
-                
+
+            
+        if daemon:
+            info("launching DenyHosts daemon...")
+            #logging.getLogger().setLevel(logging.WARN)
+
+            # remove lock file since createDaemon will
+            # close all file descriptors.  A new lock
+            # will be created when runDaemon is invoked
+            self.__lock_file.remove()
+            createDaemon(self.runDaemon,
+                         logfile,
+                         last_offset)
+
+
+    def killDaemon(self, signum, frame):
+        info("DenyHosts daemon is shutting down")
+        # signal handler
+
+        # self.__lock_file.remove()
+        # lock will be freed on SIGHUP by denyhosts.py
+        # exception handler (SystemExit)
+        sys.exit(0)
+
+    def toggleDebug(self, signum, frame):
+        level = logging.getLogger().getEffectiveLevel()
+        if level == logging.INFO:
+            level = logging.DEBUG
+            name = "DEBUG"
+        else:
+            level = logging.INFO
+            name = "INFO"
+        info("setting debug level to: %s", name)
+        logging.getLogger().setLevel(level)
+        
+
+
+    def runDaemon(self, logfile, last_offset):
+        signal.signal(signal.SIGHUP, self.killDaemon)
+        signal.signal(signal.SIGUSR1, self.toggleDebug)
+        info("DenyHosts daemon is now running")
+        info("send daemon process a HUP signal to terminate cleanly")
+        info("  eg.  kill -HUP %s", os.getpid())
+        self.__lock_file.create()  
+
+        secure_log = self.__prefs.get('SECURE_LOG')
+        info("monitoring log: %s", secure_log)
+        daemon_sleep = self.__prefs.get('DAEMON_SLEEP')
+        purge_time = self.__prefs.get('PURGE_DENY')
+        if purge_time:
+            daemon_purge = self.__prefs.get('DAEMON_PURGE')
+            daemon_purge = max(daemon_sleep, daemon_purge)
+            purge_sleep_ratio = daemon_purge / daemon_sleep
+            info("daemon_purge:      %ld", daemon_purge)
+            info("daemon_sleep:      %ld", daemon_sleep)
+            info("purge_sleep_ratio: %ld", purge_sleep_ratio)
+        else:
+            daemon_purge = None
+            info("purging of %s is disabled", self.__prefs.get('HOSTS_DENY'))
+
+        fp = open(logfile, "r")
+
+        i = 0
+        while 1:
+            fp.seek(0, 2)
+            offset = fp.tell()
+            if last_offset == None: last_offset = offset
+
+            if offset > last_offset:
+                # new data added to logfile
+                debug("%s has additional data", secure_log)
+               
+                self.get_denied_hosts()
+                last_offset = self.process_log(logfile, last_offset)
+
+                self.file_tracker.save_offset(last_offset)
+            elif offset == 0:
+                # log file rotated, nothing to do yet...
+                # since there is no first_line
+                debug("%s is empty.  File was removed or rotated", secure_log)
+            elif offset < last_offset:
+                # file was rotated or replaced and now has data
+                debug("%s most likely rotated and now has data", secure_log)
+                last_offset = 0
+                self.file_tracker.update_first_line()
+                continue
+            
+            time.sleep(daemon_sleep)
+            
+            if daemon_purge:
+                i += 1
+                if i == purge_sleep_ratio:
+                    try:
+                        Purge(self.__prefs.get('HOSTS_DENY'),
+                              purge_time)
+                    except Exception, e:
+                        die(str(e))
+                    i = 0
+
+    
 
     def get_denied_hosts(self):
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
@@ -114,7 +219,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         new_hosts = [host for host in deny_hosts
                      if not self.__denied_hosts.has_key(host)
                      and host not in self.__allowed_hosts]
-        #print new_hosts
+        
+        debug("new hosts: %s", str(new_hosts))
         
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
@@ -238,7 +344,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         if not self.__report.empty():
             if not self.__noemail:
                 send_email(self.__prefs, self.__report.get_report())
-            else:
-                print self.__report.get_report()
+            elif not self.__daemon:
+                info(self.__report.get_report())
             
         return offset

@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+
+###############################################
+#### Edit these to suit your configuration ####
+###############################################
+
+DENYHOSTS_BIN   = "/usr/bin/denyhosts.py"
+DENYHOSTS_LOCK  = "/var/lock/subsys/denyhosts"
+DENYHOSTS_CFG   = "denyhosts.cfg"
+
+
+###############################################
+####         Do not edit below             ####
+###############################################
+
+import os, sys, signal
+
+STATE_NOT_RUNNING = -1
+STATE_LOCK_EXISTS = -2
+
+def usage():
+    print "usage: %s {start|stop|restart|status|debug}" % sys.argv[0]
+    sys.exit(0)
+
+
+def getpid():
+    try:
+        fp = open(DENYHOSTS_LOCK, "r")
+        pid = int(fp.readline().rstrip())
+        fp.close()
+    except Exception, e:
+        return STATE_NOT_RUNNING
+
+    if os.access(os.path.join("/proc", str(pid)), os.F_OK):
+        return pid
+    else:
+        return STATE_LOCK_EXISTS
+
+def start():
+    cmd = "%s --config=%s --daemon" % (DENYHOSTS_BIN, DENYHOSTS_CFG)
+    print "starting DenyHosts"
+    os.system(cmd)
+
+
+def stop():
+    pid = getpid()
+    if pid >= 0:
+        os.kill(pid, signal.SIGHUP)
+        print "sent DenyHosts SIGHUP"
+    else:
+        print "DenyHosts is not running"
+
+def debug():
+    pid = getpid()
+    if pid >= 0:
+        os.kill(pid, signal.SIGUSR1)
+        print "sent DenyHosts SIGUSR1"
+    else:
+        print "DenyHosts is not running"
+        
+def status():
+    pid = getpid()
+    if pid == STATE_LOCK_EXISTS:
+        print "%s exists but DenyHosts is not running" % DENYHOSTS_LOCK
+    elif pid == STATE_NOT_RUNNING:
+        print "Denyhosts is not running"
+    else:
+        print "DenyHosts is running with pid = %d" % pid
+        
+def restart():
+    stop()
+    start()
+
+
+if __name__ == '__main__':
+
+    cases = {'start':   start,
+             'stop':    stop,
+             'debug':   debug,
+             'status':  status,
+             'restart': restart}
+
+    try:
+        cmd = cases[sys.argv[1]]
+    except:
+        cmd = usage
+    cmd()
+        
+    

@@ -1,5 +1,12 @@
 DENYHOSTS CHANGELOG
 
+0.9.0
+=====
+
+- Added daemon mode 
+
+- Added several optional parameters to the configuration file for daemon mode use
+
 0.8.2
 =====
 

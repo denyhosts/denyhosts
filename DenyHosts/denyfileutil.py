@@ -7,6 +7,8 @@ from constants import TAB_OFFSET, PURGE_TIME_LOOKUP, DENY_DELIMITER
 from regex import PURGE_TIME_REGEX
 
 debug = logging.getLogger("denyfileutil").debug
+info = logging.getLogger("denyfileutil").info
+warn = logging.getLogger("denyfileutil").warn
 
 class DenyFileUtilBase:
     def __init__(self, deny_file, extra_file_id=""):
@@ -18,7 +20,7 @@ class DenyFileUtilBase:
         try:
             shutil.copy(self.deny_file, self.backup_file)
         except Exception, e:
-            print e
+            warn(str(e))
 
     def replace(self):
         # overwrites deny_file with contents of temp_file
@@ -85,11 +87,13 @@ class Migrate(DenyFileUtilBase):
 class Purge(DenyFileUtilBase):
     def __init__(self, deny_file, purge_timestr):
         DenyFileUtilBase.__init__(self, deny_file, "purge")
-
         cutoff = self.calculate(purge_timestr)
+
         self.cutoff = long(time.time()) - cutoff
-        debug("relative cutoff: %ld", cutoff)
-        debug("absolute cutoff: %ld", self.cutoff)
+        debug("relative cutoff: %ld (seconds)", cutoff)
+        debug("absolute cutoff: %ld (epoch)", self.cutoff)
+        info("purging entries older than: %s",
+             time.asctime(time.localtime(self.cutoff)))
         
         self.backup()
         
@@ -98,7 +102,9 @@ class Purge(DenyFileUtilBase):
             self.replace()
         else:
             self.remove_temp()
-
+            
+        info("num entries purged: %d", num_purged)
+              
     def calculate(self, timestr):
         m = PURGE_TIME_REGEX.search(timestr)
         if not m:
@@ -130,7 +136,7 @@ class Purge(DenyFileUtilBase):
                 try:
                     tm = time.strptime(timestamp)
                 except Exception, e:
-                    print "Parse error -- Ignorning timestamp: %s" % timestamp
+                    warn("Parse error -- Ignorning timestamp: %s", timestamp)
                     # ignoring bad time string
                     fp.write(line)
                     continue

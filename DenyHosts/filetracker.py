@@ -47,6 +47,16 @@ class FileTracker:
             
         return first_line, offset
 
+    def update_first_line(self):
+        first_line = ""
+        try:
+            fp = open(self.logfile, "r")
+            first_line = fp.readline()[:-1]
+        except Exception, e:
+            raise e
+        
+        self.__first_line = first_line
+
     
     def get_offset(self):
         last_line, last_offset = self.__get_last_offset()
@@ -78,5 +88,5 @@ class FileTracker:
             fp.close()
         except:
             print "Could not save logfile offset to: %s" % path
-            
+
         
