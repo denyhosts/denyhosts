@@ -5,6 +5,7 @@ import getopt
 from smtplib import SMTP
 import string
 import time
+from types import ListType, TupleType
 
 global DEBUG
 DEBUG=0
@@ -18,6 +19,7 @@ SECURE_LOG_OFFSET = "offset"
 ALLOWED_HOSTS = "allowed-hosts"
 #PARSED_DATES = "file_dates"
 ABUSIVE_HOSTS = "hosts"
+ALLOWED_WARNED_HOSTS = "allowed-warned-hosts"
 ABUSED_USERS_INVALID = "users-invalid"
 ABUSED_USERS_VALID = "users-valid"
 ABUSED_USERS_AND_HOSTS = "users-hosts"                              
@@ -50,7 +52,7 @@ def die(msg, ex=None):
     sys.exit(1)
 
 
-def send_email(prefs, denied_hosts, status, suspicious_logins):
+def send_email(prefs, report_str):
     smtp = SMTP(prefs.get('SMTP_HOST'),
                 prefs.get('SMTP_PORT'))
 
@@ -64,25 +66,7 @@ Date: %s
        prefs.get('SMTP_SUBJECT'),
        time.asctime())
 
-    
-    if denied_hosts:
-        if not status:
-            msg += "COULD NOT add the following hosts to %s:\n\n" % prefs.get('HOSTS_DENY')
-        else:
-            msg += "Added the following hosts to %s:\n\n" % prefs.get('HOSTS_DENY')
-
-        for host in denied_hosts:
-            msg += "%s\n" % host
-        msg += "\n"
-
-        
-    if suspicious_logins:
-        msg += "-" * 60 + "\n\n"
-        msg += "Observed the following suspicious login activity:\n\n"
-        for login, qty in suspicious_logins.items():
-            msg += "%s : %d\n" % (login, qty)
-        msg += "\n"
-
+    msg += report_str
     try:
         smtp.sendmail(prefs.get('SMTP_FROM'),
                       prefs.get('ADMIN_EMAIL'),
@@ -127,6 +111,30 @@ class Counter(dict):
             self.__setitem__(k, 0)
             return 0
 
+#################################################################################
+
+class Report:
+    def __init__(self):
+        self.report = ""
+
+    def empty(self):
+        if self.report: return 0
+        else: return 1
+    
+    def get_report(self):
+        return self.report
+    
+    def add_section(self, message, iterable):
+        self.report += "%s:\n\n" % message
+        for i in iterable:
+            if type(i) in (TupleType, ListType):
+                self.report += "%s: %d" % (i[0], i[1])
+            else:
+                self.report += "%s\n" % i
+        self.report += "\n" + "-" * 70 + "\n"
+        
+            
+        
 #################################################################################
 
 class Prefs:
@@ -284,12 +292,12 @@ class LoginAttempt:
         self.__work_dir = work_dir
         self.__deny_threshold = deny_threshold
         self.__first_time = first_time
+        
         self.__suspicious_logins = self.get_suspicious_logins()
         self.__valid_users = self.get_abused_users_valid()
         self.__invalid_users = self.get_abused_users_invalid()
         self.__valid_users_and_hosts = self.get_abused_users_and_hosts()
         self.__abusive_hosts = self.get_abusive_hosts()
-
         self.__new_suspicious_logins = Counter()
 
 
@@ -329,7 +337,6 @@ class LoginAttempt:
     def get_suspicious_logins(self):
         return self.__get_stats(SUSPICIOUS_LOGINS)
 
-
     def __get_stats(self, fname):
         path = os.path.join(self.__work_dir, fname)
         stats = Counter()
@@ -367,7 +374,6 @@ class LoginAttempt:
 
     def save_suspicious_logins(self):
         self.__save_stats(SUSPICIOUS_LOGINS, self.__suspicious_logins)
-        
 
     def get_deny_hosts(self, threshold):
         hosts = self.__abusive_hosts.keys()
@@ -399,8 +405,12 @@ class LoginAttempt:
 class AllowedHosts:
     def __init__(self, work_dir):
         self.allowed_path = os.path.join(work_dir, ALLOWED_HOSTS)
+        self.warned_path = os.path.join(work_dir, ALLOWED_WARNED_HOSTS)
         self.allowed_hosts = {}
+        self.warned_hosts = {}
+        self.new_warned_hosts = []
         self.load_hosts()
+        self.load_warned_hosts()
 
     def __contains__(self, ip_addr):
         if self.allowed_hosts.has_key(ip_addr): return 1
@@ -440,7 +450,35 @@ class AllowedHosts:
             
         fp.close()
 
+    def add_warned_host(self, host):
+        if host not in self.warned_hosts:
+            self.new_warned_hosts.append(host)
+            
+    def get_new_warned_hosts(self):
+        return self.new_warned_hosts
     
+
+    def load_warned_hosts(self):
+        try:
+            fp = open(self.warned_path, "r")
+            for line in fp:
+                self.warned_hosts[line.strip()] = None
+            fp.close()
+        except:
+            pass
+
+
+    def save_warned_hosts(self):
+        if not self.new_warned_hosts: return
+        try:
+            fp = open(self.warned_path, "a")
+            for host in self.new_warned_hosts:
+                fp.write("%s\n" % host)
+            fp.close()
+        except Exception, e:
+            print e
+
+            
 #################################################################################
 
     
@@ -452,12 +490,13 @@ class DenyHosts:
         self.__first_time = first_time
         self.__noemail = noemail
         self.__verbose = verbose
-
+        self.__report = Report()
+        
         file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
                                    logfile)
 
         self.__allowed_hosts = AllowedHosts(self.__prefs.get('WORK_DIR'))
-                
+
         if ignore_offset:
             last_offset = 0
         else:
@@ -484,9 +523,21 @@ class DenyHosts:
                     blah, host = line.split(":")
                     host = string.strip(host)
                     self.__denied_hosts[host] = 0
+                    if host in self.__allowed_hosts:
+                        self.__allowed_hosts.add_warned_host(host)
                 except:
                     pass
 
+        new_warned_hosts = self.__allowed_hosts.get_new_warned_hosts()
+        if new_warned_hosts:
+            self.__allowed_hosts.save_warned_hosts()
+            
+            text = """WARNING: The following hosts appear in %s but should be
+allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
+                                      os.path.join(self.__prefs.get("WORK_DIR"),
+                                                   ALLOWED_HOSTS))
+            self.__report.add_section(text, new_warned_hosts)
+            
 
     def update_hosts_deny(self, deny_hosts):
         if not deny_hosts: return None, None
@@ -573,14 +624,28 @@ class DenyHosts:
 
         #print deny_hosts
         new_denied_hosts, status = self.update_hosts_deny(deny_hosts)
+        if new_denied_hosts:
+            if not status:
+                msg = "WARNING: Could not add the following hosts to %s" % prefs.get('HOSTS_DENY')
+            else:
+                msg = "Added the following hosts to %s" % prefs.get('HOSTS_DENY')
+            self.__report.add_section(msg, new_denied_hosts)
+            
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
-
+        if new_suspicious_logins:
+            msg = "Observed the following suspicious login activity"
+            self.__report.add_section(msg, new_suspicious_logins.items())
+        
+        
         if self.__verbose or DEBUG:
             print "new denied hosts:", str(new_denied_hosts)
             print "new sucpicious logins:", str(new_suspicious_logins.keys())
 
-        if not self.__noemail and (new_denied_hosts or new_suspicious_logins):
-            send_email(self.__prefs, new_denied_hosts, status, new_suspicious_logins)
+        if not self.__report.empty():
+            if not self.__noemail:
+                send_email(self.__prefs, self.__report.get_report())
+            else:
+                print self.__report.get_report()
             
         return offset
 

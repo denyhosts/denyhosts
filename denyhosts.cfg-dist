@@ -33,7 +33,7 @@ HOSTS_DENY = /etc/hosts.deny
 #
 #
 # To block all services for the offending host:
-#BLOCK_SERVIDE = ALL
+#BLOCK_SERVICE = ALL
 # To block only sshd:
 BLOCK_SERVICE  = sshd   
 #
