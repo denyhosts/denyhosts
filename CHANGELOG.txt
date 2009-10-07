@@ -1,5 +1,13 @@
 DENYHOSTS CHANGELOG
 
+0.9.7
+=====
+
+- fixed bug wrt handling of rotated files.  DenyHosts now compares the inodes to determine if a file 
+  was rotated.  If detected, the previous file is closed and the new file opened. 
+
+- restructred daemon code block (added additional methods)
+
 0.9.6
 =====
 

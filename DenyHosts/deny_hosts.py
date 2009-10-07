@@ -7,6 +7,7 @@ import bz2
 import traceback
 import logging
 import signal
+from stat import ST_SIZE, ST_INO
 
 from util import die, is_true, is_false, send_email
 from allowedhosts import AllowedHosts
@@ -97,7 +98,6 @@ class DenyHosts:
             name = "INFO"
         info("setting debug level to: %s", name)
         logging.getLogger().setLevel(level)
-        
 
 
     def runDaemon(self, logfile, last_offset):
@@ -108,32 +108,61 @@ class DenyHosts:
         info("  eg.  kill -HUP %s", os.getpid())
         self.__lock_file.create()  
 
-        secure_log = self.__prefs.get('SECURE_LOG')
-        info("monitoring log: %s", secure_log)
+        info("monitoring log: %s", logfile)
         daemon_sleep = calculate_seconds(self.__prefs.get('DAEMON_SLEEP'))
         purge_time = self.__prefs.get('PURGE_DENY')
         if purge_time:
             daemon_purge = calculate_seconds(self.__prefs.get('DAEMON_PURGE'))
             daemon_purge = max(daemon_sleep, daemon_purge)
             purge_sleep_ratio = daemon_purge / daemon_sleep
+            self.purge_counter = 0
             info("daemon_purge:      %ld", daemon_purge)
             info("daemon_sleep:      %ld", daemon_sleep)
             info("purge_sleep_ratio: %ld", purge_sleep_ratio)
         else:
-            daemon_purge = None
+            daemon_purge = purge_sleep_ratio = None
             info("purging of %s is disabled", self.__prefs.get('HOSTS_DENY'))
 
-        fp = open(logfile, "r")
 
-        i = 0
-        while 1:
-            fp.seek(0, 2)
-            offset = fp.tell()
-            if last_offset == None: last_offset = offset
+        self.daemonLoop(logfile, last_offset, daemon_sleep,
+                        daemon_purge, purge_sleep_ratio)
+
+
+    def daemonLoop(self, logfile, last_offset, daemon_sleep,
+                   daemon_purge=None, purge_sleep_ratio=None):
+
+        fp = open(logfile, "r")
+        inode = os.fstat(fp.fileno())[ST_INO]
+
+        while 1:           
+
+            try:
+                curr_inode = os.stat(logfile)[ST_INO]
+            except:
+                info("%s has been deleted", logfile)
+                self.sleepAndPurge(daemon_sleep, daemon_purge,
+                                   purge_sleep_ratio)
+                continue
+
+            if curr_inode != inode:
+                info("%s has been rotated", logfile)
+                inode = curr_inode
+                try:
+                    fp.close()
+                except:
+                    pass
+                
+                fp = open(logfile, "r")
+                # this ultimately forces offset (if not 0) to be < last_offset
+                last_offset = sys.maxint
+
+                
+            offset = os.fstat(fp.fileno())[ST_SIZE]
+            if last_offset == None: last_offset = offset               
 
             if offset > last_offset:
                 # new data added to logfile
-                debug("%s has additional data", secure_log)
+                debug("%s has additional data", logfile)
                
                 self.get_denied_hosts()
                 last_offset = self.process_log(logfile, last_offset)
@@ -142,29 +171,33 @@ class DenyHosts:
             elif offset == 0:
                 # log file rotated, nothing to do yet...
                 # since there is no first_line
-                debug("%s is empty.  File was removed or rotated", secure_log)
+                debug("%s is empty.  File was rotated", logfile)
             elif offset < last_offset:
                 # file was rotated or replaced and now has data
-                debug("%s most likely rotated and now has data", secure_log)
+                debug("%s most likely rotated and now has data", logfile)
                 last_offset = 0
                 self.file_tracker.update_first_line()
                 continue
-            
-            time.sleep(daemon_sleep)
-            
-            if daemon_purge:
-                i += 1
-                if i == purge_sleep_ratio:
-                    try:
-                        Purge(self.__prefs.get('HOSTS_DENY'),
-                              purge_time,
-                              self.__prefs.get('WORK_DIR'))
-                    except Exception, e:
-                        logging.getLogger().exception(e)
-                        raise
-                    i = 0
 
-    
+            self.sleepAndPurge(daemon_sleep, daemon_purge, purge_sleep_ratio)
+
+
+
+    def sleepAndPurge(self, sleep_time, daemon_purge, purge_sleep_ratio=None):
+        time.sleep(sleep_time)
+        if daemon_purge:
+            self.purge_counter += 1
+            if self.purge_counter == purge_sleep_ratio:
+                try:
+                    Purge(self.__prefs.get('HOSTS_DENY'),
+                          daemon_purge,
+                          self.__prefs.get('WORK_DIR'))
+                except Exception, e:
+                    logging.getLogger().exception(e)
+                    raise
+                self.purge_counter = 0
+            
+        
 
     def get_denied_hosts(self):
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
