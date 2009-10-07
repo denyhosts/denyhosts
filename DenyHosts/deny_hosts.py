@@ -319,9 +319,16 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         if new_suspicious_logins:
             msg = "Observed the following suspicious login activity"
             self.__report.add_section(msg, new_suspicious_logins.items())
-        
-        info("new denied hosts: %s", str(new_denied_hosts))
-        info("new suspicious logins: %s", str(new_suspicious_logins.keys()))
+
+        if new_denied_hosts:
+            info("new denied hosts: %s", str(new_denied_hosts))
+        else:
+            debug("no new denied hosts")
+
+        if new_suspicious_logins:
+            info("new suspicious logins: %s", str(new_suspicious_logins.keys()))
+        else:
+            debug("no new suspicious logins")
 
         if not self.__report.empty():
             if not self.__noemail:

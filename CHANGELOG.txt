@@ -1,5 +1,12 @@
 DENYHOSTS CHANGELOG
 
+0.9.5
+=====
+
+- If no denied hosts or suspicious logins are found, then there is no output in normal mode (only in debug mode).  
+This limits the amount of data added to the log when in --daemon mode.  See:
+http://sourceforge.net/tracker/index.php?func=detail&aid=1243689&group_id=131204&atid=720422
+
 0.9.4
 =====
 
