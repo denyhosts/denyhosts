@@ -266,6 +266,7 @@ class DenyHosts:
         
 
     def get_denied_hosts(self):
+        self.__denied_hosts = {}
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
             if line[0] not in ('#', '\n'):
                 
@@ -375,7 +376,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             sshd_m = self.__sshd_format_regex.match(line)
             if not sshd_m: continue
             message = sshd_m.group('message')
-
+            
             m = None
             # did this line match any of the fixed failed regexes?
             for i in FAILED_ENTRY_REGEX_RANGE:

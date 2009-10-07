@@ -48,15 +48,15 @@ def getpid():
     except Exception, e:
         return STATE_NOT_RUNNING
 
-
-    if os.access("/proc", os.F_OK):
+    
+    if not sys.platform.startswith('freebsd') and os.access("/proc", os.F_OK):
         # proc filesystem exists, look for pid
         if os.access(os.path.join("/proc", str(pid)), os.F_OK):
             return pid
         else:
             return STATE_LOCK_EXISTS
     else:
-        # proc filesystem doesn't exist, use 'ps'
+        # proc filesystem doesn't exist (or it doesn't contain PIDs), use 'ps'
         p = os.popen("ps -p %d" % pid, "r")
         p.readline() # get the header line
         pid_running = p.readline() 

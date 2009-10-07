@@ -1,11 +1,19 @@
 DENYHOSTS CHANGELOG
 
-2.3 (coming soon)
+2.4 (coming soon)
 ==================
 
 - added allowed-domains functionality (similar to allowed-hosts) for specifying
   entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
   idea and code contribution).
+
+2.3 (April 4, 2006)
+===================
+
+- fix: denied hosts weren't being re-added after purge unless daemon was restarted 
+  after the purge.  Thanks to Steven Finnegan for recognizing the problem.
+
+- fix: daemon-control-dist should now behave correctly on FreeBSD systems
 
 2.2 (March 13, 2006)
 ====================

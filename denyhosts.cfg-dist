@@ -17,6 +17,13 @@ SECURE_LOG = /var/log/secure
 # SuSE:
 #SECURE_LOG = /var/log/messages
 #
+# Mac OS X (v10.4 or greater - 
+#   also refer to:   http://www.denyhosts.net/faq.html#macos
+#SECURE_LOG = /private/var/log/asl.log
+#
+# Mac OS X (v10.3 or earlier):
+SECURE_LOG=/private/var/log/system.log
+#
 ########################################################################
 
 ########################################################################
