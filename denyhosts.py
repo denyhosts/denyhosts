@@ -87,7 +87,7 @@ Date: %s
         smtp.sendmail(prefs.get('SMTP_FROM'),
                       prefs.get('ADMIN_EMAIL'),
                       msg)
-        if DEBUG: print "sent email to: %s" % prefs.get("ADMIN_EMAIL')
+        if DEBUG: print "sent email to: %s" % prefs.get("ADMIN_EMAIL")
     except Exception, e:
         print "Error sending email"
         print e
