@@ -1,11 +1,26 @@
 DENYHOSTS CHANGELOG
 
-2.4 (coming soon)
+2.5 (coming soon)
 ==================
 
 - added allowed-domains functionality (similar to allowed-hosts) for specifying
   entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
   idea and code contribution).
+
+2.4 (April 9, 2006)
+===================
+
+- added: PURGE_THRESHOLD setting (defaults to 0, or "none")
+  defines the maximum times a host will be purged.  Once this amount
+  has been exceeded then this host will not be purged. 
+
+- added: SYSLOG_REPORT option which, if enabled, will send the
+  denied hosts report to syslog (in addition to -or- instead of
+  email, depending on your other settings).  Based on patch
+  submission by Michael Still.
+
+- fix: restricted usernames were being added to wrong file
+
 
 2.3 (April 4, 2006)
 ===================

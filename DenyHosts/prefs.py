@@ -25,6 +25,7 @@ class Prefs(dict):
         self.__data = {'ADMIN_EMAIL': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
                        'HOSTNAME_LOOKUP': 'yes',
+                       'SYSLOG_REPORT': 'no',
                        'DAEMON_LOG': '/var/log/denyhosts',
                        'DAEMON_SLEEP': '30s',
                        'DAEMON_PURGE': '1h',
@@ -59,6 +60,7 @@ class Prefs(dict):
                        'SYNC_DOWNLOAD': "yes",
                        'SYNC_DOWNLOAD_THRESHOLD': 3,
                        'SYNC_DOWNLOAD_RESILIENCY': '5h',
+                       'PURGE_THRESHOLD': 0,
                        'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no'}
 
         # reqd[0]: required field name
@@ -89,7 +91,8 @@ class Prefs(dict):
                            'DENY_THRESHOLD_VALID',
                            'DENY_THRESHOLD_ROOT',
                            'DENY_THRESHOLD_RESTRICTED',
-                           'SYNC_DOWNLOAD_THRESHOLD'))
+                           'SYNC_DOWNLOAD_THRESHOLD',
+                           'PURGE_THRESHOLD'))
 
         # these settings are converted from timespec format
         # to number of seconds (ie. "1m" -> 60)

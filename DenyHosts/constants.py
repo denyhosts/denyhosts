@@ -30,6 +30,8 @@ SYNC_HOSTS = "sync-hosts"
 SYNC_HOSTS_TMP = "sync-hosts.tmp"
 SYNC_RECEIVED_HOSTS = "sync-received"
 
+PURGE_HISTORY = "purge-history"
+
 #################################################################################
 #                           Miscellaneous constants                             #
 #################################################################################

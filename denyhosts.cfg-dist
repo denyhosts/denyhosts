@@ -27,6 +27,7 @@ SECURE_LOG=/private/var/log/system.log
 ########################################################################
 
 ########################################################################
+#
 # HOSTS_DENY: the file which contains restricted host access information
 #
 # Most operating systems:
@@ -41,6 +42,7 @@ HOSTS_DENY = /etc/hosts.deny
 
 
 ########################################################################
+#
 # PURGE_DENY: removed HOSTS_DENY entries that are older than this time
 #             when DenyHosts is invoked with the --purge flag
 #
@@ -62,8 +64,23 @@ PURGE_DENY =
 #PURGE_DENY = 5d
 #######################################################################
 
+#######################################################################
+#
+# PURGE_THRESHOLD: defines the maximum times a host will be purged.  
+# Once this value has been exceeded then this host will not be purged. 
+# Setting this parameter to 0 (the default) disables this feature.
+#
+# default: a denied host can be purged/re-added indefinitely
+#PURGE_THRESHOLD = 0
+#
+# a denied host will be purged at most 2 times. 
+#PURGE_THRESHOLD = 2 
+#
+#######################################################################
+
 
 #######################################################################
+#
 # BLOCK_SERVICE: the service name that should be blocked in HOSTS_DENY
 # 
 # man 5 hosts_access for details
@@ -252,6 +269,20 @@ SMTP_SUBJECT = DenyHosts Report
 #
 ######################################################################
 
+######################################################################
+#
+# SYSLOG_REPORT
+#
+# SYSLOG_REPORT=YES|NO
+# If set to yes, when denied hosts are recorded the report data
+# will be sent to syslog (syslog must be present on your system).
+# The default is: NO
+#
+#SYSLOG_REPORT=NO
+#
+#SYSLOG_REPORT=YES
+#
+######################################################################
 
 ######################################################################
 #

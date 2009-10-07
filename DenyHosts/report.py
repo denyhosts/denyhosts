@@ -4,7 +4,11 @@ import socket
 from types import ListType, TupleType
 import logging
 from util import is_true
-
+try:
+    import syslog
+    HAS_SYSLOG = True
+except:
+    HAS_SYSLOG = False
 
 debug = logging.getLogger("report").debug
 warn = logging.getLogger("report").warn
@@ -12,8 +16,13 @@ warn = logging.getLogger("report").warn
 IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 class Report:
-    def __init__(self, hostname_lookup):
+    def __init__(self, hostname_lookup, use_syslog=False):
         self.report = ""
+        if (use_syslog and not HAS_SYSLOG):
+            warn("syslog is unavailable on this platform")
+        self.use_syslog = use_syslog and HAS_SYSLOG
+        if self.use_syslog:
+            syslog.openlog("denyhosts")
         self.hostname_lookup = is_true(hostname_lookup)
         
     def empty(self):
@@ -40,7 +49,9 @@ class Report:
             else: hostname = i
 
             self.report += "%s%s\n" % (hostname, extra)
-                
+            
+            if self.use_syslog:
+                syslog.syslog("%s - %s%s" %(message, hostname, extra))
         self.report += "\n" + "-" * 70 + "\n"
 
         

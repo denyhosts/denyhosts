@@ -7,6 +7,7 @@ from constants import DENY_DELIMITER, ENTRY_DELIMITER
 from loginattempt import AbusiveHosts
 from util import parse_host
 import plugin
+from purgecounter import PurgeCounter
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
@@ -130,7 +131,9 @@ class Purge(DenyFileUtilBase):
         deny_file = prefs.get('HOSTS_DENY')
         DenyFileUtilBase.__init__(self, deny_file, "purge")
         work_dir = prefs.get('WORK_DIR')
-
+        self.purge_threshold = prefs['PURGE_THRESHOLD']
+        self.purge_counter = PurgeCounter(prefs)
+        
         self.cutoff = long(time.time()) - cutoff
         debug("relative cutoff: %ld (seconds)", cutoff)
         debug("absolute cutoff: %ld (epoch)", self.cutoff)
@@ -146,6 +149,7 @@ class Purge(DenyFileUtilBase):
             abusive_hosts = AbusiveHosts(prefs)
             abusive_hosts.purge_hosts(purged_hosts)
             abusive_hosts.save_abusive_hosts()
+            self.purge_counter.increment(purged_hosts)
         else:
             self.remove_temp()
             
@@ -157,6 +161,8 @@ class Purge(DenyFileUtilBase):
         
     def create_temp(self, data):
         purged_hosts = []
+        banned = self.purge_counter.get_banned_for_life()
+            
         try:
             fp = open(self.temp_file, "w")
             os.chmod(self.temp_file, 0644)
@@ -194,7 +200,7 @@ class Purge(DenyFileUtilBase):
                             fp.write(line)
                             continue
                         host = parse_host(entry)
-                        if host:
+                        if host and host not in banned:
                             # purge
                             purged_hosts.append(host)
 

@@ -8,6 +8,7 @@ try:
     HAS_BZ2 = True
 except:
     HAS_BZ2 = False
+
     
 import traceback
 import logging
@@ -46,11 +47,12 @@ class DenyHosts:
         self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
-        self.__report = Report(prefs.get("HOSTNAME_LOOKUP"))
+        self.__report = Report(prefs.get("HOSTNAME_LOOKUP"), is_true(prefs['SYSLOG_REPORT']))
         self.__daemon = daemon
         self.__sync_server = prefs.get('SYNC_SERVER')
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
+
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -419,39 +421,6 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                    success,
                    invalid)
             login_attempt.add(user, host, success, invalid)
-                    
-            
-##            m = (self.__failed_entry_regex.match(message) or 
-##                self.__failed_entry_regex2.match(message) or
-##                self.__failed_entry_regex3.match(message) or
-##                self.__failed_entry_regex4.match(message) or
-##                self.__failed_entry_regex5.match(message) or
-##                self.__failed_entry_regex6.match(message))
-##            if m:
-##                try:
-##                    if m.group("invalid"): invalid = 1
-##                except:
-##                    invalid = 1
-##            else:
-##                m = self.__successful_entry_regex.match(message)
-##                if m:
-##                    success = 1
-##            if not m:
-##                continue
-            
-##            if m:               
-##                try:
-##                    user = m.group("user")
-##                except:
-##                    user = ""
-##                host = m.group("host")
-##                debug ("user: %s - host: %s - success: %d - invalid: %d",
-##                       user,
-##                       host,
-##                       success,
-##                       invalid)
-##                login_attempt.add(user, host, success, invalid)
-                    
 
         offset = fp.tell()
         fp.close()
@@ -488,9 +457,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         if not self.__report.empty():
             if not self.__noemail:
+                # send the report via email if configured
                 send_email(self.__prefs, self.__report.get_report())
             elif not self.__daemon:
-                info(self.__report.get_report())
+                # otherwise, if not in daemon mode, log the report to the console
+                info(self.__report.get_report())                
             self.__report.clear()
             
         return offset

@@ -57,12 +57,16 @@ class LoginAttempt:
     def add(self, user, host, success, invalid):
         user_host_key = "%s - %s" % (user, host)
 
-        # from SF bug report 1345437
-        if self.__age_reset_invalid and host:              
-            self.__abusive_hosts_invalid[host].age_count(self.__age_reset_invalid)
-        if self.__age_reset_valid and host:        
-            self.__abusive_hosts_valid[host].age_count(self.__age_reset_valid)
-        # end SF bug report 1345437
+        if host:
+            if self.__age_reset_invalid:              
+                self.__abusive_hosts_invalid[host].age_count(self.__age_reset_invalid)
+            if self.__age_reset_valid:        
+                self.__abusive_hosts_valid[host].age_count(self.__age_reset_valid)
+            if self.__age_reset_restricted:        
+                self.__abusive_hosts_restricted[host].age_count(self.__age_reset_restricted)
+            if self.__age_reset_root:        
+                self.__abusive_hosts_root[host].age_count(self.__age_reset_root)
+
 
         if success and self.__reset_on_success:
             info("resetting count for: %s", host)
@@ -99,6 +103,10 @@ class LoginAttempt:
                     self.increment_count(host,
                                          self.__abusive_hosts_root,
                                          self.__age_reset_root)
+                elif user in __restricted:
+                    self.increment_count(host,
+                                         self.__abusive_hosts_restricted,
+                                         self.__age_reset_restricted)
                 else:
                     self.increment_count(host,
                                          self.__abusive_hosts_valid,
