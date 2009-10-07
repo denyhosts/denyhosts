@@ -8,7 +8,7 @@ import getopt
 import traceback
 import logging
 
-from DenyHosts.util import die
+from DenyHosts.util import die, setup_logging
 from DenyHosts.lockfile import LockFile
 from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
@@ -45,49 +45,7 @@ def usage():
 
 #################################################################################
 
-def setup_logging(prefs, enable_debug, verbose, daemon):
-    if daemon:
-        daemon_log = prefs.get('DAEMON_LOG')
-        if daemon_log:
-            # define a Handler which writes INFO messages or higher to the sys.stderr
-            fh = logging.FileHandler(daemon_log, 'a')
-            fh.setLevel(logging.DEBUG)
-            formatter = logging.Formatter('%(asctime)s - %(name)-12s: %(levelname)-8s %(message)s',
-                                          prefs.get('DAEMON_LOG_TIME_FORMAT'))
-            fh.setFormatter(formatter)
-            # add the handler to the root logger
-            logging.getLogger().addHandler(fh)
-            if enable_debug:
-                # if --debug was enabled provide gory activity details
-                logging.getLogger().setLevel(logging.DEBUG)
-                #prefs.dump_to_logger()                              
-            else:
-                # in daemon mode we always log some activity
-                logging.getLogger().setLevel(logging.INFO)
-                
-            info = logging.getLogger("denyhosts").info
-            info("DenyHosts launched with the following args:")
-            info("   %s", ' '.join(sys.argv))
-            prefs.dump_to_logger()
-    else: # non-daemon
-        try:
-            # python 2.4
-            logging.basicConfig(format="%(message)s")
-        except:
-            # python 2.3
-            logging.basicConfig()
-            hndlr = logging.getLogger().handlers[0]
-            hndlr.setFormatter(logging.Formatter("%(message)s"))
 
-        debug = logging.getLogger("denyhosts").debug
-        info = logging.getLogger("denyhosts").info
-            
-        if verbose:
-            logging.getLogger().setLevel(logging.INFO)
-        elif enable_debug:
-            logging.getLogger().setLevel(logging.DEBUG)
-            debug("Debug mode enabled.")
-            prefs.dump_to_logger()
                 
 
 #################################################################################

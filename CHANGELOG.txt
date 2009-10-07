@@ -1,5 +1,20 @@
 DENYHOSTS CHANGELOG
 
+1.1.1
+=====
+
+- Daemon mode now closed standard file descriptors and detaches from tty based on
+  patch from James Abbatiello.
+
+- lock file is now created with 0644 permissions based on patch from James 
+  Abbatiello.
+
+- added optional SMTP_USERNAME and SMTP_PASSWORD parameters and support for authenticating
+  SMTP connections (when these parameters are defined).
+
+- fixed bug when checking for required configuration parameters.
+
+
 1.1.0
 =====
 

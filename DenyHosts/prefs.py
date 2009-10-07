@@ -21,6 +21,8 @@ class Prefs:
                        'AGE_RESET_ROOT': None,
                        'PLUGIN_DENY': None,
                        'PLUGIN_PURGE': None,
+                       'SMTP_USERNAME': None,
+                       'SMTP_PASSWORD': None,
                        'SSHD_FORMAT_REGEX': None,
                        'FAILED_ENTRY_REGEX': None,
                        'FAILED_ENTRY_REGEX2': None,
@@ -95,7 +97,7 @@ class Prefs:
         for name_reqd, val_reqd in self.reqd:
             if not self.__data.has_key(name_reqd):
                 print "Missing configuration parameter: %s" % name_reqd
-                if name == 'DENY_THRESHOLD_INVALID':
+                if name_reqd == 'DENY_THRESHOLD_INVALID':
                     print "Note: The configuration parameter DENY_THRESHOLD has been renamed"
                     print "      DENY_THRESHOLD_INVALID.  Please update your DenyHosts configuration"
                     print "      file to reflect this change."

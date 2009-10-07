@@ -184,6 +184,8 @@ SMTP_HOST = localhost
 SMTP_PORT = 25
 SMTP_FROM = DenyHosts <nobody@localhost>
 SMTP_SUBJECT = DenyHosts Report
+#SMTP_USERNAME=foo
+#SMTP_PASSWORD=bar
 #
 #######################################################################
 

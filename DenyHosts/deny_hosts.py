@@ -79,12 +79,15 @@ class DenyHosts:
             #logging.getLogger().setLevel(logging.WARN)
 
             # remove lock file since createDaemon will
-            # close all file descriptors.  A new lock
+            # create a new pid.  A new lock
             # will be created when runDaemon is invoked
             self.__lock_file.remove()
-            createDaemon(self.runDaemon,
-                         logfile,
-                         last_offset)
+            
+            retCode = createDaemon()
+            if retCode == 0:
+                self.runDaemon(logfile, last_offset)
+            else:
+                die("Error creating daemon: %s (%d)" % (retCode[1], retCode[0]))
 
 
     def killDaemon(self, signum, frame):

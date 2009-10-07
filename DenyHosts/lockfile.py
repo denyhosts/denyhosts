@@ -27,7 +27,8 @@ class LockFile:
                               os.O_CREAT |  # create file
                               os.O_TRUNC |  # truncate it, if it exists
                               os.O_WRONLY | # write-only
-                              os.O_EXCL)    # exclusive access
+                              os.O_EXCL,    # exclusive access
+                              0644)         # file mode
 
         except Exception, e:
             pid = self.get_pid()
