@@ -1,5 +1,15 @@
 DENYHOSTS CHANGELOG
 
+0.7.2
+=====
+
+- Added support for using an alternate deny file with FreeBSD based on feed back from Alesha Oparin
+
+0.7.1
+=====
+
+- fixed blank BLOCK_SERVICE bug
+
 0.7.0
 =====
 

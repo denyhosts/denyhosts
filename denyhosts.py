@@ -16,9 +16,11 @@ except:
 
 plat = sys.platform
 if plat.startswith("freebsd"):
+    # this has no effect if BLOCK_SERVICE is empty
     BSD_STYLE = " : deny"
 else:
     BSD_STYLE = ""
+
     
 global DEBUG
 DEBUG=0
@@ -544,6 +546,7 @@ class DenyHosts:
         self.__noemail = noemail
         self.__verbose = verbose
         self.__report = Report(self.__prefs.get("HOSTNAME_LOOKUP"))
+
         
         file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
                                    logfile)
@@ -626,8 +629,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             
         for host in new_hosts:
             block_service = self.__prefs.get('BLOCK_SERVICE').strip()
-            if block_service: block_service = "%s: " % block_service
-            fp.write("%s%s%s\n" % (block_service, host, BSD_STYLE))
+            if block_service:
+                block_service = "%s: " % block_service
+                fp.write("%s%s%s\n" % (block_service, host, BSD_STYLE))
+            else:
+                fp.write("%s\n" % host)
 
         if fp != sys.stdout:
             fp.close()
