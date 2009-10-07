@@ -5,6 +5,7 @@ from smtplib import SMTP
 import logging
 from constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from regex import TIME_SPEC_REGEX
+from types import IntType
 
 debug = logging.getLogger("util").debug
 
@@ -28,6 +29,7 @@ def is_false(s):
 def calculate_seconds(timestr, zero_ok=False):
     # return the number of seconds in a given timestr such as 1d (1 day),
     # 13w (13 weeks), 5s (5seconds), etc...
+    if type(timestr) is IntType: return timestr
     
     m = TIME_SPEC_REGEX.search(timestr)
     if not m:

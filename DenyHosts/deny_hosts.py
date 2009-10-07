@@ -111,7 +111,7 @@ class DenyHosts:
         secure_log = self.__prefs.get('SECURE_LOG')
         info("monitoring log: %s", secure_log)
         daemon_sleep = calculate_seconds(self.__prefs.get('DAEMON_SLEEP'))
-        purge_time = calculate_seconds(self.__prefs.get('PURGE_DENY'))
+        purge_time = self.__prefs.get('PURGE_DENY')
         if purge_time:
             daemon_purge = calculate_seconds(self.__prefs.get('DAEMON_PURGE'))
             daemon_purge = max(daemon_sleep, daemon_purge)
@@ -160,7 +160,8 @@ class DenyHosts:
                               purge_time,
                               self.__prefs.get('WORK_DIR'))
                     except Exception, e:
-                        die(str(e))
+                        logging.getLogger().exception(e)
+                        raise
                     i = 0
 
     
