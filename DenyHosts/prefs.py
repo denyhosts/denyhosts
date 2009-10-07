@@ -15,6 +15,7 @@ class Prefs:
                        'DAEMON_LOG': '/var/log/denyhosts',
                        'DAEMON_SLEEP': '30s',
                        'DAEMON_PURGE': '1h',
+                       'DAEMON_LOG_TIME_FORMAT': None,
                        'SSHD_FORMAT_REGEX': None,
                        'FAILED_ENTRY_REGEX': None,
                        'FAILED_ENTRY_REGEX2': None,

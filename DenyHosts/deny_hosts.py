@@ -82,11 +82,12 @@ class DenyHosts:
 
 
     def killDaemon(self, signum, frame):
+        debug("Received SIGTERM")
         info("DenyHosts daemon is shutting down")
         # signal handler
 
         # self.__lock_file.remove()
-        # lock will be freed on SIGHUP by denyhosts.py
+        # lock will be freed on SIGTERM by denyhosts.py
         # exception handler (SystemExit)
         sys.exit(0)
 
@@ -103,11 +104,12 @@ class DenyHosts:
 
 
     def runDaemon(self, logfile, last_offset):
-        signal.signal(signal.SIGHUP, self.killDaemon)
+        #signal.signal(signal.SIGHUP, self.killDaemon)
+        signal.signal(signal.SIGTERM, self.killDaemon)
         signal.signal(signal.SIGUSR1, self.toggleDebug)
         info("DenyHosts daemon is now running, pid: %s", os.getpid())
-        info("send daemon process a HUP signal to terminate cleanly")
-        info("  eg.  kill -HUP %s", os.getpid())
+        info("send daemon process a TERM signal to terminate cleanly")
+        info("  eg.  kill -TERM %s", os.getpid())
         self.__lock_file.create()  
 
         info("monitoring log: %s", logfile)

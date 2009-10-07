@@ -203,6 +203,23 @@ DAEMON_LOG = /var/log/denyhosts
 #
 ######################################################################
 
+#######################################################################
+# 
+# DAEMON_LOG_TIME_FORMAT: when DenyHosts is run in daemon mode 
+# (--daemon flag) this specifies the timestamp format of 
+# the DAEMON_LOG messages (default is the ISO8061 format:
+# ie. 2005-07-22 10:38:01,745)
+#
+# for possible values for this parameter refer to: man strftime
+#
+# Jan 1 13:05:59   
+#DAEMON_LOG_TIME_FORMAT = %b %d %H:%M:%S
+#
+# Jan 1 01:05:59 
+#DAEMON_LOG_TIME_FORMAT = %b %d %I:%M:%S
+#
+###################################################################### 
+ 
 
 
 #######################################################################

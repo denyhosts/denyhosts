@@ -26,7 +26,6 @@ class LoginAttempt:
             self.__abusive_hosts_valid = self.get_abusive_hosts_valid()
             self.__abusive_hosts_invalid = self.get_abusive_hosts_invalid()
             self.__abusive_hosts_root = self.get_abusive_hosts_root()
-
             self.__new_suspicious_logins = Counter()
 
 
@@ -107,17 +106,18 @@ class LoginAttempt:
         self.save_suspicious_logins()
 
     def save_abusive_hosts_invalid(self, abusive_hosts=None):
-        if not abusive_hosts:
+        if abusive_hosts is None:
             abusive_hosts = self.__abusive_hosts_invalid
+
         self.__save_stats(ABUSIVE_HOSTS_INVALID, abusive_hosts)
 
     def save_abusive_hosts_root(self, abusive_hosts=None):
-        if not abusive_hosts:
+        if abusive_hosts is None:
             abusive_hosts = self.__abusive_hosts_root
         self.__save_stats(ABUSIVE_HOSTS_ROOT, abusive_hosts)
 
     def save_abusive_hosts_valid(self, abusive_hosts=None):
-        if not abusive_hosts:
+        if abusive_hosts is None:
             abusive_hosts = self.__abusive_hosts_valid
         self.__save_stats(ABUSIVE_HOSTS_VALID, abusive_hosts)
 
@@ -150,13 +150,16 @@ class LoginAttempt:
 
     def __save_stats(self, fname, stats):
         path = os.path.join(self.__work_dir, fname)
+        if not stats: 
+            #debug("%s: is empty", fname)
+            return
+        
         try:
             fp = open(path, "w")
         except Exception, e:
             print e
             return
-
-        
+ 
         keys = stats.keys()
         keys.sort()
 

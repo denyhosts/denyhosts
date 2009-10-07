@@ -1,5 +1,18 @@
 DENYHOSTS CHANGELOG
 
+1.0.1
+=====
+
+- fixed bug relating to empty hosts-root file
+
+- added optional configuration parameter: DAEMON_LOG_TIME_FORMAT
+  for specifying the timestamp in the DAEMON_LOG file
+
+- now uses SIGTERM to stop daemon (rather than SIHGUP) based on
+  the suggestion of Xavier Le Vourch
+
+- daemon-control-dist has been updated to send SIGTERM on stop()
+
 1.0.0
 =====
 

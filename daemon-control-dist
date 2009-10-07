@@ -54,8 +54,8 @@ def start(*args):
 def stop():
     pid = getpid()
     if pid >= 0:
-        os.kill(pid, signal.SIGHUP)
-        print "sent DenyHosts SIGHUP"
+        os.kill(pid, signal.SIGTERM)
+        print "sent DenyHosts SIGTERM"
     else:
         print "DenyHosts is not running"
 
