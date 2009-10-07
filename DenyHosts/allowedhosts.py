@@ -1,11 +1,18 @@
 import os
+from socket import getfqdn, gethostbyname
+import logging
+
 
 from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
-
 from regex import ALLOWED_REGEX
+from util import is_true
+
+debug = logging.getLogger("AllowedHosts").debug
 
 class AllowedHosts:
-    def __init__(self, work_dir):
+    def __init__(self, prefs):
+        work_dir = prefs.get("WORK_DIR")
+        self.hostname_lookup = is_true(prefs.get("ALLOWED_HOSTS_HOSTNAME_LOOKUP"))
         self.allowed_path = os.path.join(work_dir, ALLOWED_HOSTS)
         self.warned_path = os.path.join(work_dir, ALLOWED_WARNED_HOSTS)
         self.allowed_hosts = {}
@@ -35,6 +42,7 @@ class AllowedHosts:
 
             m = ALLOWED_REGEX.match(line)
             if m:
+                # line contains an ip address
                 first3 = m.group('first_3bits')
                 fourth = m.group('fourth')
                 wildcard = m.group('ip_wildcard')
@@ -42,15 +50,38 @@ class AllowedHosts:
 
                 if fourth:
                     self.allowed_hosts["%s%s" % (first3, fourth)] = 1
+                    self.add_hostname("%s%s" % (first3, fourth))
                 elif wildcard:
                     for i in range(256):
                         self.allowed_hosts["%s%s" % (first3, i)] = 1
+                        self.add_hostname("%s%s" % (first3, i))
                 else:
                     start, end = ip_range.split("-")
                     for i in range(int(start), int(end)):
                         self.allowed_hosts["%s%d" % (first3, i)] = 1
+                        self.add_hostname("%s%s" % (first3, i))
+            else:
+                # assume that line contains hostname
+                self.allowed_hosts[line] = 1
+                try:
+                    # lookup ip address of host
+                    ip = gethostbyname(line)
+                    self.allowed_hosts[ip] = 1
+                except:
+                    pass
             
         fp.close()
+        debug("allowed_hosts: %s", self.allowed_hosts.keys())
+
+
+    def add_hostname(self, ip_addr):
+        if not self.hostname_lookup:
+            return
+        else:
+            hostname = getfqdn(ip_addr)
+            if hostname != ip_addr:
+                self.allowed_hosts[hostname] = 1
+
 
     def add_warned_host(self, host):
         if host not in self.warned_hosts:

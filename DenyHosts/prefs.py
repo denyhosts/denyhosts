@@ -14,14 +14,15 @@ class Prefs:
                        'HOSTNAME_LOOKUP': 'yes',
                        'DAEMON_LOG': '/var/log/denyhosts',
                        'DAEMON_SLEEP': '30s',
-                       'DAEMON_PURGE': '1h',
+                       'DAEMON_PURGE': '1h',                       
                        'DAEMON_LOG_TIME_FORMAT': None,
                        'SSHD_FORMAT_REGEX': None,
                        'FAILED_ENTRY_REGEX': None,
                        'FAILED_ENTRY_REGEX2': None,
                        'FAILED_ENTRY_REGEX3': None,
                        'FAILED_ENTRY_REGEX4': None,
-                       'SUCCESSFUL_ENTRY_REGEX': None}
+                       'SUCCESSFUL_ENTRY_REGEX': None,
+                       'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no'}
 
         # reqd[0]: required field name
         # reqd[1]: is value required? (False = value can be blank)

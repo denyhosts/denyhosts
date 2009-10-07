@@ -19,7 +19,6 @@ SECURE_LOG = /var/log/secure
 #
 ########################################################################
 
-
 ########################################################################
 # HOSTS_DENY: the file which contains restricted host access information
 #
@@ -188,6 +187,22 @@ SMTP_SUBJECT = DenyHosts Report
 #
 #######################################################################
 
+######################################################################
+#
+# ALLOWED_HOSTS_HOSTNAME_LOOKUP
+#
+# ALLOWED_HOSTS_HOSTNAME_LOOKUP=YES|NO
+# If set to YES, for each entry in the WORK_DIR/allowed-hosts file,
+# the hostname will be looked up.  If your versions of tcp_wrappers
+# and sshd sometimes log hostnames in addition to ip addresses
+# then you may wish to specify this option.
+# 
+#ALLOWED_HOSTS_HOSTNAME_LOOKUP=NO
+#
+######################################################################
+
+
+   ######### THESE SETTINGS ARE SPECIFIC TO DAEMON MODE  ##########
 
 
 #######################################################################
@@ -220,8 +235,6 @@ DAEMON_LOG = /var/log/denyhosts
 #
 ###################################################################### 
  
-
-
 #######################################################################
 #
 # DAEMON_SLEEP: when DenyHosts is run in daemon mode (--daemon flag)

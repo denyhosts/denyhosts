@@ -53,7 +53,7 @@ class DenyHosts:
             self.__lock_file.remove()
             die("Can't read: %s" % logfile, e)
 
-        self.__allowed_hosts = AllowedHosts(self.__prefs.get('WORK_DIR'))
+        self.__allowed_hosts = AllowedHosts(self.__prefs)
 
         if ignore_offset:
             last_offset = 0

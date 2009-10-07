@@ -1,5 +1,20 @@
 DENYHOSTS CHANGELOG
 
+1.0.3
+=====
+
+- hostnames can now be specified in allowed-hosts file based 
+  on a contribution from Mathias Wagner.
+
+- hostnames specified in allowed-hosts are looked 
+  up to determine ip addresses
+
+- added optional pref: ALLOWED_HOSTS_HOSTNAME_LOOKUP
+
+- if ALLOWED_HOSTS_HOSTNAME_LOOKUP is true, then each
+  ip address in allowed-hosts is looked up to determine
+  it's hostname
+
 1.0.2
 =====
 
