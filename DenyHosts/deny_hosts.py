@@ -321,7 +321,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             m = (self.__failed_entry_regex.match(message) or 
                 self.__failed_entry_regex2.match(message) or
                 self.__failed_entry_regex3.match(message) or
-                self.__failed_entry_regex4.match(message))
+                self.__failed_entry_regex4.match(message) or
+                self.__failed_entry_regex5.match(message))
             if m:
                 try:
                     if m.group("invalid"): invalid = 1
@@ -359,9 +360,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             else:
                 msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
             self.__report.add_section(msg, new_denied_hosts)
-
-        plugin_deny = self.__prefs.get('PLUGIN_DENY')
-        if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
+            plugin_deny = self.__prefs.get('PLUGIN_DENY')
+            if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
         
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
@@ -402,5 +402,6 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         self.__failed_entry_regex2 = self.get_regex('FAILED_ENTRY_REGEX2', FAILED_ENTRY_REGEX2)
         self.__failed_entry_regex3 = self.get_regex('FAILED_ENTRY_REGEX3', FAILED_ENTRY_REGEX3)
         self.__failed_entry_regex4 = self.get_regex('FAILED_ENTRY_REGEX4', FAILED_ENTRY_REGEX4)
+        self.__failed_entry_regex5 = self.get_regex('FAILED_ENTRY_REGEX5', FAILED_ENTRY_REGEX5)
         self.__successful_entry_regex = self.get_regex('SUCCESSFUL_ENTRY_REGEX', SUCCESSFUL_ENTRY_REGEX)
         

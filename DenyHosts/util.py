@@ -117,15 +117,7 @@ def parse_host(line):
     return host
 
 
-def send_email(prefs, report_str):
-    smtp = SMTP(prefs.get('SMTP_HOST'),
-                prefs.get('SMTP_PORT'))
-
-
-    username = prefs.get('SMTP_USERNAME')
-    password = prefs.get('SMTP_PASSWORD')
-
-            
+def send_email(prefs, report_str):           
     msg = """From: %s
 To: %s
 Subject: %s
@@ -138,6 +130,12 @@ Date: %s
 
     msg += report_str
     try:
+        smtp = SMTP(prefs.get('SMTP_HOST'),
+                    prefs.get('SMTP_PORT'))
+
+        username = prefs.get('SMTP_USERNAME')
+        password = prefs.get('SMTP_PASSWORD')
+
         if username and password:
             smtp.login(username, password)
     

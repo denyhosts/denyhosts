@@ -36,6 +36,7 @@ class Prefs:
                        'FAILED_ENTRY_REGEX2': None,
                        'FAILED_ENTRY_REGEX3': None,
                        'FAILED_ENTRY_REGEX4': None,
+                       'FAILED_ENTRY_REGEX5': None,
                        'SUCCESSFUL_ENTRY_REGEX': None,
                        'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no'}
 

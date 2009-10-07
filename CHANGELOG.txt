@@ -1,5 +1,19 @@
 DENYHOSTS CHANGELOG
 
+1.1.4 (January 9, 2006)
+=======================
+
+- Added AllowedGroups patch from Marlon Paulse. DenyHosts will now:
+    "detect login attempts to user accounts that are not members of
+    groups listed as 'AllowedGroups' in the sshd configuration file."
+
+- Updated denyhosts.cfg-sample such that WORK_DIR parameter points to an
+  absolute pathname rather than a relative one.  
+
+- Fixed email bug: failure to connect to smtp server is now handled properly.
+
+- Fixed plugin bug: PLUGIN_DENY is now only invoked when new hosts are denied.
+
 1.1.3
 =====
 

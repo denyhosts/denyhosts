@@ -17,6 +17,8 @@ FAILED_ENTRY_REGEX3 = re.compile(r"""Authentication failure for (?P<user>.*) fro
 
 FAILED_ENTRY_REGEX4 = re.compile(r"""Authentication failure for (?P<user>.*) from (?P<host>.*)""")
 
+FAILED_ENTRY_REGEX5 = re.compile(r"""User (?P<user>.*) from (?P<host>.*) not allowed because none of user's groups are listed in AllowGroups""")
+
 SUCCESSFUL_ENTRY_REGEX = re.compile(r"""Accepted (?P<method>.*) for (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 TIME_SPEC_REGEX = re.compile(r"""(?P<units>\d*)\s*(?P<period>[smhdwy])?""")

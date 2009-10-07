@@ -59,7 +59,7 @@ PURGE_DENY =
 #######################################################################
 # BLOCK_SERVICE: the service name that should be blocked in HOSTS_DENY
 # 
-# man 5 host_access for details
+# man 5 hosts_access for details
 #
 # eg.   sshd: 127.0.0.1  # will block sshd logins from 127.0.0.1
 #
@@ -112,10 +112,10 @@ DENY_THRESHOLD_ROOT = 1
 # WORK_DIR: the path that DenyHosts will use for writing data to
 # (it will be created if it does not already exist).  
 #
-# Note: when run in daemon mode, this directory should be specified
-# as an absolute path name (eg. /home/foo/denyhosts/data)
+# Note: it is recommended that you use an absolute pathname
+# for this value (eg. /home/foo/denyhosts/data)
 #
-WORK_DIR = denyhosts
+WORK_DIR = /usr/share/denyhosts/data
 #
 #######################################################################
 
