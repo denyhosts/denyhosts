@@ -11,6 +11,7 @@ import gzip
 import bz2
 import shutil
 import traceback
+#from fcntl import flock, LOCK_EX, LOCK_NB, LOCK_UN
 
 try:
     from denyhosts_version import VERSION
@@ -146,6 +147,7 @@ def usage():
 class LockFile:
     def __init__(self, lockpath):
         self.lockpath = lockpath
+        self.fd = None
 
     def exists(self):
         return os.access(self.lockpath, os.F_OK)
@@ -155,7 +157,7 @@ class LockFile:
         pid = ""
         try:
             fp = open(self.lockpath, "r")
-            pid = fp.read()
+            pid = fp.read().strip()
             fp.close()            
         except:
             pass
@@ -163,12 +165,28 @@ class LockFile:
 
 
     def create(self):
-        fp = open(self.lockpath, "w")
-        fp.write("%s\n" % os.getpid())
-        fp.close()
+        try:
+            self.fd = os.open(self.lockpath,
+                              os.O_CREAT |  # create file
+                              os.O_TRUNC |  # truncate it, if it exists
+                              os.O_WRONLY | # write-only
+                              os.O_EXCL)    # exclusive access
+
+        except Exception, e:
+            pid = self.get_pid()
+            die("DenyHosts could not obtain lock (pid: %s)" % pid, e)
+            
+        os.write(self.fd, "%s\n" % os.getpid())
+        os.fsync(self.fd)
 
 
     def remove(self, die_=True):
+        try:
+            if self.fd: os.close(self.fd)
+        except:
+            pass
+        
+        self.fd = None
         try:
             os.unlink(self.lockpath)
         except Exception, e:
@@ -973,7 +991,6 @@ if __name__ == '__main__':
     ignore_offset = 0
     noemail = 0
     verbose = 0
-    unlock = 0
     migrate = 0
     purge = 0
     args = sys.argv[1:]
@@ -981,7 +998,7 @@ if __name__ == '__main__':
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvp?hV',
                                         ["file=", "ignore", "verbose", "debug", 
                                          "help", "noemail", "config=", "version",
-                                         "unlock", "migrate", "purge"])
+                                         "migrate", "purge"])
     except:
         print "\nInvalid command line option detected."
         usage()
@@ -1004,8 +1021,6 @@ if __name__ == '__main__':
             DEBUG = 1            
         if opt in ('-c', '--config'):
             config_file = arg
-        if opt in ('-u', '--unlock'):
-            unlock = 1
         if opt in ('-m', '--migrate'):
             migrate = 1
         if opt in ('-p', '--purge'):
@@ -1036,12 +1051,6 @@ if __name__ == '__main__':
     if not prefs.get('ADMIN_EMAIL'): noemail = 1
 
     lock_file = LockFile(prefs.get('LOCK_FILE'))
-
-    if unlock and lock_file.exists():
-        lock_file.remove(False)
-    else:
-        pid = lock_file.get_pid()
-        if pid: die("DenyHosts is already running with pid: %s" % pid)
 
     lock_file.create()
 

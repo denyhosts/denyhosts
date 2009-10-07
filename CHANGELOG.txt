@@ -1,5 +1,11 @@
 DENYHOSTS CHANGELOG
 
+0.8.1
+=====
+
+- Revised LockFile class to do perform exclusive locking -- deprecated the --unlock flag since it is no longer 
+necessary
+
 0.8.0
 =====
 
