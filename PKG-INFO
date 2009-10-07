@@ -1,7 +1,7 @@
 Metadata-Version: 1.0
 Name: DenyHosts
-Version: 0.6.0
-Summary: DenyHosts is a utility to help sys admins thwart hackers
+Version: 0.7.0
+Summary: DenyHosts is a utility to help sys admins thwart ssh hackers
 Home-page: http://denyhosts.sourceforge.net
 Author: Phil Schwartz
 Author-email: phil_schwartz@users.sourceforge.net

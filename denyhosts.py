@@ -7,8 +7,19 @@ import string
 import time
 import socket
 from types import ListType, TupleType
-from version import VERSION
+import gzip
 
+try:
+    from denyhosts_version import VERSION
+except:
+    VERSION = "unknown"   
+
+plat = sys.platform
+if plat.startswith("freebsd"):
+    BSD_STYLE = " : deny"
+else:
+    BSD_STYLE = ""
+    
 global DEBUG
 DEBUG=0
 CONFIG_FILE = "denyhosts.cfg"
@@ -34,11 +45,16 @@ SUSPICIOUS_LOGINS = "suspicious-logins"   # successful logins AFTER invalid
 
 #DATE_FORMAT_REGEX = re.compile(r"""(?P<month>[A-z]{3,3})\s*(?P<day>\d+)""")
 
-SSHD_FORMAT_REGEX = re.compile(r""".* sshd.*: (?P<message>.*)""")
+SSHD_FORMAT_REGEX = re.compile(r""".* (sshd.*:|\[sshd\]) (?P<message>.*)""")
+#SSHD_FORMAT_REGEX = re.compile(r""".* sshd.*: (?P<message>.*)""")
 
 FAILED_ENTRY_REGEX = re.compile(r"""Failed (?P<method>.*) for (?P<invalid>invalid user |illegal user )?(?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 FAILED_ENTRY_REGEX2 = re.compile(r"""(Illegal|Invalid) user (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+
+FAILED_ENTRY_REGEX3 = re.compile(r"""Authentication failure for (?P<user>.*) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+
+FAILED_ENTRY_REGEX4 = re.compile(r"""Authentication failure for (?P<user>.*) from (?P<host>.*)""")
 
 SUCCESSFUL_ENTRY_REGEX = re.compile(r"""Accepted (?P<method>.*) for (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
@@ -557,8 +573,22 @@ class DenyHosts:
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
             if line[0] not in ('#', '\n'):
                 try:
-                    blah, host = line.split(":")
-                    host = string.strip(host)
+                    # the deny file can be in the form:
+                    # 1) ip_address
+                    # 2) sshd: ip_address
+                    # 3) ip_address : deny
+                    # 4) sshd: ip_address : deny
+
+                    # convert form 3 & 4 to 1 & 2
+                    line = line.strip(BSD_STYLE)
+                    
+                    vals = line.split(":")
+                    
+                    # we're only concerned about the ip_address
+                    if len(vals) == 1: form = vals[0]
+                    else: form = vals[1]
+                    
+                    host = form.strip()
                     self.__denied_hosts[host] = 0
                     if host in self.__allowed_hosts:
                         self.__allowed_hosts.add_warned_host(host)
@@ -596,7 +626,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             status = 0
             
         for host in new_hosts:
-            fp.write("%s: %s\n" % (self.__prefs.get('BLOCK_SERVICE'), host))
+            block_service = self.__prefs.get('BLOCK_SERVICE').strip()
+            if block_service: block_service = "%s: " % block_service
+            fp.write("%s%s%s\n" % (block_service, host, BSD_STYLE))
 
         if fp != sys.stdout:
             fp.close()
@@ -607,7 +639,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
     def process_log(self, logfile, offset):
         try:
-            fp = open(logfile, "r")
+            if f.endswith(".gz"):
+                fp = gzip.open(logfile)
+            else:
+                fp = open(logfile, "r")
         except Exception, e:
             print "Could not open log file: %s" % logfile
             print e
@@ -634,7 +669,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             if not sshd_m: continue
             message = sshd_m.group('message')
 
-            m = FAILED_ENTRY_REGEX.match(message) or FAILED_ENTRY_REGEX2.match(message)
+            m = (FAILED_ENTRY_REGEX.match(message) or 
+                 FAILED_ENTRY_REGEX2.match(message) or 
+                 FAILED_ENTRY_REGEX3.match(message) or 
+                 FAILED_ENTRY_REGEX4.match(message))
             if m:
                 try:
                     if m.group("invalid"): invalid = 1

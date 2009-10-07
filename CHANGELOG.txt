@@ -1,5 +1,19 @@
 DENYHOSTS CHANGELOG
 
+0.7.0
+=====
+
+- Added support for the metalog logger based on a patch contributed by Mike Kelly.
+
+- Added support for FreeBSD based on input from Francesca Smith
+
+- Added support for catching hostname entries (in addition to IP addresses) based on a patch from Christian Smyth
+
+- Added support for using an alternative hosts deny file where only the offending ip address is listed.  This feature
+is based on a patch contributed by John Meinel Jr.
+
+- Added support for processing gzip'ed logfiles based on feature request by Brian McGraw.
+
 0.6.0
 =====
 

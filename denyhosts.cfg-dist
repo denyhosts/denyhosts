@@ -10,7 +10,7 @@
 # Redhat:
 SECURE_LOG = /var/log/secure
 #
-# Mandrake: 
+# Mandrake or FreeBSD: 
 #SECURE_LOG = /var/log/auth.log
 #
 # SuSE:
@@ -18,11 +18,18 @@ SECURE_LOG = /var/log/secure
 #
 ########################################################################
 
+
 ########################################################################
 # HOSTS_DENY: the file which contains restricted host access information
 #
+# Most operating systems:
 HOSTS_DENY = /etc/hosts.deny
 #
+# Some BSD (FreeBSD) Unixes:
+#HOSTS_DENY = /etc/hosts.allow
+#
+# Another possibility (also see the next option):
+#HOSTS_DENY = /etc/hosts.evil
 #######################################################################
 
 
@@ -31,13 +38,19 @@ HOSTS_DENY = /etc/hosts.deny
 # 
 # man 5 host_access for details
 #
+# eg.   sshd: 127.0.0.1  # will block sshd logins from 127.0.0.1
 #
 # To block all services for the offending host:
 #BLOCK_SERVICE = ALL
 # To block only sshd:
-BLOCK_SERVICE  = sshd   
+BLOCK_SERVICE  = sshd
+# To only record the offending host and nothing else (if using
+# an auxilary file to list the hosts).  Refer to: 
+# http://denyhosts.sourceforge.net/faq.html#aux
+#BLOCK_SERVICE =    
 #
 #######################################################################
+
 
 #######################################################################
 #
@@ -52,6 +65,7 @@ DENY_THRESHOLD = 5
 #
 # WORK_DIR: the path that DenyHosts will use for writing data to
 # (it will be created if it does not already exist).       
+#
 WORK_DIR = denyhosts
 #
 #######################################################################
@@ -80,6 +94,7 @@ SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS=YES
 #
 HOSTNAME_LOOKUP=YES
 ######################################################################
+
 
 
        ############ THESE SETTINGS ARE OPTIONAL ############
