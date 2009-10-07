@@ -4,6 +4,7 @@ import re
 import getopt
 from smtplib import SMTP
 import string
+import time
 
 global DEBUG
 DEBUG=0
@@ -56,10 +57,12 @@ def send_email(prefs, denied_hosts, status, suspicious_logins):
     msg = """From: %s
 To: %s
 Subject: %s
+Date: %s
 
 """ % (prefs.get('SMTP_FROM'),
        prefs.get('ADMIN_EMAIL'),
-       prefs.get('SMTP_SUBJECT'))
+       prefs.get('SMTP_SUBJECT'),
+       time.asctime())
 
     
     if denied_hosts:
@@ -76,13 +79,21 @@ Subject: %s
     if suspicious_logins:
         msg += "-" * 60 + "\n\n"
         msg += "Observed the following suspicious login activity:\n\n"
-        for login in suspicious_logins:
-            msg += "%s\n" % login    
+        for login, qty in suspicious_logins.items():
+            msg += "%s : %d\n" % (login, qty)
         msg += "\n"
+
+    try:
+        smtp.sendmail(prefs.get('SMTP_FROM'),
+                      prefs.get('ADMIN_EMAIL'),
+                      msg)
+        if DEBUG: print "sent email to: %s" % prefs.get("ADMIN_EMAIL')
+    except Exception, e:
+        print "Error sending email"
+        print e
+        print "Email message follows:"
+        print msg
         
-    smtp.sendmail(prefs.get('SMTP_FROM'),
-                  prefs.get('ADMIN_EMAIL'),
-                  msg)
     smtp.quit()
 
 
@@ -96,6 +107,25 @@ def usage():
     print "Note: multiple --file args can be processed. ",
     print "If provided, --ignore is implied"
     print
+
+#################################################################################
+
+class Counter(dict):
+    """
+     Behaves like a dictionary, except that if the key isn't found, 0 is returned
+     rather than an exception.  This is suitable for situations like:
+         c = Counter()
+         c['x'] += 1
+    """
+    def __init__(self):
+        dict.__init__(self)
+
+    def __getitem__(self, k):
+        try:
+            return dict.__getitem__(self, k)
+        except:
+            self.__setitem__(k, 0)
+            return 0
 
 #################################################################################
 
@@ -260,7 +290,7 @@ class LoginAttempt:
         self.__valid_users_and_hosts = self.get_abused_users_and_hosts()
         self.__abusive_hosts = self.get_abusive_hosts()
 
-        self.__new_suspicious_logins = []
+        self.__new_suspicious_logins = Counter()
 
 
     def get_new_suspicious_logins(self):
@@ -272,37 +302,16 @@ class LoginAttempt:
 
         if success and self.__abusive_hosts.get(host, 0) > self.__deny_threshold:
             num_failures = self.__valid_users_and_hosts.get(user_host_key, 0)
-            try:
-                self.__suspicious_logins[user_host_key] += 1
-            except:
-                self.__suspicious_logins[user_host_key] = 1
-
-            self.__new_suspicious_logins.append(user_host_key)
+            self.__suspicious_logins[user_host_key] += 1
+            self.__new_suspicious_logins[user_host_key] += 1
             
         elif not success:
             if invalid:
-                try:
-                    self.__invalid_users[user] += 1
-                except:
-                    self.__invalid_users[user] = 1
-                
+                self.__invalid_users[user] += 1                
             else:
-                try:
-                    self.__valid_users[user] += 1
-                except:
-                    self.__valid_users[user] = 1
-                    
-                try:
-                    self.__valid_users_and_hosts[user_host_key] += 1
-                except:
-                    self.__valid_users_and_hosts[user_host_key] = 1
-
-
-            try:
+                self.__valid_users[user] += 1
+                self.__valid_users_and_hosts[user_host_key] += 1
                 self.__abusive_hosts[host] += 1
-            except:
-                self.__abusive_hosts[host] = 1
-                
 
     def get_abusive_hosts(self):
         return self.__get_stats(ABUSIVE_HOSTS)
@@ -322,7 +331,7 @@ class LoginAttempt:
 
     def __get_stats(self, fname):
         path = os.path.join(self.__work_dir, fname)
-        stats = {}
+        stats = Counter()
         try:
             for line in open(path, "r"):
                 try:
@@ -567,9 +576,9 @@ class DenyHosts:
 
         if self.__verbose or DEBUG:
             print "new denied hosts:", str(new_denied_hosts)
-            print "new sucpicious logins:", str(new_suspicious_logins)
+            print "new sucpicious logins:", str(new_suspicious_logins.keys())
 
-        if not noemail and new_denied_hosts or new_suspicious_logins:
+        if not self.__noemail and (new_denied_hosts or new_suspicious_logins):
             send_email(self.__prefs, new_denied_hosts, status, new_suspicious_logins)
             
         return offset
@@ -631,7 +640,6 @@ if __name__ == '__main__':
         ignore_offset = 1
 
     if not prefs.get('ADMIN_EMAIL'): noemail = 1
-
 
     for f in logfiles:
         dh = DenyHosts(f, prefs, ignore_offset, first_time, noemail, verbose)
