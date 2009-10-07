@@ -29,9 +29,13 @@ SUSPICIOUS_LOGINS = "suspicious-logins"   # successful logins AFTER invalid
 
 #DATE_FORMAT_REGEX = re.compile(r"""(?P<month>[A-z]{3,3})\s*(?P<day>\d+)""")
 
-FAILED_ENTRY_REGEX = re.compile(r""".* sshd.*: Failed password for (?P<invalid>invalid user )?(?P<user>.*?) from ::ffff:(?P<host>.*?) """)
+SSHD_FORMAT_REGEX = re.compile(r""".* sshd.*: (?P<message>.*)""")
 
-SUCCESSFUL_ENTRY_REGEX = re.compile(r""".* sshd.*: Accepted password for (?P<user>.*?) from ::ffff:(?P<host>.*?) """)
+FAILED_ENTRY_REGEX = re.compile(r"""Failed (?P<method>.*) for (?P<invalid>invalid user |illegal user )?(?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+
+FAILED_ENTRY_REGEX2 = re.compile(r"""Illegal user (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+
+SUCCESSFUL_ENTRY_REGEX = re.compile(r"""Accepted (?P<method>.*) for (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 PREFS_REGEX = re.compile(r"""(?P<name>.*?)\s*[:=]\s*(?P<value>.*)""")
 
@@ -85,7 +89,7 @@ Subject: %s
 def usage():
     print "Usage:  %s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail]" % sys.argv[0]
     print
-    print " --file:   The name of log file to parse (default is: %s)" % SECURE_LOG
+    print " --file:   The name of log file to parse"
     print " --ignore: Ignore last processed offset (start processing from beginning)"
     print " --noemail: Do not send an email report"
     print
@@ -523,11 +527,18 @@ class DenyHosts:
 
         for line in fp:
             success = invalid = 0
-            m = FAILED_ENTRY_REGEX.match(line)
+            sshd_m = SSHD_FORMAT_REGEX.match(line)
+            if not sshd_m: continue
+            message = sshd_m.group('message')
+
+            m = FAILED_ENTRY_REGEX.match(message) or FAILED_ENTRY_REGEX2.match(message)
             if m:
-                if m.group("invalid"): invalid = 1
+                try:
+                    if m.group("invalid"): invalid = 1
+                except:
+                    invalid = 1
             else:
-                m = SUCCESSFUL_ENTRY_REGEX.match(line)
+                m = SUCCESSFUL_ENTRY_REGEX.match(message)
                 if m:
                     success = 1
             if not m:
@@ -536,7 +547,11 @@ class DenyHosts:
             if m:               
                 user = m.group("user")
                 host = m.group("host")
-
+                if DEBUG:
+                    print "user: %s - host: %s - success: %d - invalid: %d" % (user,
+                                                                               host,
+                                                                               success,
+                                                                               invalid)
                 login_attempt.add(user, host, success, invalid)
                     
 
@@ -571,8 +586,8 @@ if __name__ == '__main__':
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinv?hV',
-                                        ["=file", "ignore", "verbose", "debug",
-                                         "help", "noemail", "=config"])
+                                        ["file=", "ignore", "verbose", "debug",
+                                         "help", "noemail", "config="])
     except:
         print "\nInvalid command line option detected."
         usage()
