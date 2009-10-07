@@ -1,0 +1,17 @@
+DENYHOSTS CHANGELOG
+
+0.6.0
+=====
+
+- Modified email message date/time format to be RFC-2822 compliant.  Incorporated patch contributed by Rick 
+Holbert.
+
+- Added reverse dns lookups and the HOSTNAME_LOOKUP for enabling/disabling them.  Incorporated feature 
+request of Ron Joffe.
+
+- Added additional config option (SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS) for reporting (or not) 
+suspicious login activity.  This feature is based on feedback from Ron Joffe.  
+
+- Updated regex for matching non-existent user break-ins.  Previously, "invalid" was matched against.  
+Now, both "invalid" and "illegal" should match.  This fix is based on email from Scott Hunziker.
+

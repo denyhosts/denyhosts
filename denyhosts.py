@@ -1,11 +1,13 @@
-#!/bin/env python
+#!/usr/bin/env python
 import os, sys
 import re
 import getopt
 from smtplib import SMTP
 import string
 import time
+import socket
 from types import ListType, TupleType
+from version import VERSION
 
 global DEBUG
 DEBUG=0
@@ -36,13 +38,15 @@ SSHD_FORMAT_REGEX = re.compile(r""".* sshd.*: (?P<message>.*)""")
 
 FAILED_ENTRY_REGEX = re.compile(r"""Failed (?P<method>.*) for (?P<invalid>invalid user |illegal user )?(?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
-FAILED_ENTRY_REGEX2 = re.compile(r"""Illegal user (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+FAILED_ENTRY_REGEX2 = re.compile(r"""(Illegal|Invalid) user (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 SUCCESSFUL_ENTRY_REGEX = re.compile(r"""Accepted (?P<method>.*) for (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 PREFS_REGEX = re.compile(r"""(?P<name>.*?)\s*[:=]\s*(?P<value>.*)""")
 
 ALLOWED_REGEX = re.compile(r"""(?P<first_3bits>\d{1,3}\.\d{1,3}\.\d{1,3}\.)((?P<fourth>\d{1,3})|(?P<ip_wildcard>\*)|\[(?P<ip_range>\d{1,3}\-\d{1,3})\])""")
+
+IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 #################################################################################
 
@@ -64,7 +68,7 @@ Date: %s
 """ % (prefs.get('SMTP_FROM'),
        prefs.get('ADMIN_EMAIL'),
        prefs.get('SMTP_SUBJECT'),
-       time.asctime())
+       time.strftime("%a, %d %B %Y %H:%M:%S %Z"))
 
     msg += report_str
     try:
@@ -82,11 +86,12 @@ Date: %s
 
 
 def usage():
-    print "Usage:  %s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail]" % sys.argv[0]
+    print "Usage:  %s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--version]" % sys.argv[0]
     print
     print " --file:   The name of log file to parse"
     print " --ignore: Ignore last processed offset (start processing from beginning)"
     print " --noemail: Do not send an email report"
+    print " --version: Prints the version of DenyHosts and exits"
     print
     print "Note: multiple --file args can be processed. ",
     print "If provided, --ignore is implied"
@@ -114,9 +119,13 @@ class Counter(dict):
 #################################################################################
 
 class Report:
-    def __init__(self):
+    def __init__(self, hostname_lookup):
         self.report = ""
-
+        if hostname_lookup.lower() in ('no', 'false', '0'):
+            self.hostname_lookup = 0
+        else:
+            self.hostname_lookup = 1
+        
     def empty(self):
         if self.report: return 0
         else: return 1
@@ -128,18 +137,44 @@ class Report:
         self.report += "%s:\n\n" % message
         for i in iterable:
             if type(i) in (TupleType, ListType):
-                self.report += "%s: %d" % (i[0], i[1])
+                extra = ": %d\n" % i[1]
+                i = i[0]
             else:
-                self.report += "%s\n" % i
+                extra = ""
+            if self.hostname_lookup:
+                hostname = self.get_hostname(i)
+                if DEBUG: print "get_host:", hostname
+            else: hostname = i
+
+            self.report += "%s%s\n" % (hostname, extra)
+                
         self.report += "\n" + "-" * 70 + "\n"
+
         
-            
+    def get_hostname(self, text):
+        m = IP_ADDR_REGEX.search(text)
+
+        if m:
+            start = m.start()
+            ip = m.group('ip')
+            text = text[:start]
+        else:
+            return text
+
+        try:
+            hostname = socket.gethostbyaddr(ip)[0]
+            return "%s (%s)" % (ip, hostname)
+        except Exception, e:
+            return "%s (unknown)" % ip
+           
         
 #################################################################################
 
 class Prefs:
     def __init__(self, path=None):
-        self.__data = {'ADMIN_EMAIL': None}
+        self.__data = {'ADMIN_EMAIL': None,
+                       'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
+                       'HOSTNAME_LOOKUP': 'yes'}
         
         self.reqd = ('DENY_THRESHOLD',
                      'SECURE_LOG',
@@ -288,10 +323,12 @@ class FileTracker:
     
 
 class LoginAttempt:
-    def __init__(self, work_dir, deny_threshold, first_time=0):
+    def __init__(self, work_dir, deny_threshold, allowed_hosts, suspicious_always=1, first_time=0):
         self.__work_dir = work_dir
         self.__deny_threshold = deny_threshold
         self.__first_time = first_time
+        self.__suspicious_always = suspicious_always
+        self.__allowed_hosts = allowed_hosts
         
         self.__suspicious_logins = self.get_suspicious_logins()
         self.__valid_users = self.get_abused_users_valid()
@@ -311,7 +348,8 @@ class LoginAttempt:
         if success and self.__abusive_hosts.get(host, 0) > self.__deny_threshold:
             num_failures = self.__valid_users_and_hosts.get(user_host_key, 0)
             self.__suspicious_logins[user_host_key] += 1
-            self.__new_suspicious_logins[user_host_key] += 1
+            if self.__suspicious_always or host not in self.__allowed_hosts:
+                self.__new_suspicious_logins[user_host_key] += 1
             
         elif not success:
             self.__abusive_hosts[host] += 1
@@ -490,7 +528,7 @@ class DenyHosts:
         self.__first_time = first_time
         self.__noemail = noemail
         self.__verbose = verbose
-        self.__report = Report()
+        self.__report = Report(self.__prefs.get("HOSTNAME_LOOKUP"))
         
         file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
                                    logfile)
@@ -515,7 +553,6 @@ class DenyHosts:
                 print "Log file size has not changed.  Nothing to do."
                 
 
-
     def get_denied_hosts(self):
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
             if line[0] not in ('#', '\n'):
@@ -534,8 +571,8 @@ class DenyHosts:
             
             text = """WARNING: The following hosts appear in %s but should be
 allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
-                                      os.path.join(self.__prefs.get("WORK_DIR"),
-                                                   ALLOWED_HOSTS))
+                                     os.path.join(self.__prefs.get("WORK_DIR"),
+                                                  ALLOWED_HOSTS))
             self.__report.add_section(text, new_warned_hosts)
             
 
@@ -581,9 +618,14 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         except:
             pass
 
+        suspicious_always = self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS')
+        if suspicious_always.lower() in ('no', 'false', '0'): suspicious_always = 0
+        else: suspicious_always = 1
         
         login_attempt = LoginAttempt(self.__prefs.get('WORK_DIR'),
                                      self.__prefs.get('DENY_THRESHOLD'),
+                                     self.__allowed_hosts,
+                                     suspicious_always,
                                      self.__first_time)
 
         for line in fp:
@@ -662,7 +704,7 @@ if __name__ == '__main__':
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinv?hV',
                                         ["file=", "ignore", "verbose", "debug",
-                                         "help", "noemail", "config="])
+                                         "help", "noemail", "config=", "version"])
     except:
         print "\nInvalid command line option detected."
         usage()
@@ -685,6 +727,9 @@ if __name__ == '__main__':
             DEBUG = 1            
         if opt in ('-c', '--config'):
             config_file = arg
+        if opt == '--version':
+            print "DenyHosts version:", VERSION
+            sys.exit(0)
 
     prefs = Prefs(config_file)
     first_time = 0

@@ -56,6 +56,30 @@ WORK_DIR = denyhosts
 #
 #######################################################################
 
+#######################################################################
+#
+# SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS
+#
+# SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS=YES|NO
+# If set to YES, if a suspicious login attempt results from an allowed-host
+# then it is considered suspicious.  If this is NO, then suspicious logins 
+# from allowed-hosts will not be reported.  All suspicious logins from 
+# ip addresses that are not in allowed-hosts will always be reported.
+#
+SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS=YES
+######################################################################
+
+######################################################################
+#
+# HOSTNAME_LOOKUP
+#
+# HOSTNAME_LOOKUP=YES|NO
+# If set to YES, for each IP address that is reported by Denyhosts,
+# the corresponding hostname will be looked up and reported as well
+# (if available).
+#
+HOSTNAME_LOOKUP=YES
+######################################################################
 
 
        ############ THESE SETTINGS ARE OPTIONAL ############
