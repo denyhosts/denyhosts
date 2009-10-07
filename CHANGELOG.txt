@@ -7,6 +7,11 @@ DENYHOSTS CHANGELOG
   entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
   idea and code contribution).
 
+2.4b (April 9, 2006)
+===================
+
+- fixed missing "self." in loginattempt.py
+
 2.4 (April 9, 2006)
 ===================
 

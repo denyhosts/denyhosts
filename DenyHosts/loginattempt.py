@@ -103,7 +103,7 @@ class LoginAttempt:
                     self.increment_count(host,
                                          self.__abusive_hosts_root,
                                          self.__age_reset_root)
-                elif user in __restricted:
+                elif user in self.__restricted:
                     self.increment_count(host,
                                          self.__abusive_hosts_restricted,
                                          self.__age_reset_restricted)
