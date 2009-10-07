@@ -3,10 +3,9 @@ import shutil
 import time
 import logging
 
-from constants import TAB_OFFSET, PURGE_TIME_LOOKUP, DENY_DELIMITER
-from regex import PURGE_TIME_REGEX
+from constants import TAB_OFFSET, DENY_DELIMITER
 from loginattempt import AbusiveHosts
-from util import parse_host
+from util import parse_host, calculate_seconds
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
@@ -89,7 +88,7 @@ class Migrate(DenyFileUtilBase):
 class Purge(DenyFileUtilBase):
     def __init__(self, deny_file, purge_timestr, work_dir):
         DenyFileUtilBase.__init__(self, deny_file, "purge")
-        cutoff = self.calculate(purge_timestr)
+        cutoff = calculate_seconds(purge_timestr)
 
         self.cutoff = long(time.time()) - cutoff
         debug("relative cutoff: %ld (seconds)", cutoff)
@@ -111,19 +110,6 @@ class Purge(DenyFileUtilBase):
             
         info("num entries purged: %d", num_purged)
               
-    def calculate(self, timestr):
-        m = PURGE_TIME_REGEX.search(timestr)
-        if not m:
-            raise Exception, "Invalid PURGE_TIME specification: string format"
-
-        units = int(m.group('units'))
-        period = m.group('period')
-
-        if units == 0:
-            raise Exception, "Invalid PURGE_TIME specification: units = 0"
-        # anything older than cutoff will get removed
-        return units * PURGE_TIME_LOOKUP[period]
-
         
     def create_temp(self, data):
         purged_hosts = []

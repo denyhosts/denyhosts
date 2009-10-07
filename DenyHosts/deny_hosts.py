@@ -20,7 +20,7 @@ from constants import *
 from regex import *
 from daemon import createDaemon
 from denyfileutil import Purge
-from util import parse_host
+from util import parse_host, calculate_seconds
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
@@ -110,10 +110,10 @@ class DenyHosts:
 
         secure_log = self.__prefs.get('SECURE_LOG')
         info("monitoring log: %s", secure_log)
-        daemon_sleep = self.__prefs.get('DAEMON_SLEEP')
-        purge_time = self.__prefs.get('PURGE_DENY')
+        daemon_sleep = calculate_seconds(self.__prefs.get('DAEMON_SLEEP'))
+        purge_time = calculate_seconds(self.__prefs.get('PURGE_DENY'))
         if purge_time:
-            daemon_purge = self.__prefs.get('DAEMON_PURGE')
+            daemon_purge = calculate_seconds(self.__prefs.get('DAEMON_PURGE'))
             daemon_purge = max(daemon_sleep, daemon_purge)
             purge_sleep_ratio = daemon_purge / daemon_sleep
             info("daemon_purge:      %ld", daemon_purge)

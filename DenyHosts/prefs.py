@@ -12,8 +12,8 @@ class Prefs:
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
                        'HOSTNAME_LOOKUP': 'yes',
                        'DAEMON_LOG': '/var/log/denyhosts',
-                       'DAEMON_SLEEP': 30,
-                       'DAEMON_PURGE': 3600}
+                       'DAEMON_SLEEP': '30s',
+                       'DAEMON_PURGE': '1h'}
 
         # reqd[0]: required field name
         # reqd[1]: is value required? (False = value can be blank)
@@ -34,9 +34,7 @@ class Prefs:
                          'HOSTS_DENY',
                          'DAEMON_LOG')
 
-        self.to_int = ('DENY_THRESHOLD',
-                       'DAEMON_PURGE',
-                       'DAEMON_SLEEP')
+        self.to_int = ('DENY_THRESHOLD', )
                 
         if path: self.load_settings(path)
 

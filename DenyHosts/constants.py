@@ -26,7 +26,8 @@ ALLOWED_WARNED_HOSTS = "allowed-warned-hosts"
 CONFIG_FILE = "denyhosts.cfg"
 TAB_OFFSET = 40
 DENY_DELIMITER = "# DenyHosts:"
-PURGE_TIME_LOOKUP = {'m': 60,       # minute
+TIME_SPEC_LOOKUP =  {'s': 1,        # s
+                     'm': 60,       # minute
                      'h': 3600,     # hour
                      'd': 86400,    # day
                      'w': 604800,   # week

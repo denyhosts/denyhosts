@@ -3,7 +3,8 @@ import os
 import time
 from smtplib import SMTP
 import logging
-from constants import BSD_STYLE
+from constants import BSD_STYLE, TIME_SPEC_LOOKUP
+from regex import TIME_SPEC_REGEX
 
 debug = logging.getLogger("util").debug
 
@@ -22,6 +23,26 @@ def is_true(s):
 
 def is_false(s):
     return not is_true(s)
+
+
+def calculate_seconds(timestr, zero_ok=False):
+    # return the number of seconds in a given timestr such as 1d (1 day),
+    # 13w (13 weeks), 5s (5seconds), etc...
+    
+    m = TIME_SPEC_REGEX.search(timestr)
+    if not m:
+        raise Exception, "Invalid time specification: string format error: %s", timestr
+
+    units = int(m.group('units'))
+    period = m.group('period') or 's' # seconds is the default
+
+    if units == 0 and not zero_ok:
+        raise Exception, "Invalid time specification: units = 0"
+
+    seconds = units * TIME_SPEC_LOOKUP[period]
+    debug("converted %s to %ld seconds: ", timestr, seconds)
+    return seconds
+
 
 def parse_host(line):
     # parses a line from /etc/hosts.deny

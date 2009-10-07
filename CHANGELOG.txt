@@ -1,5 +1,13 @@
 DENYHOSTS CHANGELOG
 
+0.9.2
+=====
+
+- Daemon configuration params DAEMON_SLEEP and DAEMON_PURGE can now be given in the same format accepted by 
+PURGE_DENY (eg. 1d, 5h, 1y, etc...).  If no unit qualifier (eg. s, m, d, h, w, y) is given then 's' (seconds) is 
+assumed.
+
+
 0.9.1
 =====
 

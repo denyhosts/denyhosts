@@ -19,7 +19,7 @@ FAILED_ENTRY_REGEX4 = re.compile(r"""Authentication failure for (?P<user>.*) fro
 
 SUCCESSFUL_ENTRY_REGEX = re.compile(r"""Accepted (?P<method>.*) for (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
-PURGE_TIME_REGEX = re.compile(r"""(?P<units>\d*)\s*(?P<period>[mhdwy])""")
+TIME_SPEC_REGEX = re.compile(r"""(?P<units>\d*)\s*(?P<period>[smhdwy])?""")
 
 ALLOWED_REGEX = re.compile(r"""(?P<first_3bits>\d{1,3}\.\d{1,3}\.\d{1,3}\.)((?P<fourth>\d{1,3})|(?P<ip_wildcard>\*)|\[(?P<ip_range>\d{1,3}\-\d{1,3})\])""")
 
