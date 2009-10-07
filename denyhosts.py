@@ -180,11 +180,6 @@ if __name__ == '__main__':
         
         
     try:
-        #if daemon:
-            #if prefs.get('DAEMON_SLEEP') <= 0:
-            #    die("DAEMON_SLEEP value must be > 0")
-
-
         for f in logfiles:
             dh = DenyHosts(f, prefs, lock_file, ignore_offset,
                            first_time, noemail, daemon)
@@ -193,5 +188,7 @@ if __name__ == '__main__':
     except Exception, e:
         traceback.print_exc(file=sys.stdout)
         print "\nDenyHosts exited abnormally"
+
+    # remove lock file on exit
     lock_file.remove()
             

@@ -1,5 +1,18 @@
 DENYHOSTS CHANGELOG
 
+0.9.4
+=====
+
+- Fixed duplicate email report bug in --daemon mode.
+
+0.9.3
+=====
+
+- Fixed --daemon mode bug which occurred during purging entries
+
+- Added more useful exception reporting for daemon mode
+
+
 0.9.2
 =====
 

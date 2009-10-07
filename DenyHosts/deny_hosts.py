@@ -321,12 +321,13 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             self.__report.add_section(msg, new_suspicious_logins.items())
         
         info("new denied hosts: %s", str(new_denied_hosts))
-        info("new sucpicious logins: %s", str(new_suspicious_logins.keys()))
+        info("new suspicious logins: %s", str(new_suspicious_logins.keys()))
 
         if not self.__report.empty():
             if not self.__noemail:
                 send_email(self.__prefs, self.__report.get_report())
             elif not self.__daemon:
                 info(self.__report.get_report())
+            self.__report.clear()
             
         return offset

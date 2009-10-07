@@ -17,6 +17,9 @@ class Report:
     def empty(self):
         if self.report: return 0
         else: return 1
+
+    def clear(self):
+        self.report = ""
     
     def get_report(self):
         return self.report
