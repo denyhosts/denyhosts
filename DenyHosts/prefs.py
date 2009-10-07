@@ -8,6 +8,7 @@ info = logging.getLogger("prefs").info
 
 class Prefs:
     def __init__(self, path=None):
+        # default values for some of the configurable items
         self.__data = {'ADMIN_EMAIL': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
                        'HOSTNAME_LOOKUP': 'yes',
@@ -24,6 +25,8 @@ class Prefs:
         # reqd[0]: required field name
         # reqd[1]: is value required? (False = value can be blank)
         self.reqd = (('DENY_THRESHOLD', True),
+                     ('DENY_THRESHOLD_VALID', True),
+                     ('DENY_THRESHOLD_ROOT', True),
                      ('SECURE_LOG', True),
                      ('LOCK_FILE', True),
                      ('BLOCK_SERVICE', False),
@@ -40,7 +43,10 @@ class Prefs:
                          'HOSTS_DENY',
                          'DAEMON_LOG')
 
-        self.to_int = ('DENY_THRESHOLD', )
+        # these settings are converted to numeric values
+        self.to_int = ('DENY_THRESHOLD', 
+                       'DENY_THRESHOLD_VALID',
+                       'DENY_THRESHOLD_ROOT')
                 
         if path: self.load_settings(path)
 

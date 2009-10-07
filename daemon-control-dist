@@ -20,7 +20,7 @@ STATE_NOT_RUNNING = -1
 STATE_LOCK_EXISTS = -2
 
 def usage():
-    print "Usage: %s {start [args...] | stop | restart [args...] | status | debug }" % sys.argv[0]
+    print "Usage: %s {start [args...] | stop | restart [args...] | status | debug | condrestart [args...] }" % sys.argv[0]
     print
     print "For a list of valid 'args' refer to:"
     print "$ denyhosts.py --help"
@@ -77,19 +77,25 @@ def status():
         print "DenyHosts is running with pid = %d" % pid
 
 
+def condrestart(*args):
+    pid = getpid()
+    if pid >= 0:
+        restart(*args)
+        
+
 def restart(*args):
     stop()
     start(*args)  
 
 
 if __name__ == '__main__':
-
-    cases = {'start':   start,
-             'stop':    stop,
-             'debug':   debug,
-             'status':  status,
-             'restart': restart}
-
+    cases = {'start':       start,
+             'stop':        stop,
+             'debug':       debug,
+             'status':      status,
+             'condrestart': condrestart,
+             'restart':     restart}
+    
     try:
         args = sys.argv[2:]
     except:
@@ -103,10 +109,6 @@ if __name__ == '__main__':
                 args.append("--config=%s" % DENYHOSTS_CFG)
 
         cmd = cases[option]
-    except:
-        cmd = usage
-
-    try:
         apply(cmd, args)
     except:
         usage()

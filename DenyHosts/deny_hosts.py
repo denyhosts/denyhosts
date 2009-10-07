@@ -295,6 +295,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         
         login_attempt = LoginAttempt(self.__prefs.get('WORK_DIR'),
                                      self.__prefs.get('DENY_THRESHOLD'),
+                                     self.__prefs.get('DENY_THRESHOLD_VALID'),
+                                     self.__prefs.get('DENY_THRESHOLD_ROOT'),
                                      self.__allowed_hosts,
                                      suspicious_always,
                                      self.__first_time)
@@ -336,7 +338,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         fp.close()
 
         login_attempt.save_all_stats()
-        deny_hosts = login_attempt.get_deny_hosts(self.__prefs.get('DENY_THRESHOLD'))
+        deny_hosts = login_attempt.get_deny_hosts()
 
         #print deny_hosts
         new_denied_hosts, status = self.update_hosts_deny(deny_hosts)

@@ -8,7 +8,10 @@ import sys
 SECURE_LOG_OFFSET = "offset"
 DENIED_TIMESTAMPS = "denied-timestamps"
 #PARSED_DATES = "file_dates"
-ABUSIVE_HOSTS = "hosts"
+
+ABUSIVE_HOSTS_INVALID = "hosts"
+ABUSIVE_HOSTS_VALID = "hosts-valid"
+ABUSIVE_HOSTS_ROOT = "hosts-root"
 
 ABUSED_USERS_INVALID = "users-invalid"
 ABUSED_USERS_VALID = "users-valid"
@@ -23,9 +26,11 @@ ALLOWED_WARNED_HOSTS = "allowed-warned-hosts"
 #                           Miscellaneous constants                             #
 #################################################################################
 
-CONFIG_FILE = "denyhosts.cfg"
+CONFIG_FILE = "denyhosts.cfg"  # default can be overridden on cmd line
+
 DENY_DELIMITER = "# DenyHosts:"
 ENTRY_DELIMITER = " | "
+
 TIME_SPEC_LOOKUP =  {'s': 1,        # s
                      'm': 60,       # minute
                      'h': 3600,     # hour

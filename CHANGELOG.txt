@@ -1,5 +1,23 @@
 DENYHOSTS CHANGELOG
 
+1.0.0
+=====
+
+- added new configuration option, DENY_THRESHOLD_VALID 
+
+- added new configuration option, DENY_THRESHOLD_ROOT 
+
+- added "hosts-valid" output file (relative to WORK_DIR)
+
+- added "hosts-root" output file (relative to WORK_DIR)
+
+- modified loginattempt.py to handle valid/invalid login hosts
+  independently.
+
+- added 'condrestart' option to daemon-control-dist as per patch from Jason L Tibbitts III
+
+- fixed double usage() method from being displayed by daemon-control-dist
+
 0.9.9
 =====
 

@@ -79,7 +79,8 @@ BLOCK_SERVICE  = sshd
 #######################################################################
 #
 # DENY_THRESHOLD: block each host after the number of failed login 
-# attempts has exceeded this value.
+# attempts has exceeded this value.  This value applies to invalid
+# user login attempts (eg. non-existent user accounts)
 #
 DENY_THRESHOLD = 5
 #
@@ -87,8 +88,33 @@ DENY_THRESHOLD = 5
 
 #######################################################################
 #
+# DENY_THRESHOLD_VALID: block each host after the number of failed 
+# login attempts has exceeded this value.  This value applies to valid
+# user login attempts (eg. user accounts that exist in /etc/passwd) except
+# for the "root" user
+#
+DENY_THRESHOLD_VALID = 10
+#
+#######################################################################
+
+#######################################################################
+#
+# DENY_THRESHOLD_ROOT: block each host after the number of failed 
+# login attempts has exceeded this value.  This value applies to 
+# "root" user login attempts only.
+#
+DENY_THRESHOLD_ROOT = 1
+#
+#######################################################################
+
+
+#######################################################################
+#
 # WORK_DIR: the path that DenyHosts will use for writing data to
-# (it will be created if it does not already exist).       
+# (it will be created if it does not already exist).  
+#
+# Note: when run in daemon mode, this directory should be specified
+# as an absolute path name (eg. /home/foo/denyhosts/data)
 #
 WORK_DIR = denyhosts
 #
@@ -117,6 +143,7 @@ SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS=YES
 # (if available).
 #
 HOSTNAME_LOOKUP=YES
+#
 ######################################################################
 
 
@@ -134,7 +161,7 @@ HOSTNAME_LOOKUP=YES
 LOCK_FILE = /var/lock/subsys/denyhosts
 #
 #LOCK_FILE = /tmp/denyhosts.lock
-
+#
 ######################################################################
 
 
@@ -156,7 +183,7 @@ ADMIN_EMAIL =
 #
 SMTP_HOST = localhost
 SMTP_PORT = 25
-SMTP_FROM = DenyHosts
+SMTP_FROM = DenyHosts <nobody@localhost>
 SMTP_SUBJECT = DenyHosts Report
 #
 #######################################################################
@@ -182,20 +209,22 @@ DAEMON_LOG = /var/log/denyhosts
 #
 # DAEMON_SLEEP: when DenyHosts is run in daemon mode (--daemon flag)
 # this is the amount of time DenyHosts will sleep between polling
-# the SECURE_LOG.  This value is in seconds (default is 30)
+# the SECURE_LOG.  See the comments in the PURGE_DENY section (above)
+# for details on specifying this value or for complete details
+# refer to:    http://denyhosts.sourceforge.net/faq.html#timespec
+# 
 #
-DAEMON_SLEEP = 30
+DAEMON_SLEEP = 30s
 #
 #######################################################################
 
 #######################################################################
 #
-# DAEMON_PURGE: How often should DenyHosts, when run in daemon mode
+# DAEMON_PURGE: How often should DenyHosts, when run in daemon mode,
 # run the purge mechanism to expire old entries in HOSTS_DENY
-# This value is in seconds (default is 3600 seconds = 1 hour)
 # This has no effect if PURGE_DENY is blank.
 #
-DAEMON_PURGE = 60
+DAEMON_PURGE = 1h
 #
 #######################################################################
 
