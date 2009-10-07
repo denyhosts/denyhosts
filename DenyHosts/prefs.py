@@ -4,6 +4,7 @@ from regex import PREFS_REGEX
 import logging
 
 debug = logging.getLogger("prefs").debug
+info = logging.getLogger("prefs").info
 
 class Prefs:
     def __init__(self, path=None):
@@ -99,6 +100,6 @@ class Prefs:
     
     def dump_to_logger(self):
         keys = self.__data.keys()
-        debug("DenyHosts configuration settings:")
+        info("DenyHosts configuration settings:")
         for key in keys:
-            debug("   %s: [%s]", key, self.__data[key])
+            info("   %s: [%s]", key, self.__data[key])

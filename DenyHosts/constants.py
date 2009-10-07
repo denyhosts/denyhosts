@@ -1,4 +1,6 @@
 
+import sys
+
 #################################################################################
 #        These files will be created relative to prefs WORK_DIR                 #
 #################################################################################
@@ -30,3 +32,11 @@ PURGE_TIME_LOOKUP = {'m': 60,       # minute
                      'w': 604800,   # week
                      'y': 31536000} # year
 
+
+
+plat = sys.platform
+if plat.startswith("freebsd"):
+    # this has no effect if BLOCK_SERVICE is empty
+    BSD_STYLE = " : deny"
+else:
+    BSD_STYLE = ""

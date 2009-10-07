@@ -2,8 +2,8 @@ import sys
 import os
 import time
 from smtplib import SMTP
-
 import logging
+from constants import BSD_STYLE
 
 debug = logging.getLogger("util").debug
 
@@ -22,6 +22,31 @@ def is_true(s):
 
 def is_false(s):
     return not is_true(s)
+
+def parse_host(line):
+    # parses a line from /etc/hosts.deny
+    # returns the ip address
+    
+    # the deny file can be in the form:
+    # 1) ip_address
+    # 2) sshd: ip_address
+    # 3) ip_address : deny
+    # 4) sshd: ip_address : deny
+
+    # convert form 3 & 4 to 1 & 2
+    try:
+        line = line.strip(BSD_STYLE)
+
+        vals = line.split(":")
+
+        # we're only concerned about the ip_address
+        if len(vals) == 1: form = vals[0]
+        else: form = vals[1]
+
+        host = form.strip()
+    except:
+        host = ""
+    return host
 
 
 def send_email(prefs, report_str):

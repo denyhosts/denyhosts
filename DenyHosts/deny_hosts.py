@@ -20,17 +20,11 @@ from constants import *
 from regex import *
 from daemon import createDaemon
 from denyfileutil import Purge
+from util import parse_host
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
 
-
-plat = sys.platform
-if plat.startswith("freebsd"):
-    # this has no effect if BLOCK_SERVICE is empty
-    BSD_STYLE = " : deny"
-else:
-    BSD_STYLE = ""
     
 class DenyHosts:
     def __init__(self, logfile, prefs, lock_file,
@@ -109,7 +103,7 @@ class DenyHosts:
     def runDaemon(self, logfile, last_offset):
         signal.signal(signal.SIGHUP, self.killDaemon)
         signal.signal(signal.SIGUSR1, self.toggleDebug)
-        info("DenyHosts daemon is now running")
+        info("DenyHosts daemon is now running, pid: %s", os.getpid())
         info("send daemon process a HUP signal to terminate cleanly")
         info("  eg.  kill -HUP %s", os.getpid())
         self.__lock_file.create()  
@@ -163,7 +157,8 @@ class DenyHosts:
                 if i == purge_sleep_ratio:
                     try:
                         Purge(self.__prefs.get('HOSTS_DENY'),
-                              purge_time)
+                              purge_time,
+                              self.__prefs.get('WORK_DIR'))
                     except Exception, e:
                         die(str(e))
                     i = 0
@@ -179,22 +174,8 @@ class DenyHosts:
                     line = line[:idx]
                     
                 try:
-                    # the deny file can be in the form:
-                    # 1) ip_address
-                    # 2) sshd: ip_address
-                    # 3) ip_address : deny
-                    # 4) sshd: ip_address : deny
+                    host = parse_host(line)
 
-                    # convert form 3 & 4 to 1 & 2
-                    line = line.strip(BSD_STYLE)
-                    
-                    vals = line.split(":")
-                    
-                    # we're only concerned about the ip_address
-                    if len(vals) == 1: form = vals[0]
-                    else: form = vals[1]
-                    
-                    host = form.strip()
                     self.__denied_hosts[host] = 0
                     if host in self.__allowed_hosts:
                         self.__allowed_hosts.add_warned_host(host)

@@ -1,5 +1,17 @@
 DENYHOSTS CHANGELOG
 
+0.9.1
+=====
+
+- Running in daemon mode now dumps preferences to log file
+
+- Added AbusiveHosts class
+
+- Added additional parameter to Purge constructor
+
+- Purged entries from HOSTS_DENY are also removed from WORK_DIR/hosts
+  SF bug: http://sourceforge.net/tracker/index.php?func=detail&aid=1243093&group_id=131204&atid=720419
+
 0.9.0
 =====
 

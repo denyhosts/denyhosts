@@ -13,8 +13,6 @@ from DenyHosts.constants import *
 from DenyHosts.deny_hosts import DenyHosts
 from DenyHosts.denyfileutil import Purge, Migrate
 
-    
-
 
 #################################################################################
 
@@ -58,10 +56,11 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             if enable_debug:
                 # if --debug was enabled provide gory activity details
                 logging.getLogger().setLevel(logging.DEBUG)
-                prefs.dump_to_logger()
+                #prefs.dump_to_logger()                              
             else:
                 # in daemon mode we always log some activity
                 logging.getLogger().setLevel(logging.INFO)
+            prefs.dump_to_logger()
     else:
         try:
             # python 2.4
@@ -172,7 +171,8 @@ if __name__ == '__main__':
         else:
             try:
                 p = Purge(prefs.get('HOSTS_DENY'),
-                          purge_time)
+                          purge_time,
+                          prefs.get('WORK_DIR'))
             except Exception, e:
                 lock_file.remove()
                 die(str(e))

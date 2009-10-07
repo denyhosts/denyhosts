@@ -5,6 +5,8 @@ import logging
 
 from constants import TAB_OFFSET, PURGE_TIME_LOOKUP, DENY_DELIMITER
 from regex import PURGE_TIME_REGEX
+from loginattempt import AbusiveHosts
+from util import parse_host
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
@@ -85,7 +87,7 @@ class Migrate(DenyFileUtilBase):
 #################################################################################
 
 class Purge(DenyFileUtilBase):
-    def __init__(self, deny_file, purge_timestr):
+    def __init__(self, deny_file, purge_timestr, work_dir):
         DenyFileUtilBase.__init__(self, deny_file, "purge")
         cutoff = self.calculate(purge_timestr)
 
@@ -96,10 +98,14 @@ class Purge(DenyFileUtilBase):
              time.asctime(time.localtime(self.cutoff)))
         
         self.backup()
-        
-        num_purged = self.create_temp(self.get_data())
+
+        purged_hosts = self.create_temp(self.get_data())
+        num_purged = len(purged_hosts)
         if num_purged > 0:
             self.replace()
+            abusive_hosts = AbusiveHosts(work_dir)
+            abusive_hosts.purge_hosts(purged_hosts)
+            abusive_hosts.save_abusive_hosts()
         else:
             self.remove_temp()
             
@@ -120,7 +126,7 @@ class Purge(DenyFileUtilBase):
 
         
     def create_temp(self, data):
-        num_purged = 0
+        purged_hosts = []
         try:
             fp = open(self.temp_file, "w")
             for line in data:
@@ -145,8 +151,9 @@ class Purge(DenyFileUtilBase):
                 #print entry, epoch, self.cutoff
 
                 if self.cutoff > epoch:
-                    num_purged += 1
-                    debug("purging: %s", entry)
+                    host = parse_host(entry)
+                    if host:
+                        purged_hosts.append(host)
                     continue
                 else:
                     fp.write(line)
@@ -155,5 +162,5 @@ class Purge(DenyFileUtilBase):
         except Exception, e:
             raise e
 
-        return num_purged
+        return purged_hosts
     

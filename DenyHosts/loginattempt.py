@@ -1,22 +1,28 @@
 import os
+import logging
 
 from counter import Counter
 from constants import *
 
+debug = logging.getLogger("loginattempt").debug
+info = logging.getLogger("loginattempt").info
+
 class LoginAttempt:
-    def __init__(self, work_dir, deny_threshold, allowed_hosts, suspicious_always=1, first_time=0):
+    def __init__(self, work_dir, deny_threshold, allowed_hosts,
+                 suspicious_always=1, first_time=0, fetch_all=1):
         self.__work_dir = work_dir
         self.__deny_threshold = deny_threshold
         self.__first_time = first_time
         self.__suspicious_always = suspicious_always
         self.__allowed_hosts = allowed_hosts
-        
-        self.__suspicious_logins = self.get_suspicious_logins()
-        self.__valid_users = self.get_abused_users_valid()
-        self.__invalid_users = self.get_abused_users_invalid()
-        self.__valid_users_and_hosts = self.get_abused_users_and_hosts()
-        self.__abusive_hosts = self.get_abusive_hosts()
-        self.__new_suspicious_logins = Counter()
+
+        if fetch_all:
+            self.__suspicious_logins = self.get_suspicious_logins()
+            self.__valid_users = self.get_abused_users_valid()
+            self.__invalid_users = self.get_abused_users_invalid()
+            self.__valid_users_and_hosts = self.get_abused_users_and_hosts()
+            self.__abusive_hosts = self.get_abusive_hosts()
+            self.__new_suspicious_logins = Counter()
 
 
     def get_new_suspicious_logins(self):
@@ -40,6 +46,8 @@ class LoginAttempt:
                 self.__valid_users[user] += 1
                 self.__valid_users_and_hosts[user_host_key] += 1
 
+
+            
 
     def get_abusive_hosts(self):
         return self.__get_stats(ABUSIVE_HOSTS)
@@ -79,8 +87,10 @@ class LoginAttempt:
         self.save_abused_users_and_hosts()
         self.save_suspicious_logins()
 
-    def save_abusive_hosts(self):
-        self.__save_stats(ABUSIVE_HOSTS, self.__abusive_hosts)
+    def save_abusive_hosts(self, abusive_hosts=None):
+        if not abusive_hosts:
+            abusive_hosts = self.__abusive_hosts
+        self.__save_stats(ABUSIVE_HOSTS, abusive_hosts)
 
     def save_abused_users_invalid(self):
         self.__save_stats(ABUSED_USERS_INVALID, self.__invalid_users)
@@ -118,3 +128,28 @@ class LoginAttempt:
             fp.write("%s:%d\n" % (key, stats[key]))
         fp.close()
         
+
+class AbusiveHosts(LoginAttempt):
+    def __init__(self, work_dir):
+        LoginAttempt.__init__(self,
+                              work_dir,
+                              None,
+                              None,
+                              fetch_all = 0)
+        self.__abusive_hosts = self.get_abusive_hosts()
+        
+    def save_abusive_hosts(self):
+        LoginAttempt.save_abusive_hosts(self,
+                                        self.__abusive_hosts)
+
+    def purge_host(self, host):
+        try:
+            self.__abusive_hosts[host] = None
+            del self.__abusive_hosts[host]
+        except:
+            pass
+
+    def purge_hosts(self, hosts):
+        info("purging_hosts: %s", str(hosts))
+        for host in hosts:
+            self.purge_host(host)
