@@ -195,7 +195,6 @@ class Prefs:
         self.reqd = ('DENY_THRESHOLD',
                      'SECURE_LOG',
                      'HOSTS_DENY',
-                     'BLOCK_SERVICE',
                      'WORK_DIR')
 
         self.to_int = ('DENY_THRESHOLD', )
