@@ -7,6 +7,8 @@ debug = logging.getLogger("prefs").debug
 info = logging.getLogger("prefs").info
 
 
+ENVIRON_REGEX = re.compile(r"""\$\[(?P<environ>[A-Z_]*)\]""")
+
 try:
     set = set
 except:
@@ -37,6 +39,7 @@ class Prefs(dict):
                        'PLUGIN_PURGE': None,
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
+                       'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
                        'SSHD_FORMAT_REGEX': None,
                        'FAILED_ENTRY_REGEX': None,
                        'FAILED_ENTRY_REGEX2': None,
@@ -95,6 +98,7 @@ class Prefs(dict):
                                'DAEMON_SLEEP',
                                'AGE_RESET_VALID',
                                'AGE_RESET_INVALID',
+                               'AGE_RESET_RESTRICTED',
                                'SYNC_INTERVAL',
                                'SYNC_DOWNLOAD_RESILIENCY',
                                'AGE_RESET_ROOT'))
@@ -126,7 +130,8 @@ class Prefs(dict):
                 m = PREFS_REGEX.search(line)
                 if m:
                     name = m.group('name').upper()
-                    value = m.group('value')
+                    value = self.environ_sub(m.group('value'))
+                    
                     #print name, value
                     if not value: value = None
                     if name in self.to_int:
@@ -180,6 +185,17 @@ class Prefs(dict):
         if not ok:
             die("You must correct these problems found in: %s" % path)
 
+
+    def environ_sub(self, value):
+        while True:
+            environ_match = ENVIRON_REGEX.search(value)
+            if not environ_match: return value
+            name = environ_match.group("environ")
+            env = os.environ.get(name)
+            if not env:
+                die("Could not find environment variable: %s" % name)
+            value = ENVIRON_REGEX.sub(env, value)
+                
 
     def get(self, name):
         return self.__data[name]

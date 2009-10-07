@@ -15,7 +15,7 @@ from DenyHosts.version import VERSION
 from DenyHosts.deny_hosts import DenyHosts
 from DenyHosts.denyfileutil import Purge, Migrate, UpgradeTo099
 from DenyHosts.constants import *
-
+from DenyHosts.sync import Sync
 
 #################################################################################
 
@@ -186,8 +186,8 @@ if __name__ == '__main__':
                 new_hosts = sync.receive_new_hosts()
                 if new_hosts:
                     info("received new hosts: %s", str(new_hosts))
-                    self.get_denied_hosts()
-                    self.update_hosts_deny(new_hosts)
+                    sync.get_denied_hosts()
+                    sync.update_hosts_deny(new_hosts)
             sync.xmlrpc_disconnect()
         except Exception, e:
             lock_file.remove()

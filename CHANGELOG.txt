@@ -1,13 +1,31 @@
 DENYHOSTS CHANGELOG
 
-2.2 (coming soon)
+2.3 (coming soon)
 ==================
 
 - added allowed-domains functionality (similar to allowed-hosts) for specifying
   entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
   idea and code contribution).
 
+2.2 (March 13, 2006)
+====================
 
+- added environment variable substitution of preference values.  Each value
+  that contains $[SOME_NAME] will have $[SOME_NAME] substituted with the 
+  value of the environment variable SOME_NAME.  eg.
+      SMTP_SUBJECT = DenyHosts Report - $[HOSTNAME] 
+  will result in the following expansion:
+      SMTP_SUBJECT = DenyHosts Report - foo
+  on a host that is named "foo"
+
+- added configuaration option SMTP_DATE_FORMAT which allows you to override
+  the DenyHosts "Date:" field when sending reports via email    
+
+- fixed bug in prefs.py: AGE_RESET_RESTRICTED was not being converted to seconds
+
+- fixed bug in util.py: exceptions raised by smtp.quit() are now handled
+
+- fixed bug in denyhosts.py: missing import of "sync" line
 
 2.1 (February 9, 2006)
 =======================

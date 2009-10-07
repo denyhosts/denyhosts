@@ -126,7 +126,7 @@ Date: %s
 """ % (prefs.get('SMTP_FROM'),
        prefs.get('ADMIN_EMAIL'),
        prefs.get('SMTP_SUBJECT'),
-       time.strftime("%a, %d %b %Y %H:%M:%S %z"))
+       time.strftime(prefs.get('SMTP_DATE_FORMAT')))
 
     msg += report_str
     try:
@@ -148,5 +148,8 @@ Date: %s
         print e
         print "Email message follows:"
         print msg
-        
-    smtp.quit()
+
+    try:
+        smtp.quit()
+    except:
+        pass

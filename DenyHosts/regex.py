@@ -21,8 +21,10 @@ FAILED_ENTRY_REGEX5 = re.compile(r"""User (?P<user>.*) from (?P<host>.*) not all
 
 FAILED_ENTRY_REGEX6 = re.compile(r"""Did not receive identification string from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
+FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) not allowed because not listed in AllowUsers""")
+
+
 # these are reserved for future versions
-FAILED_ENTRY_REGEX7 = None
 FAILED_ENTRY_REGEX8 = None
 FAILED_ENTRY_REGEX9 = None
 FAILED_ENTRY_REGEX10 = None
@@ -47,3 +49,5 @@ TIME_SPEC_REGEX = re.compile(r"""(?P<units>\d*)\s*(?P<period>[smhdwy])?""")
 ALLOWED_REGEX = re.compile(r"""(?P<first_3bits>\d{1,3}\.\d{1,3}\.\d{1,3}\.)((?P<fourth>\d{1,3})|(?P<ip_wildcard>\*)|\[(?P<ip_range>\d{1,3}\-\d{1,3})\])""")
 
 PREFS_REGEX = re.compile(r"""(?P<name>.*?)\s*[:=]\s*(?P<value>.*)""")
+
+
