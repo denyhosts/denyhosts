@@ -1,5 +1,14 @@
 DENYHOSTS CHANGELOG
 
+0.8.2
+=====
+
+- Maintenance release
+
+- Moved most classes to new modules
+
+- Now uses the python logging package for some output
+
 0.8.1
 =====
 

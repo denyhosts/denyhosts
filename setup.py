@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from denyhosts_version import VERSION
+from DenyHosts.version import VERSION
 from distutils.core import setup
 import os
 import os.path
@@ -18,16 +18,16 @@ setup(name="DenyHosts",
       author_email="phil_schwartz@users.sourceforge.net",
       url="http://denyhosts.sourceforge.net",
       scripts=['denyhosts.py'],
-      ##package_dir={'': 'modules'},
-      ##packages=["."],
-      py_modules=["denyhosts_version"],
+      package_dir={'DenyHosts': 'DenyHosts'},
+      packages=["DenyHosts"],
+      ##py_modules=["denyhosts_version"],
       data_files=[(libpath, glob("denyhosts.cfg-dist")),
                   (libpath, glob("setup.py")),
                   (libpath, glob("CHANGELOG.txt")),
                   (libpath, glob("README.txt")),
                   (libpath, glob("LICENSE.txt"))],
       license="GPL",
-      extra_path='denyhosts',
+      ##extra_path='denyhosts',
       long_description="""
 DenyHosts is a python program that automatically blocks ssh attacks by adding entries to 
 /etc/hosts.deny. DenyHosts will also inform Linux administrators about offending hosts, attacked 

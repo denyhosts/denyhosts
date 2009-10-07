@@ -5,7 +5,7 @@ include MANIFEST.in
 include LICENSE.txt
 include README.txt
 include CHANGELOG.txt
-#include modules/*.py
+include denyhosts/*.py
 include denyhosts.py
 include denyhosts.cfg-dist
 include setup.py
