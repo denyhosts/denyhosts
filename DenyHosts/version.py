@@ -1,1 +1,1 @@
-VERSION="2.4b"
+VERSION="2.5"

@@ -71,6 +71,8 @@ class LoginAttempt:
         if success and self.__reset_on_success:
             info("resetting count for: %s", host)
             self.__abusive_hosts_valid[host].reset_count()
+            # ??? maybe:
+            self.__abusive_hosts_invalid[host].reset_count()
 
 
         if success and self.__abusive_hosts_invalid.get(host, 0) > self.__deny_threshold_invalid:

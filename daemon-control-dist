@@ -15,10 +15,13 @@ DENYHOSTS_BIN   = "/usr/bin/denyhosts.py"
 DENYHOSTS_LOCK  = "/var/lock/subsys/denyhosts"
 DENYHOSTS_CFG   = "/usr/share/denyhosts/denyhosts.cfg"
 
+PYTHON_BIN      = "/usr/bin/env python"
 
 ###############################################
 ####         Do not edit below             ####
 ###############################################
+
+DENYHOSTS_BIN = "%s %s" % (PYTHON_BIN, DENYHOSTS_BIN)
 
 import os, sys, signal, time
 

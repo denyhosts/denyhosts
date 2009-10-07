@@ -175,12 +175,14 @@ class Purge(DenyFileUtilBase):
                     fp.write(line)
                     continue
                 else:
+                    timestamp = None
                     try:
                         rest = line.lstrip(DENY_DELIMITER)
                         timestamp, host_verify = rest.split(ENTRY_DELIMITER)
                         tm = time.strptime(timestamp)
                     except Exception, e:
-                        warn("Parse error -- Ignorning timestamp: %s", timestamp)
+                        warn("Parse error -- Ignorning timestamp: %s for: %s", timestamp, line)
+                        warn("exception: %s", str(e))
                         # ignoring bad time string
                         fp.write(line)
                         continue                        

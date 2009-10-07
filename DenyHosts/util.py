@@ -118,6 +118,8 @@ def parse_host(line):
 
 
 def send_email(prefs, report_str):           
+    recipients = prefs['ADMIN_EMAIL'].split(',')
+
     msg = """From: %s
 To: %s
 Subject: %s
@@ -140,7 +142,7 @@ Date: %s
             smtp.login(username, password)
     
         smtp.sendmail(prefs.get('SMTP_FROM'),
-                      prefs.get('ADMIN_EMAIL'),
+                      recipients,
                       msg)
         debug("sent email to: %s" % prefs.get("ADMIN_EMAIL"))
     except Exception, e:

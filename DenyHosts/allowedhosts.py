@@ -11,6 +11,7 @@ debug = logging.getLogger("AllowedHosts").debug
 
 class AllowedHosts:
     def __init__(self, prefs):
+        debug("initializing AllowedHosts")
         work_dir = prefs.get("WORK_DIR")
         self.hostname_lookup = is_true(prefs.get("ALLOWED_HOSTS_HOSTNAME_LOOKUP"))
         self.allowed_path = os.path.join(work_dir, ALLOWED_HOSTS)
@@ -20,6 +21,7 @@ class AllowedHosts:
         self.new_warned_hosts = []
         self.load_hosts()
         self.load_warned_hosts()
+        debug("done initializing AllowedHosts")
 
     def __contains__(self, ip_addr):
         if self.allowed_hosts.has_key(ip_addr): return 1
@@ -33,14 +35,16 @@ class AllowedHosts:
     def load_hosts(self):
         try:
             fp = open(self.allowed_path, "r")
-        except:
+        except Exception, e:
+            debug("Could not open %s - %s", self.allowed_path, str(e))
             return
 
         for line in fp:
             line = line.strip()
             if not line or line[0] == '#': continue
-
+            
             m = ALLOWED_REGEX.match(line)
+            debug("line: %s - regex match?   %s", line, m != None)
             if m:
                 # line contains an ip address
                 first3 = m.group('first_3bits')

@@ -213,6 +213,9 @@ LOCK_FILE = /var/lock/subsys/denyhosts
 # match your email address.  If you do not want to receive these reports
 # leave this field blank (or run with the --noemail option)
 #
+# Multiple email addresses can be delimited by a comma, eg:
+# ADMIN_EMAIL = foo@bar.com, bar@foo.com, etc@foobar.com
+#
 ADMIN_EMAIL = 
 #
 #######################################################################

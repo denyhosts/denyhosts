@@ -443,7 +443,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
             msg = "Observed the following suspicious login activity"
-            self.__report.add_section(msg, new_suspicious_logins.items())
+            self.__report.add_section(msg, new_suspicious_logins.keys())
 
         if new_denied_hosts:
             info("new denied hosts: %s", str(new_denied_hosts))

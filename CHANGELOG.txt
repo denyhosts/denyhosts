@@ -1,11 +1,26 @@
 DENYHOSTS CHANGELOG
 
-2.5 (coming soon)
+2.6 (coming soon)
 ==================
 
 - added allowed-domains functionality (similar to allowed-hosts) for specifying
   entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
   idea and code contribution).
+
+2.5 (June 21, 2006)
+====================
+
+- ADMIN_EMAIL pref can now contain multiple email addresses delimited by a comma (white space 
+  is optional).  eg.  foo@bar.com, bar@foo.com, foobar@foo.com
+
+- fixed bug in denyfileutil: 'timestamp' is now initialized properly
+
+- daemon-control-dist: modified to work w/ non-default python versions.  You must change
+  the PYTHON_BIN and #!/bin/env/python references if appropriate.
+
+- added a debug message when loading allowed-hosts fails.
+
+- fixed bug when reporting suspicious login activity.
 
 2.4b (April 9, 2006)
 ===================
