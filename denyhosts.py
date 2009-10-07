@@ -8,6 +8,9 @@ import time
 import socket
 from types import ListType, TupleType
 import gzip
+import bz2
+import shutil
+import traceback
 
 try:
     from denyhosts_version import VERSION
@@ -25,12 +28,19 @@ else:
 global DEBUG
 DEBUG=0
 CONFIG_FILE = "denyhosts.cfg"
-
+TAB_OFFSET = 40
+DENY_DELIMITER = "# DenyHosts:"
+PURGE_TIME_LOOKUP = {'m': 60,       # minute
+                     'h': 3600,     # hour
+                     'd': 86400,    # day
+                     'w': 604800,   # week
+                     'y': 31536000} # year
 
 #################################################################################
 #        These files will be created relative to WORK_DIR                       #
 #################################################################################
 SECURE_LOG_OFFSET = "offset"
+DENIED_TIMESTAMPS = "denied-timestamps"
 ALLOWED_HOSTS = "allowed-hosts"
 #PARSED_DATES = "file_dates"
 ABUSIVE_HOSTS = "hosts"
@@ -66,12 +76,25 @@ ALLOWED_REGEX = re.compile(r"""(?P<first_3bits>\d{1,3}\.\d{1,3}\.\d{1,3}\.)((?P<
 
 IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
+PURGE_TIME_REGEX = re.compile(r"""(?P<units>\d*)\s*(?P<period>[mhdwy])""")
+
 #################################################################################
 
 def die(msg, ex=None):
     print msg
     if ex: print ex
     sys.exit(1)
+
+
+def is_true(s):
+    s = s.lower()
+    if s in ('1', 't', 'true', 'y', 'yes'):
+        return True
+    else:
+        return False
+
+def is_false(s):
+    return not is_true(s)
 
 
 def send_email(prefs, report_str):
@@ -104,18 +127,202 @@ Date: %s
 
 
 def usage():
-    print "Usage:  %s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--version]" % sys.argv[0]
+    print "Usage:  %s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [-u | --unlock] [--purge] [--migrate] [--version]" % sys.argv[0]
     print
     print " --file:   The name of log file to parse"
     print " --ignore: Ignore last processed offset (start processing from beginning)"
     print " --noemail: Do not send an email report"
+    print " --unlock: if lockfile exists, remove it and run as normal"
+    print " --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge"
+    print " --purge: expire entries older than your PURGE_DENY setting"
     print " --version: Prints the version of DenyHosts and exits"
     print
     print "Note: multiple --file args can be processed. ",
-    print "If provided, --ignore is implied"
+    print "If multiple files are provided, --ignore is implied"
     print
 
 #################################################################################
+
+class LockFile:
+    def __init__(self, lockpath):
+        self.lockpath = lockpath
+
+    def exists(self):
+        return os.access(self.lockpath, os.F_OK)
+
+
+    def get_pid(self):
+        pid = ""
+        try:
+            fp = open(self.lockpath, "r")
+            pid = fp.read()
+            fp.close()            
+        except:
+            pass
+        return pid
+
+
+    def create(self):
+        fp = open(self.lockpath, "w")
+        fp.write("%s\n" % os.getpid())
+        fp.close()
+
+
+    def remove(self, die_=True):
+        try:
+            os.unlink(self.lockpath)
+        except Exception, e:
+            if die_:
+                die("Error deleting DenyHosts lock file: %s" % self.lockpath, e)
+
+#################################################################################
+
+class DenyFileUtilBase:
+    def __init__(self, deny_file, extra_file_id=""):
+        self.deny_file = deny_file
+        self.backup_file = "%s.%s.bak" % (deny_file, extra_file_id)
+        self.temp_file = "%s.%s.tmp" % (deny_file, extra_file_id)
+        
+    def backup(self):
+        try:
+            shutil.copy(self.deny_file, self.backup_file)
+        except Exception, e:
+            print e
+
+    def replace(self):
+        # overwrites deny_file with contents of temp_file
+        try:
+            os.rename(self.temp_file, self.deny_file)
+        except Exception, e:
+            print e
+
+    def remove_temp(self):
+        try:
+            os.unlink(self.temp_file)
+        except:
+            pass
+
+    def create_temp(self, data_list):
+        raise Exception, "Not Imlemented"
+
+
+    def get_data(self):
+        data = []
+        try:
+            fp = open(self.backup_file, "r")
+            data = fp.readlines()
+            fp.close()
+        except:
+            pass
+        return data
+
+#################################################################################   
+
+class Migrate(DenyFileUtilBase):
+    def __init__(self, deny_file):
+        DenyFileUtilBase.__init__(self, deny_file, "migrate")
+        self.backup()
+        self.create_temp(self.get_data())
+        self.replace()
+
+    def create_temp(self, data):
+        try:
+            fp = open(self.temp_file, "w")
+            for line in data:
+                if line.find("#") != -1:
+                    fp.write(line)
+                    continue
+                
+                line = line.strip()
+                if not line:
+                    fp.write("\n")
+                    continue
+                
+                l = len(line)
+                if l < TAB_OFFSET:
+                    line = "%s%s" % (line, ' ' * (TAB_OFFSET - l))
+            
+                fp.write("%s %s %s\n" % (line,
+                                         DENY_DELIMITER,
+                                         time.asctime()))
+            fp.close()
+        except Exception, e:
+            raise e
+        
+#################################################################################
+
+class Purge(DenyFileUtilBase):
+    def __init__(self, deny_file, purge_timestr):
+        DenyFileUtilBase.__init__(self, deny_file, "purge")
+
+        cutoff = self.calculate(purge_timestr)
+        self.cutoff = long(time.time()) - cutoff
+        if DEBUG:
+            print "relative cutoff: %ld" % cutoff
+            print "absolute cutoff: %ld" % self.cutoff
+        
+        self.backup()
+        
+        num_purged = self.create_temp(self.get_data())
+        if num_purged > 0:
+            self.replace()
+        else:
+            self.remove_temp()
+
+    def calculate(self, timestr):
+        m = PURGE_TIME_REGEX.search(timestr)
+        if not m:
+            raise Exception, "Invalid PURGE_TIME specification: string format"
+
+        units = int(m.group('units'))
+        period = m.group('period')
+
+        if units == 0:
+            raise Exception, "Invalid PURGE_TIME specification: units = 0"
+        # anything older than cutoff will get removed
+        return units * PURGE_TIME_LOOKUP[period]
+
+        
+    def create_temp(self, data):
+        num_purged = 0
+        try:
+            fp = open(self.temp_file, "w")
+            for line in data:
+                delimiter_idx = line.find(DENY_DELIMITER)
+                if delimiter_idx == -1:
+                    fp.write(line)
+                    continue
+                
+                entry = line[:delimiter_idx]
+                delimiter_timestamp = line[delimiter_idx:].strip()
+                timestamp = delimiter_timestamp.lstrip(DENY_DELIMITER)
+
+                try:
+                    tm = time.strptime(timestamp)
+                except Exception, e:
+                    print "Parse error -- Ignorning timestamp: %s" % timestamp
+                    # ignoring bad time string
+                    fp.write(line)
+                    continue
+
+                epoch = long(time.mktime(tm))
+                #print entry, epoch, self.cutoff
+
+                if self.cutoff > epoch:
+                    num_purged += 1
+                    if DEBUG: print "purging: %s" % entry
+                    continue
+                else:
+                    fp.write(line)
+                    continue
+            fp.close()
+        except Exception, e:
+            raise e
+
+        return num_purged
+    
+#################################################################################   
+
 
 class Counter(dict):
     """
@@ -139,10 +346,7 @@ class Counter(dict):
 class Report:
     def __init__(self, hostname_lookup):
         self.report = ""
-        if hostname_lookup.lower() in ('no', 'false', '0'):
-            self.hostname_lookup = 0
-        else:
-            self.hostname_lookup = 1
+        self.hostname_lookup = is_true(hostname_lookup)
         
     def empty(self):
         if self.report: return 0
@@ -195,10 +399,12 @@ class Prefs:
                        'HOSTNAME_LOOKUP': 'yes'}
 
         # reqd[0]: required field name
-        # reqd[1]: is value required?
+        # reqd[1]: is value required? (False = value can be blank)
         self.reqd = (('DENY_THRESHOLD', True),
                      ('SECURE_LOG', True),
+                     ('LOCK_FILE', True),
                      ('BLOCK_SERVICE', False),
+                     ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
                      ('WORK_DIR', True))
 
@@ -295,7 +501,7 @@ class FileTracker:
             fp.seek(0, 2)
             offset = fp.tell()
         except Exception, e:
-            die("Can't read: %s" % self.logfile, e)
+            raise e
 
         if DEBUG:
             print "__get_current_offset():"
@@ -541,18 +747,22 @@ class AllowedHosts:
 
     
 class DenyHosts:
-    def __init__(self, logfile, prefs, ignore_offset=0,
-                 first_time=0, noemail=0, verbose=0):
+    def __init__(self, logfile, prefs, lock_file,
+                 ignore_offset=0, first_time=0, noemail=0, verbose=0):
         self.__denied_hosts = {}
         self.__prefs = prefs
+        self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
         self.__verbose = verbose
         self.__report = Report(self.__prefs.get("HOSTNAME_LOOKUP"))
 
-        
-        file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
-                                   logfile)
+        try:
+            file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
+                                       logfile)
+        except Exception, e:
+            self.__lock_file.remove()
+            die("Can't read: %s" % logfile, e)
 
         self.__allowed_hosts = AllowedHosts(self.__prefs.get('WORK_DIR'))
 
@@ -577,6 +787,11 @@ class DenyHosts:
     def get_denied_hosts(self):
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
             if line[0] not in ('#', '\n'):
+                
+                idx = line.find('#')
+                if idx != 1:
+                    line = line[:idx]
+                    
                 try:
                     # the deny file can be in the form:
                     # 1) ip_address
@@ -619,7 +834,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                      if not self.__denied_hosts.has_key(host)
                      and host not in self.__allowed_hosts]
         #print new_hosts
-
+        
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
             status = 1
@@ -629,14 +844,26 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             print self.__prefs.get('HOSTS_DENY')
             fp = sys.stdout
             status = 0
-            
+
+        write_timestamp = self.__prefs.get('PURGE_DENY') != None
         for host in new_hosts:
             block_service = self.__prefs.get('BLOCK_SERVICE')
             if block_service:
                 block_service = "%s: " % block_service
-                fp.write("%s%s%s\n" % (block_service, host, BSD_STYLE))
+                output = "%s%s%s" % (block_service, host, BSD_STYLE)
             else:
-                fp.write("%s\n" % host)
+                output = "%s" % host
+
+            if write_timestamp:
+                l = len(output)
+                if l < TAB_OFFSET:
+                    output = "%s%s" % (output, ' ' * (TAB_OFFSET - l))
+            
+                fp.write("%s %s %s\n" % (output,
+                                         DENY_DELIMITER,
+                                         time.asctime()))
+            else:
+                fp.write("%s\n" % output)
 
         if fp != sys.stdout:
             fp.close()
@@ -649,6 +876,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         try:
             if f.endswith(".gz"):
                 fp = gzip.open(logfile)
+            elif f.endswith(".bz2"):
+                fp = bz2.BZ2File(logfile, "r")
             else:
                 fp = open(logfile, "r")
         except Exception, e:
@@ -661,9 +890,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         except:
             pass
 
-        suspicious_always = self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS')
-        if suspicious_always.lower() in ('no', 'false', '0'): suspicious_always = 0
-        else: suspicious_always = 1
+        suspicious_always = is_true(self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS'))
         
         login_attempt = LoginAttempt(self.__prefs.get('WORK_DIR'),
                                      self.__prefs.get('DENY_THRESHOLD'),
@@ -746,16 +973,20 @@ if __name__ == '__main__':
     ignore_offset = 0
     noemail = 0
     verbose = 0
+    unlock = 0
+    migrate = 0
+    purge = 0
     args = sys.argv[1:]
     try:
-        (opts, getopts) = getopt.getopt(args, 'f:c:dinv?hV',
-                                        ["file=", "ignore", "verbose", "debug",
-                                         "help", "noemail", "config=", "version"])
+        (opts, getopts) = getopt.getopt(args, 'f:c:dinuvp?hV',
+                                        ["file=", "ignore", "verbose", "debug", 
+                                         "help", "noemail", "config=", "version",
+                                         "unlock", "migrate", "purge"])
     except:
         print "\nInvalid command line option detected."
         usage()
         sys.exit(1)
-
+    
     for opt, arg in opts:
         if opt in ('-h', '-?', '--help'):
             usage()
@@ -773,6 +1004,12 @@ if __name__ == '__main__':
             DEBUG = 1            
         if opt in ('-c', '--config'):
             config_file = arg
+        if opt in ('-u', '--unlock'):
+            unlock = 1
+        if opt in ('-m', '--migrate'):
+            migrate = 1
+        if opt in ('-p', '--purge'):
+            purge = 1                        
         if opt == '--version':
             print "DenyHosts version:", VERSION
             sys.exit(0)
@@ -798,8 +1035,43 @@ if __name__ == '__main__':
 
     if not prefs.get('ADMIN_EMAIL'): noemail = 1
 
-    for f in logfiles:
-        dh = DenyHosts(f, prefs, ignore_offset, first_time, noemail, verbose)
-                
+    lock_file = LockFile(prefs.get('LOCK_FILE'))
 
+    if unlock and lock_file.exists():
+        lock_file.remove(False)
+    else:
+        pid = lock_file.get_pid()
+        if pid: die("DenyHosts is already running with pid: %s" % pid)
+
+    lock_file.create()
+
+    if migrate:
+        if not prefs.get('PURGE_DENY'):
+            lock_file.remove()
+            die("You have supplied the --migrate flag however you have not set PURGE_DENY in your configuration file.")
+        else:
+            m = Migrate(prefs.get("HOSTS_DENY"))
+
+    if purge:
+        purge_time = prefs.get('PURGE_DENY')
+        if not purge_time:
+            lock_file.remove()
+            die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
+        else:
+            try:
+                p = Purge(prefs.get('HOSTS_DENY'),
+                          purge_time)
+            except Exception, e:
+                lock_file.remove()
+                die(str(e))
+        
+
+    try:
+        for f in logfiles:
+            dh = DenyHosts(f, prefs, lock_file, ignore_offset,
+                           first_time, noemail, verbose)
+    except Exception, e:
+        traceback.print_exc(e)
+        
+    lock_file.remove()
             

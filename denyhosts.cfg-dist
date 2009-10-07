@@ -33,6 +33,29 @@ HOSTS_DENY = /etc/hosts.deny
 #######################################################################
 
 
+########################################################################
+# PURGE_DENY: removed HOSTS_DENY entries that are older than this time
+#             when DenyHosts is invoked with the --purge flag
+#
+#      format is: i[dhwmy]
+#      Where 'i' is an integer (eg. 7) 
+#            'm' = minutes
+#            'h' = hours
+#            'd' = days
+#            'w' = weeks
+#            'y' = years
+#
+# never purge:
+PURGE_DENY = 
+#
+# purge entries older than 1 week
+#PURGE_DENY = 1w
+#
+# purge entries older than 5 days
+#PURGE_DENY = 5d
+#######################################################################
+
+
 #######################################################################
 # BLOCK_SERVICE: the service name that should be blocked in HOSTS_DENY
 # 
@@ -95,6 +118,22 @@ SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS=YES
 HOSTNAME_LOOKUP=YES
 ######################################################################
 
+
+######################################################################
+#
+# LOCK_FILE
+#
+# LOCK_FILE=/path/denyhosts
+# If this file exists when DenyHosts is run, then DenyHosts will exit
+# immediately.  Otherwise, this file will be created upon invocation
+# and deleted upon exit.  This ensures that only one instance is
+# running at a time.
+#
+# Redhat/Fedora:
+LOCK_FILE = /var/lock/subsys/denyhosts
+#
+#LOCK_FILE = /tmp/denyhosts.lock
+######################################################################
 
 
        ############ THESE SETTINGS ARE OPTIONAL ############

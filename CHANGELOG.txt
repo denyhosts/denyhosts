@@ -1,7 +1,22 @@
 DENYHOSTS CHANGELOG
 
+0.8.0
+=====
+
+- Added LOCK_FILE configuration parameter and support such that only one instance of DenyHosts can be running at any 
+given time
+
+- Added PURGE_DENY configuration parameter and support for purging entries from the HOSTS_DENY file that have
+exceeded the PURGE_DENY value
+
+-- Added the ability to migrate HOSTS_DENY file such that all entries are suitable for purging.
+
+-- Added --purge, --migrate and --unlock command line arguments
+
+
 0.7.3
 =====
+
 - Prefs change (reqd fields can be blank)
 
 
