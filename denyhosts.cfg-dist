@@ -22,7 +22,7 @@ SECURE_LOG = /var/log/secure
 #SECURE_LOG = /private/var/log/asl.log
 #
 # Mac OS X (v10.3 or earlier):
-SECURE_LOG=/private/var/log/system.log
+#SECURE_LOG=/private/var/log/system.log
 #
 ########################################################################
 
@@ -573,7 +573,7 @@ DAEMON_PURGE = 1h
 
 #######################################################################
 #
-# SYNC_DOWNLOAD_THRESHOLD: If SYNC_DOWNLOAD is enabled this paramter
+# SYNC_DOWNLOAD_THRESHOLD: If SYNC_DOWNLOAD is enabled this parameter
 # filters the returned hosts to those that have been blocked this many
 # times by others.  That is, if set to 1, then if a single DenyHosts
 # server has denied an ip address then you will receive the denied host.

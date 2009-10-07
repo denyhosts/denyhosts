@@ -9,17 +9,17 @@ import re
 SSHD_FORMAT_REGEX = re.compile(r""".* (sshd.*:|\[sshd\]) (?P<message>.*)""")
 #SSHD_FORMAT_REGEX = re.compile(r""".* sshd.*: (?P<message>.*)""")
 
-FAILED_ENTRY_REGEX = re.compile(r"""Failed (?P<method>.*) for (?P<invalid>invalid user |illegal user )?(?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+FAILED_ENTRY_REGEX = re.compile(r"""Failed (?P<method>.*) for (?P<invalid>invalid user |illegal user )?(?P<user>.*?) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
-FAILED_ENTRY_REGEX2 = re.compile(r"""(?P<invalid>(Illegal|Invalid)) user (?P<user>.*?) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+FAILED_ENTRY_REGEX2 = re.compile(r"""(?P<invalid>(Illegal|Invalid)) user (?P<user>.*?) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
-FAILED_ENTRY_REGEX3 = re.compile(r"""Authentication failure for (?P<user>.*) from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+FAILED_ENTRY_REGEX3 = re.compile(r"""Authentication failure for (?P<user>.*) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
-FAILED_ENTRY_REGEX4 = re.compile(r"""Authentication failure for (?P<user>.*) from (?P<host>.*)""")
+FAILED_ENTRY_REGEX4 = re.compile(r"""Authentication failure for (?P<user>.*) .*from (?P<host>.*)""")
 
-FAILED_ENTRY_REGEX5 = re.compile(r"""User (?P<user>.*) from (?P<host>.*) not allowed because none of user's groups are listed in AllowGroups""")
+FAILED_ENTRY_REGEX5 = re.compile(r"""User (?P<user>.*) .*from (?P<host>.*) not allowed because none of user's groups are listed in AllowGroups""")
 
-FAILED_ENTRY_REGEX6 = re.compile(r"""Did not receive identification string from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+FAILED_ENTRY_REGEX6 = re.compile(r"""Did not receive identification string .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) not allowed because not listed in AllowUsers""")
 
@@ -29,7 +29,7 @@ FAILED_ENTRY_REGEX8 = None
 FAILED_ENTRY_REGEX9 = None
 FAILED_ENTRY_REGEX10 = None
 
-FAILED_ENTRY_REGEX_NUM = 6 # this should match the highest num failed_entry_regex
+FAILED_ENTRY_REGEX_NUM = 8 # this should match the highest num failed_entry_regex + 1
 
 FAILED_ENTRY_REGEX_RANGE = range(1, FAILED_ENTRY_REGEX_NUM)
 FAILED_ENTRY_REGEX_MAP = {}

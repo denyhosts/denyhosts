@@ -182,7 +182,7 @@ if __name__ == '__main__':
             sync = Sync(prefs)
             if sync_upload:
                 timestamp = sync.send_new_hosts()
-            if self.__sync_download: 
+            if sync_download: 
                 new_hosts = sync.receive_new_hosts()
                 if new_hosts:
                     info("received new hosts: %s", str(new_hosts))

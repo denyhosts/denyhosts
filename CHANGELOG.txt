@@ -1,11 +1,15 @@
 DENYHOSTS CHANGELOG
 
-2.6 (coming soon)
+
+2.6 (Dec 7, 2006)
 ==================
 
-- added allowed-domains functionality (similar to allowed-hosts) for specifying
-  entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
-  idea and code contribution).
+- security fix: malicious users can cause a DoS of ssh.
+  for more info: http://nvd.nist.gov/nvd.cfm?cvename=CVE-2006-6301
+
+- fixed bug in regex.py: 2 failed entry regexes weren't included properly in the hash
+
+- fixed bug in denyhosts.py: attribute error: self.__sync_download
 
 2.5 (June 21, 2006)
 ====================
