@@ -1,0 +1,84 @@
+
+########################################################################
+#
+# SECURE_LOG: the log file that contains sshd logging info
+# if you are not sure, grep "sshd:" /var/log/*
+#
+# The file to process can be overridden with the --file command line
+# argument
+#
+# Redhat:
+SECURE_LOG = /var/log/secure
+#
+# Mandrake: 
+#SECURE_LOG = /var/log/auth.log
+#
+# SuSE:
+#SECURE_LOG = /var/log/messages
+#
+########################################################################
+
+########################################################################
+# HOSTS_DENY: the file which contains restricted host access information
+#
+HOSTS_DENY = /etc/hosts.deny
+#
+#######################################################################
+
+
+#######################################################################
+# BLOCK_SERVICE: the service name that should be blocked in HOSTS_DENY
+# 
+# man 5 host_access for details
+#
+#
+# To block all services for the offending host:
+#BLOCK_SERVIDE = ALL
+# To block only sshd:
+BLOCK_SERVICE  = sshd   
+#
+#######################################################################
+
+#######################################################################
+#
+# DENY_THRESHOLD: block each host after the number of failed login 
+# attempts has exceeded this value.
+#
+DENY_THRESHOLD = 5
+#
+#######################################################################
+
+#######################################################################
+#
+# WORK_DIR: the path that DenyHosts will use for writing data to
+# (it will be created if it does not already exist).       
+WORK_DIR = denyhosts
+#
+#######################################################################
+
+
+
+       ############ THESE SETTINGS ARE OPTIONAL ############
+
+
+
+#######################################################################
+#
+# ADMIN_EMAIL: if you would like to receive emails regarding newly
+# restricted hosts and suspicious logins, set this address to 
+# match your email address.  If you do not want to receive these reports
+# leave this field blank (or run with the --noemail option)
+#
+ADMIN_EMAIL = 
+#
+#######################################################################
+
+#######################################################################
+#
+SMTP_HOST = localhost
+SMTP_PORT = 25
+SMTP_FROM = DenyHosts
+SMTP_SUBJECT = DenyHosts Report
+#
+#######################################################################
+

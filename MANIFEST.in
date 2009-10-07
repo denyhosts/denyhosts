@@ -1,0 +1,9 @@
+#recursive-include help *.html
+#recursive-include translations *
+#recursive-include scripts *
+include MANIFEST.in
+include LICENSE.txt
+include README.txt
+#include modules/*.py
+include denyhosts.py
+include denyhosts.cfg-dist
