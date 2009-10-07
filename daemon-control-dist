@@ -20,8 +20,12 @@ STATE_NOT_RUNNING = -1
 STATE_LOCK_EXISTS = -2
 
 def usage():
-    print "usage: %s {start|stop|restart|status|debug}" % sys.argv[0]
-    sys.exit(0)
+    print "Usage: %s {start [args...] | stop | restart [args...] | status | debug }" % sys.argv[0]
+    print
+    print "For a list of valid 'args' refer to:"
+    print "$ denyhosts.py --help"
+    print
+    sys.exit(0) 
 
 
 def getpid():
@@ -37,9 +41,13 @@ def getpid():
     else:
         return STATE_LOCK_EXISTS
 
-def start():
-    cmd = "%s --config=%s --daemon" % (DENYHOSTS_BIN, DENYHOSTS_CFG)
-    print "starting DenyHosts"
+
+def start(*args):
+    cmd = "%s --daemon " % DENYHOSTS_BIN
+    if args: cmd += ' '.join(args)
+        
+    print "starting DenyHosts:   ", cmd
+
     os.system(cmd)
 
 
@@ -67,10 +75,11 @@ def status():
         print "Denyhosts is not running"
     else:
         print "DenyHosts is running with pid = %d" % pid
-        
-def restart():
+
+
+def restart(*args):
     stop()
-    start()
+    start(*args)  
 
 
 if __name__ == '__main__':
@@ -82,9 +91,25 @@ if __name__ == '__main__':
              'restart': restart}
 
     try:
-        cmd = cases[sys.argv[1]]
+        args = sys.argv[2:]
+    except:
+        args = []
+
+    try:
+        option = sys.argv[1]
+        
+        if option in ('start', 'restart'):
+            if '--config' not in args and '-c' not in args:
+                args.append("--config=%s" % DENYHOSTS_CFG)
+
+        cmd = cases[option]
     except:
         cmd = usage
-    cmd()
-        
+
+    try:
+        apply(cmd, args)
+    except:
+        usage()
     
+
+

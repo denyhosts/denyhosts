@@ -1,5 +1,14 @@
 DENYHOSTS CHANGELOG
 
+0.9.6
+=====
+
+- Command line that invoked --daemon is now recorded in the output log (useful for debugging)
+
+- The daemon-control-dist script now optionally accepts command line args to be passed to the start and restart
+  functions.  eg.  daemon-control start --config=test.cfg --debug
+  
+
 0.9.5
 =====
 

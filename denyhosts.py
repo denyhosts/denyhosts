@@ -60,8 +60,12 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             else:
                 # in daemon mode we always log some activity
                 logging.getLogger().setLevel(logging.INFO)
+                
+            info = logging.getLogger("denyhosts").info
+            info("DenyHosts launched with the following args:")
+            info("   %s", ' '.join(sys.argv))
             prefs.dump_to_logger()
-    else:
+    else: # non-daemon
         try:
             # python 2.4
             logging.basicConfig(format="%(message)s")
@@ -177,8 +181,7 @@ if __name__ == '__main__':
                 lock_file.remove()
                 die(str(e))
 
-        
-        
+                
     try:
         for f in logfiles:
             dh = DenyHosts(f, prefs, lock_file, ignore_offset,
