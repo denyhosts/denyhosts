@@ -1,5 +1,11 @@
 DENYHOSTS CHANGELOG
 
+0.9.8
+=====
+
+- fixed purge bug in daemon mode (using the wrong purge value to determine which records should be 
+purged.)  
+
 0.9.7
 =====
 

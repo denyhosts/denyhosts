@@ -120,16 +120,16 @@ class DenyHosts:
             info("daemon_sleep:      %ld", daemon_sleep)
             info("purge_sleep_ratio: %ld", purge_sleep_ratio)
         else:
-            daemon_purge = purge_sleep_ratio = None
+            purge_sleep_ratio = None
             info("purging of %s is disabled", self.__prefs.get('HOSTS_DENY'))
 
 
         self.daemonLoop(logfile, last_offset, daemon_sleep,
-                        daemon_purge, purge_sleep_ratio)
+                        purge_time, purge_sleep_ratio)
 
 
     def daemonLoop(self, logfile, last_offset, daemon_sleep,
-                   daemon_purge=None, purge_sleep_ratio=None):
+                   purge_time, purge_sleep_ratio):
 
         fp = open(logfile, "r")
         inode = os.fstat(fp.fileno())[ST_INO]
@@ -140,7 +140,8 @@ class DenyHosts:
                 curr_inode = os.stat(logfile)[ST_INO]
             except:
                 info("%s has been deleted", logfile)
-                self.sleepAndPurge(daemon_sleep, daemon_purge,
+                self.sleepAndPurge(daemon_sleep,
+                                   purge_time,
                                    purge_sleep_ratio)
                 continue
 
@@ -179,18 +180,18 @@ class DenyHosts:
                 self.file_tracker.update_first_line()
                 continue
 
-            self.sleepAndPurge(daemon_sleep, daemon_purge, purge_sleep_ratio)
+            self.sleepAndPurge(daemon_sleep, purge_time, purge_sleep_ratio)
 
 
 
-    def sleepAndPurge(self, sleep_time, daemon_purge, purge_sleep_ratio=None):
+    def sleepAndPurge(self, sleep_time, purge_time, purge_sleep_ratio=None):
         time.sleep(sleep_time)
-        if daemon_purge:
+        if purge_time:
             self.purge_counter += 1
             if self.purge_counter == purge_sleep_ratio:
                 try:
                     Purge(self.__prefs.get('HOSTS_DENY'),
-                          daemon_purge,
+                          purge_time,
                           self.__prefs.get('WORK_DIR'))
                 except Exception, e:
                     logging.getLogger().exception(e)
