@@ -5,7 +5,7 @@ import logging
 
 from constants import DENY_DELIMITER, ENTRY_DELIMITER
 from loginattempt import AbusiveHosts
-from util import parse_host, calculate_seconds
+from util import parse_host
 import plugin
 
 debug = logging.getLogger("denyfileutil").debug
@@ -123,11 +123,10 @@ class UpgradeTo099(DenyFileUtilBase):
 #################################################################################        
 
 class Purge(DenyFileUtilBase):
-    def __init__(self, prefs, purge_timestr):
+    def __init__(self, prefs, cutoff):
         deny_file = prefs.get('HOSTS_DENY')
         DenyFileUtilBase.__init__(self, deny_file, "purge")
         work_dir = prefs.get('WORK_DIR')
-        cutoff = calculate_seconds(purge_timestr)
 
         self.cutoff = long(time.time()) - cutoff
         debug("relative cutoff: %ld (seconds)", cutoff)

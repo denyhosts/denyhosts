@@ -9,7 +9,6 @@ except:
 
 from counter import Counter, CounterRecord
 from constants import *
-from util import calculate_seconds
 
 debug = logging.getLogger("loginattempt").debug
 info = logging.getLogger("loginattempt").info
@@ -22,9 +21,9 @@ class LoginAttempt:
         self.__deny_threshold_valid = prefs.get('DENY_THRESHOLD_VALID')
         self.__deny_threshold_root = prefs.get('DENY_THRESHOLD_ROOT')
 
-        self.__age_reset_invalid = calculate_seconds(prefs.get('AGE_RESET_INVALID'))
-        self.__age_reset_valid = calculate_seconds(prefs.get('AGE_RESET_VALID'))
-        self.__age_reset_root = calculate_seconds(prefs.get('AGE_RESET_ROOT'))
+        self.__age_reset_invalid = prefs.get('AGE_RESET_INVALID')
+        self.__age_reset_valid = prefs.get('AGE_RESET_VALID')
+        self.__age_reset_root = prefs.get('AGE_RESET_ROOT')
                
         self.__first_time = first_time
         self.__suspicious_always = suspicious_always

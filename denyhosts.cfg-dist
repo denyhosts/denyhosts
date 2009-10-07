@@ -159,6 +159,10 @@ HOSTNAME_LOOKUP=YES
 # Redhat/Fedora:
 LOCK_FILE = /var/lock/subsys/denyhosts
 #
+# Debian
+#LOCK_FILE = /var/run/denyhosts.pid
+#
+# Misc
 #LOCK_FILE = /tmp/denyhosts.lock
 #
 ######################################################################

@@ -87,7 +87,7 @@ def calculate_seconds(timestr, zero_ok=False):
         raise Exception, "Invalid time specification: units = 0"
 
     seconds = units * TIME_SPEC_LOOKUP[period]
-    debug("converted %s to %ld seconds: ", timestr, seconds)
+    #info("converted %s to %ld seconds: ", timestr, seconds)
     return seconds
 
 

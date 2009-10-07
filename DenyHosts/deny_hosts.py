@@ -27,7 +27,8 @@ from constants import *
 from regex import *
 from daemon import createDaemon
 from denyfileutil import Purge
-from util import parse_host, calculate_seconds
+from util import parse_host
+from version import VERSION
 import plugin
 
 debug = logging.getLogger("denyhosts").debug
@@ -70,12 +71,13 @@ class DenyHosts:
             offset = self.process_log(logfile, last_offset)
             if offset != last_offset:
                 self.file_tracker.save_offset(offset)
+                last_offset = offset
         elif not daemon:
             info("Log file size has not changed.  Nothing to do.")
 
             
         if daemon:
-            info("launching DenyHosts daemon...")
+            info("launching DenyHosts daemon (version %s)..." % VERSION)
             #logging.getLogger().setLevel(logging.WARN)
 
             # remove lock file since createDaemon will
@@ -122,10 +124,10 @@ class DenyHosts:
         self.__lock_file.create()  
 
         info("monitoring log: %s", logfile)
-        daemon_sleep = calculate_seconds(self.__prefs.get('DAEMON_SLEEP'))
+        daemon_sleep = self.__prefs.get('DAEMON_SLEEP')
         purge_time = self.__prefs.get('PURGE_DENY')
         if purge_time:
-            daemon_purge = calculate_seconds(self.__prefs.get('DAEMON_PURGE'))
+            daemon_purge = self.__prefs.get('DAEMON_PURGE')
             daemon_purge = max(daemon_sleep, daemon_purge)
             purge_sleep_ratio = daemon_purge / daemon_sleep
             self.purge_counter = 0

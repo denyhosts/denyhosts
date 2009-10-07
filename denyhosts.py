@@ -146,7 +146,7 @@ if __name__ == '__main__':
             die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
         else:
             try:
-                p = Purge(prefs.get, 
+                p = Purge(prefs, 
                           purge_time)
 
             except Exception, e:

@@ -1,5 +1,20 @@
 DENYHOSTS CHANGELOG
 
+1.1.2
+=====
+
+- Fixed offset issue when running in daemon mode, the first pass of data discovered was 
+  processed twice.
+
+- All values that are converted to seconds in the prefs.py module when the denyhosts.cfg
+  file is processed.  Previously, these values were inefficiently converted each time 
+  that they were used.
+
+- Migrated some internal prefs.py data structures to sets rather than tuples for performance 
+  benefit.
+
+- Better handling of illegal values in denyhosts.cfg.
+
 1.1.1
 =====
 

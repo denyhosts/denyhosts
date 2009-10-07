@@ -1,10 +1,17 @@
 import os
-from util import die
+from util import die, calculate_seconds
 from regex import PREFS_REGEX
 import logging
 
 debug = logging.getLogger("prefs").debug
 info = logging.getLogger("prefs").info
+
+try:
+    set = set
+except:
+    from sets import Set
+    set = Set
+
 
 class Prefs:
     def __init__(self, path=None):
@@ -42,7 +49,7 @@ class Prefs:
                      ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
                      ('WORK_DIR', True))
-
+        
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
         # since the --daemon mode requires absolute pathnames
@@ -53,9 +60,18 @@ class Prefs:
                          'DAEMON_LOG')
 
         # these settings are converted to numeric values
-        self.to_int = ('DENY_THRESHOLD_INVALID', 
-                       'DENY_THRESHOLD_VALID',
-                       'DENY_THRESHOLD_ROOT')
+        self.to_int = set(('DENY_THRESHOLD_INVALID', 
+                          'DENY_THRESHOLD_VALID',
+                          'DENY_THRESHOLD_ROOT'))
+
+        # these settings are converted from timespec format
+        # to number of seconds (ie. "1m" -> 60)
+        self.to_seconds = set(('PURGE_DENY',
+                              'DAEMON_PURGE',
+                              'DAEMON_SLEEP',
+                              'AGE_RESET_VALID',
+                              'AGE_RESET_INVALID',
+                              'AGE_RESET_ROOT'))
                 
         if path: self.load_settings(path)
 
@@ -71,15 +87,21 @@ class Prefs:
             line = line.strip()
             if not line or line[0] in ('\n', '#'):
                 continue
-            m = PREFS_REGEX.search(line)
-            if m:
-                name = m.group('name').upper()
-                value = m.group('value')
-                #print name, value
-                if not value: value = None
-                if name in self.to_int:
-                    value = int(value)
-                self.__data[name] = value
+            try:
+                m = PREFS_REGEX.search(line)
+                if m:
+                    name = m.group('name').upper()
+                    value = m.group('value')
+                    #print name, value
+                    if not value: value = None
+                    if name in self.to_int:
+                        value = int(value)
+                    if name in self.to_seconds and value:
+                        value = calculate_seconds(value)
+                    self.__data[name] = value
+            except Exception, e:
+                fp.close()
+                die("Error processing configuration parameter %s: %s" % (name, e))
         fp.close()
         self.check_required(path)
         self.make_absolute()
