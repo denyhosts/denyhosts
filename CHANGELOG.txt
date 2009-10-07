@@ -1,5 +1,30 @@
 DENYHOSTS CHANGELOG
 
+1.1.0
+=====
+
+- configuration parameter DENY_THRESHOLD has been renamed DENY_THRESHOLD_INVALID
+  
+- added configuration parameters AGE_RESET_ROOT, AGE_RESET_INVALID and AGE_RESET_VALID
+
+- added the ability to automatically reset host login attempts after a given 
+  time period (age_reset) has elapsed.  See the FAQ entry:
+  http://denyhosts.sourceforge.net/faq.html#age_reset
+
+- most WORK_DIR data files will be automatically migrated to the new
+  data format to support the above functionality.  A timestamp field
+  has been appended to each line, such that the new format is:
+  key:# of attempts:timestamp
+
+- added chkconfig compatibility to the daemon-control-dist script.  Thanks to
+  Simon Amor for the contribution.
+
+- added optional configuration parameters PLUGIN_DENY and PLUGIN_PURGE  
+
+- added plugin support.  See the FAQ entry:
+  http://denyhosts.sourceforge.net/faq.html#plugin  
+
+
 1.0.3
 =====
 

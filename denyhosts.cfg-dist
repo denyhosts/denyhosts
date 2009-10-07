@@ -77,11 +77,11 @@ BLOCK_SERVICE  = sshd
 
 #######################################################################
 #
-# DENY_THRESHOLD: block each host after the number of failed login 
+# DENY_THRESHOLD_INVALID: block each host after the number of failed login 
 # attempts has exceeded this value.  This value applies to invalid
 # user login attempts (eg. non-existent user accounts)
 #
-DENY_THRESHOLD = 5
+DENY_THRESHOLD_INVALID = 5
 #
 #######################################################################
 
@@ -198,6 +198,78 @@ SMTP_SUBJECT = DenyHosts Report
 # then you may wish to specify this option.
 # 
 #ALLOWED_HOSTS_HOSTNAME_LOOKUP=NO
+#
+######################################################################
+
+###################################################################### 
+# 
+# AGE_RESET_VALID: Specifies the period of time between failed login
+# attempts that, when exceeded will result in the failed count for 
+# this host to be reset to 0.  This value applies to login attempts 
+# to all valid users (those within /etc/passwd) with the 
+# exception of root.  If not defined, this count will never
+# be reset.
+#
+# See the comments in the PURGE_DENY section (above) 
+# for details on specifying this value or for complete details 
+# refer to:  http://denyhosts.sourceforge.net/faq.html#timespec
+#
+AGE_RESET_VALID=5d
+#
+######################################################################
+
+###################################################################### 
+# 
+# AGE_RESET_ROOT: Specifies the period of time between failed login
+# attempts that, when exceeded will result in the failed count for 
+# this host to be reset to 0.  This value applies to all login 
+# attempts to the "root" user account.  If not defined,
+# this count will never be reset.
+#
+# See the comments in the PURGE_DENY section (above) 
+# for details on specifying this value or for complete details 
+# refer to:  http://denyhosts.sourceforge.net/faq.html#timespec
+#
+AGE_RESET_ROOT=25d
+#
+######################################################################
+
+###################################################################### 
+# 
+# AGE_RESET_INVALID: Specifies the period of time between failed login
+# attempts that, when exceeded will result in the failed count for 
+# this host to be reset to 0.  This value applies to login attempts 
+# made to any invalid username (those that do not appear 
+# in /etc/passwd).  If not defined, count will never be reset.
+#
+# See the comments in the PURGE_DENY section (above) 
+# for details on specifying this value or for complete details 
+# refer to:  http://denyhosts.sourceforge.net/faq.html#timespec
+#
+AGE_RESET_INVALID=10d
+#
+######################################################################
+
+######################################################################
+#
+# PLUGIN_DENY: If set, this value should point to an executable
+# program that will be invoked when a host is added to the
+# HOSTS_DENY file.  This executable will be passed the host
+# that will be added as it's only argument.
+#
+#PLUGIN_DENY=/usr/bin/true
+#
+######################################################################
+
+
+######################################################################
+#
+# PLUGIN_PURGE: If set, this value should point to an executable
+# program that will be invoked when a host is removed from the
+# HOSTS_DENY file.  This executable will be passed the host
+# that is to be purged as it's only argument.
+#
+#PLUGIN_PURGE=/usr/bin/true
 #
 ######################################################################
 

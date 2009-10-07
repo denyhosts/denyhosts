@@ -188,9 +188,9 @@ if __name__ == '__main__':
             die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
         else:
             try:
-                p = Purge(prefs.get('HOSTS_DENY'),
-                          purge_time,
-                          prefs.get('WORK_DIR'))
+                p = Purge(prefs.get, 
+                          purge_time)
+
             except Exception, e:
                 lock_file.remove()
                 die(str(e))

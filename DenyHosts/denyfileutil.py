@@ -6,6 +6,7 @@ import logging
 from constants import DENY_DELIMITER, ENTRY_DELIMITER
 from loginattempt import AbusiveHosts
 from util import parse_host, calculate_seconds
+import plugin
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
@@ -122,8 +123,10 @@ class UpgradeTo099(DenyFileUtilBase):
 #################################################################################        
 
 class Purge(DenyFileUtilBase):
-    def __init__(self, deny_file, purge_timestr, work_dir):
+    def __init__(self, prefs, purge_timestr):
+        deny_file = prefs.get('HOSTS_DENY')
         DenyFileUtilBase.__init__(self, deny_file, "purge")
+        work_dir = prefs.get('WORK_DIR')
         cutoff = calculate_seconds(purge_timestr)
 
         self.cutoff = long(time.time()) - cutoff
@@ -138,14 +141,17 @@ class Purge(DenyFileUtilBase):
         num_purged = len(purged_hosts)
         if num_purged > 0:
             self.replace()
-            abusive_hosts = AbusiveHosts(work_dir)
+            abusive_hosts = AbusiveHosts(prefs)
             abusive_hosts.purge_hosts(purged_hosts)
             abusive_hosts.save_abusive_hosts()
         else:
             self.remove_temp()
             
         info("num entries purged: %d", num_purged)
-              
+        plugin_purge = prefs.get('PLUGIN_PURGE')
+        if plugin_purge:
+            plugin.execute(plugin_purge, purged_hosts)
+            
         
     def create_temp(self, data):
         purged_hosts = []

@@ -1,6 +1,6 @@
 #recursive-include help *.html
 #recursive-include translations *
-#recursive-include scripts *
+recursive-include plugins *
 include MANIFEST.in
 include LICENSE.txt
 include README.txt

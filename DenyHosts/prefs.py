@@ -14,8 +14,13 @@ class Prefs:
                        'HOSTNAME_LOOKUP': 'yes',
                        'DAEMON_LOG': '/var/log/denyhosts',
                        'DAEMON_SLEEP': '30s',
-                       'DAEMON_PURGE': '1h',                       
+                       'DAEMON_PURGE': '1h',
                        'DAEMON_LOG_TIME_FORMAT': None,
+                       'AGE_RESET_INVALID': None,
+                       'AGE_RESET_VALID': None,
+                       'AGE_RESET_ROOT': None,
+                       'PLUGIN_DENY': None,
+                       'PLUGIN_PURGE': None,
                        'SSHD_FORMAT_REGEX': None,
                        'FAILED_ENTRY_REGEX': None,
                        'FAILED_ENTRY_REGEX2': None,
@@ -26,7 +31,7 @@ class Prefs:
 
         # reqd[0]: required field name
         # reqd[1]: is value required? (False = value can be blank)
-        self.reqd = (('DENY_THRESHOLD', True),
+        self.reqd = (('DENY_THRESHOLD_INVALID', True),
                      ('DENY_THRESHOLD_VALID', True),
                      ('DENY_THRESHOLD_ROOT', True),
                      ('SECURE_LOG', True),
@@ -46,7 +51,7 @@ class Prefs:
                          'DAEMON_LOG')
 
         # these settings are converted to numeric values
-        self.to_int = ('DENY_THRESHOLD', 
+        self.to_int = ('DENY_THRESHOLD_INVALID', 
                        'DENY_THRESHOLD_VALID',
                        'DENY_THRESHOLD_ROOT')
                 
@@ -90,6 +95,10 @@ class Prefs:
         for name_reqd, val_reqd in self.reqd:
             if not self.__data.has_key(name_reqd):
                 print "Missing configuration parameter: %s" % name_reqd
+                if name == 'DENY_THRESHOLD_INVALID':
+                    print "Note: The configuration parameter DENY_THRESHOLD has been renamed"
+                    print "      DENY_THRESHOLD_INVALID.  Please update your DenyHosts configuration"
+                    print "      file to reflect this change."
                 ok = 0
             elif val_reqd and not self.__data[name_reqd]:
                 print "Missing configuration value for: %s" % name_reqd

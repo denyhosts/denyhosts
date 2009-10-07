@@ -28,6 +28,7 @@ from regex import *
 from daemon import createDaemon
 from denyfileutil import Purge
 from util import parse_host, calculate_seconds
+import plugin
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
@@ -199,9 +200,9 @@ class DenyHosts:
             self.purge_counter += 1
             if self.purge_counter == purge_sleep_ratio:
                 try:
-                    Purge(self.__prefs.get('HOSTS_DENY'),
-                          purge_time,
-                          self.__prefs.get('WORK_DIR'))
+                    Purge(self.__prefs,
+                          purge_time)
+
                 except Exception, e:
                     logging.getLogger().exception(e)
                     raise
@@ -301,10 +302,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         suspicious_always = is_true(self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS'))
         
-        login_attempt = LoginAttempt(self.__prefs.get('WORK_DIR'),
-                                     self.__prefs.get('DENY_THRESHOLD'),
-                                     self.__prefs.get('DENY_THRESHOLD_VALID'),
-                                     self.__prefs.get('DENY_THRESHOLD_ROOT'),
+        login_attempt = LoginAttempt(self.__prefs,
                                      self.__allowed_hosts,
                                      suspicious_always,
                                      self.__first_time)
@@ -356,7 +354,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             else:
                 msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
             self.__report.add_section(msg, new_denied_hosts)
-            
+
+        plugin_deny = self.__prefs.get('PLUGIN_DENY')
+        if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
+        
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
             msg = "Observed the following suspicious login activity"

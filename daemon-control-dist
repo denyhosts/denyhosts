@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-
+# denyhosts     Bring up/down the DenyHosts daemon
+#
+# chkconfig: 2345 98 02
+# description: Activates/Deactivates the
+#    DenyHosts daemon to block ssh attempts
+#
+###############################################
 
 ###############################################
 #### Edit these to suit your configuration ####

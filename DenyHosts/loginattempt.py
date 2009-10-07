@@ -7,19 +7,25 @@ except:
     from sets import Set
     set = Set
 
-from counter import Counter
+from counter import Counter, CounterRecord
 from constants import *
+from util import calculate_seconds
 
 debug = logging.getLogger("loginattempt").debug
 info = logging.getLogger("loginattempt").info
 
 class LoginAttempt:
-    def __init__(self, work_dir, deny_threshold, deny_threshold_valid, deny_threshold_root,
-                 allowed_hosts, suspicious_always=1, first_time=0, fetch_all=1):
-        self.__work_dir = work_dir
-        self.__deny_threshold = deny_threshold
-        self.__deny_threshold_valid = deny_threshold_valid
-        self.__deny_threshold_root = deny_threshold_root
+    def __init__(self, prefs, allowed_hosts, suspicious_always=1, first_time=0, fetch_all=1):
+        self.__work_dir = prefs.get('WORK_DIR')
+        
+        self.__deny_threshold_invalid = prefs.get('DENY_THRESHOLD_INVALID')
+        self.__deny_threshold_valid = prefs.get('DENY_THRESHOLD_VALID')
+        self.__deny_threshold_root = prefs.get('DENY_THRESHOLD_ROOT')
+
+        self.__age_reset_invalid = calculate_seconds(prefs.get('AGE_RESET_INVALID'))
+        self.__age_reset_valid = calculate_seconds(prefs.get('AGE_RESET_VALID'))
+        self.__age_reset_root = calculate_seconds(prefs.get('AGE_RESET_ROOT'))
+               
         self.__first_time = first_time
         self.__suspicious_always = suspicious_always
         self.__allowed_hosts = allowed_hosts
@@ -42,7 +48,7 @@ class LoginAttempt:
     def add(self, user, host, success, invalid):
         user_host_key = "%s - %s" % (user, host)
 
-        if success and self.__abusive_hosts_invalid.get(host, 0) > self.__deny_threshold:
+        if success and self.__abusive_hosts_invalid.get(host, 0) > self.__deny_threshold_invalid:
             num_failures = self.__valid_users_and_hosts.get(user_host_key, 0)
             self.__suspicious_logins[user_host_key] += 1
             if self.__suspicious_always or host not in self.__allowed_hosts:
@@ -51,16 +57,44 @@ class LoginAttempt:
         elif not success:
             if invalid:
                 # username is invalid
+                self.increment_count(host,
+                                     self.__abusive_hosts_invalid,
+                                     self.__age_reset_invalid)
+
                 self.__invalid_users[user] += 1                
-                self.__abusive_hosts_invalid[host] += 1
+                #self.__abusive_hosts_invalid[host] += 1
             else:
                 # username is valid
-                self.__valid_users[user] += 1
-                self.__valid_users_and_hosts[user_host_key] += 1
+                self.increment_count(user,
+                                     self.__valid_users)
+
+                self.increment_count(user_host_key,
+                                     self.__valid_users_and_hosts)
+                
+                #self.__valid_users[user] += 1
+                #self.__valid_users_and_hosts[user_host_key] += 1
                 if user == 'root':
-                    self.__abusive_hosts_root[host] += 1
+                    self.increment_count(host,
+                                         self.__abusive_hosts_root,
+                                         self.__age_reset_root)
+                    #self.__abusive_hosts_root[host] += 1
                 else:
-                    self.__abusive_hosts_valid[host] += 1
+                    self.increment_count(host,
+                                         self.__abusive_hosts_valid,
+                                         self.__age_reset_valid)
+                    #self.__abusive_hosts_valid[host] += 1
+
+    def increment_count(self, key, count_inst, age_reset=None):
+        #if not count_inst.has_key(key) or count_inst.has_key(key) and count_inst[key] is None:
+        #    count_inst[key] = CounterRecord(0)
+        
+        #debug(count_inst)
+        if age_reset:
+            count_inst[key].age_count(age_reset)
+        #debug(count_inst)
+        count_inst[key] += 1
+        #debug(count_inst)
+        
 
     def get_abusive_hosts_invalid(self):
         return self.__get_stats(ABUSIVE_HOSTS_INVALID)
@@ -86,12 +120,24 @@ class LoginAttempt:
     def __get_stats(self, fname):
         path = os.path.join(self.__work_dir, fname)
         stats = Counter()
+
         try:
             for line in open(path, "r"):
+                
                 try:
-                    name, value = line.split(":")
-                    stats[name] = int(value)
-                except:
+                    line = line.strip()
+                    parts = line.split(":")
+                    name = parts[0]
+                    count = parts[1]
+                    try:
+                        date = ':'.join(parts[2:])
+                    except:
+                        date = None
+
+                    stats[name] = CounterRecord(int(count), date)
+                    #debug("stats[%s] = %s", name, stats[name])
+                except Exception, e:
+                    ##debug(e)
                     pass                
         except IOError, e:
             if e.errno == 2: debug("%s does not exist", fname)
@@ -114,7 +160,6 @@ class LoginAttempt:
     def save_abusive_hosts_invalid(self, abusive_hosts=None):
         if abusive_hosts is None:
             abusive_hosts = self.__abusive_hosts_invalid
-
         self.__save_stats(ABUSIVE_HOSTS_INVALID, abusive_hosts)
 
     def save_abusive_hosts_root(self, abusive_hosts=None):
@@ -140,15 +185,14 @@ class LoginAttempt:
         self.__save_stats(SUSPICIOUS_LOGINS, self.__suspicious_logins)
 
     def get_deny_hosts(self):
- 
-        invalid_hosts = [host for host,num in self.__abusive_hosts_invalid.items()
-                         if num > self.__deny_threshold]
+        invalid_hosts = [host for host,count_rec in self.__abusive_hosts_invalid.items()
+                         if count_rec.get_count() > self.__deny_threshold_invalid]
 
-        root_hosts = [host for host,num in self.__abusive_hosts_root.items()
-                      if num > self.__deny_threshold_root]
+        root_hosts = [host for host,count_rec in self.__abusive_hosts_root.items()
+                      if count_rec.get_count() > self.__deny_threshold_root]
 
-        valid_hosts = [host for host,num in self.__abusive_hosts_valid.items()
-                       if num > self.__deny_threshold_valid]
+        valid_hosts = [host for host,count_rec in self.__abusive_hosts_valid.items()
+                       if count_rec.get_count() > self.__deny_threshold_valid]
 
         deny_set = set(invalid_hosts + valid_hosts + root_hosts)
         return list(deny_set)
@@ -170,17 +214,18 @@ class LoginAttempt:
         keys.sort()
 
         for key in keys:
-            fp.write("%s:%d\n" % (key, stats[key]))
+            #debug("")
+            #debug("key: %s - stats[key]: %s", key, stats[key])
+            #debug("stats: %s", stats)
+            #debug("")
+            fp.write("%s:%s\n" % (key, stats[key]))
         fp.close()
         
 
 class AbusiveHosts(LoginAttempt):
-    def __init__(self, work_dir):
+    def __init__(self, prefs):
         LoginAttempt.__init__(self,
-                              work_dir,
-                              None,
-                              None,
-                              None,
+                              prefs,
                               None,
                               fetch_all = 0)
         self.__abusive_hosts_invalid = self.get_abusive_hosts_invalid()
