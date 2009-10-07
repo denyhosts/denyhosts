@@ -109,6 +109,17 @@ DENY_THRESHOLD_ROOT = 1
 
 #######################################################################
 #
+# DENY_THRESHOLD_RESTRICTED: block each host after the number of failed 
+# login attempts has exceeded this value.  This value applies to 
+# usernames that appear in the WORK_DIR/restricted-usernames file only.
+#
+DENY_THRESHOLD_RESTRICTED = 1
+#
+#######################################################################
+
+
+#######################################################################
+#
 # WORK_DIR: the path that DenyHosts will use for writing data to
 # (it will be created if it does not already exist).  
 #
@@ -242,6 +253,23 @@ AGE_RESET_ROOT=25d
 
 ###################################################################### 
 # 
+# AGE_RESET_RESTRICTED: Specifies the period of time between failed login
+# attempts that, when exceeded will result in the failed count for 
+# this host to be reset to 0.  This value applies to all login 
+# attempts to entries found in the WORK_DIR/restricted-usernames file.  
+# If not defined, the count will never be reset.
+#
+# See the comments in the PURGE_DENY section (above) 
+# for details on specifying this value or for complete details 
+# refer to:  http://denyhosts.sourceforge.net/faq.html#timespec
+#
+AGE_RESET_RESTRICTED=25d
+#
+######################################################################
+
+
+###################################################################### 
+# 
 # AGE_RESET_INVALID: Specifies the period of time between failed login
 # attempts that, when exceeded will result in the failed count for 
 # this host to be reset to 0.  This value applies to login attempts 
@@ -255,6 +283,20 @@ AGE_RESET_ROOT=25d
 AGE_RESET_INVALID=10d
 #
 ######################################################################
+
+
+######################################################################
+#
+# RESET_ON_SUCCESS: If this parameter is set to "yes" then the
+# failed count for the respective ip address will be reset to 0
+# if the login is successful.  
+#
+# The default is RESET_ON_SUCCESS = no
+#
+#RESET_ON_SUCCESS = yes
+#
+#####################################################################
+
 
 ######################################################################
 #
@@ -424,10 +466,9 @@ DAEMON_PURGE = 1h
 # SYNC_UPLOAD: allow your DenyHosts daemon to transmit hosts that have
 # been denied?  This option only applies if SYNC_SERVER has
 # been uncommented.
+# The default is SYNC_UPLOAD = yes
 #
 #SYNC_UPLOAD = no
-#
-# the default:
 #SYNC_UPLOAD = yes
 #
 #######################################################################
@@ -438,11 +479,12 @@ DAEMON_PURGE = 1h
 # SYNC_DOWNLOAD: allow your DenyHosts daemon to receive hosts that have
 # been denied by others?  This option only applies if SYNC_SERVER has
 # been uncommented.
+# The default is SYNC_DOWNLOAD = yes
 #
 #SYNC_DOWNLOAD = no
-#
-# the default:
 #SYNC_DOWNLOAD = yes
+#
+#
 #
 #######################################################################
 
@@ -453,11 +495,43 @@ DAEMON_PURGE = 1h
 # times by others.  That is, if set to 1, then if a single DenyHosts
 # server has denied an ip address then you will receive the denied host.
 # 
+# See also SYNC_DOWNLOAD_RESILIENCY
+#
 #SYNC_DOWNLOAD_THRESHOLD = 10
 #
-# the default:
+# The default is SYNC_DOWNLOAD_THRESHOLD = 3 
+#
 #SYNC_DOWNLOAD_THRESHOLD = 3
-# 
+#
 #######################################################################
 
+#######################################################################
+#
+# SYNC_DOWNLOAD_RESILIENCY:  If SYNC_DOWNLOAD is enabled then the
+# value specified for this option limits the downloaded data
+# to this resiliency period or greater.
+#
+# Resiliency is defined as the timespan between a hackers first known 
+# attack and it's most recent attack.  Example:
+# 
+# If the centralized   denyhosts.net server records an attack at 2 PM 
+# and then again at 5 PM, specifying a SYNC_DOWNLOAD_RESILIENCY = 4h 
+# will not download this ip address.
+#
+# However, if the attacker is recorded again at 6:15 PM then the 
+# ip address will be downloaded by your DenyHosts instance.  
+#
+# This value is used in conjunction with the SYNC_DOWNLOAD_THRESHOLD 
+# and only hosts that satisfy both values will be downloaded.  
+# This value has no effect if SYNC_DOWNLOAD_THRESHOLD = 1 
+#
+# The default is SYNC_DOWNLOAD_RESILIENCY = 5h (5 hours)
+#
+# Only obtain hackers that have been at it for 2 days or more:
+#SYNC_DOWNLOAD_RESILIENCY = 2d
+#
+# Only obtain hackers that have been at it for 5 hours or more:
+#SYNC_DOWNLOAD_RESILIENCY = 5h
+#
+#######################################################################
 

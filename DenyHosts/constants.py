@@ -12,6 +12,7 @@ DENIED_TIMESTAMPS = "denied-timestamps"
 ABUSIVE_HOSTS_INVALID = "hosts"
 ABUSIVE_HOSTS_VALID = "hosts-valid"
 ABUSIVE_HOSTS_ROOT = "hosts-root"
+ABUSIVE_HOSTS_RESTRICTED = "hosts-restricted"
 
 ABUSED_USERS_INVALID = "users-invalid"
 ABUSED_USERS_VALID = "users-valid"
@@ -21,6 +22,8 @@ SUSPICIOUS_LOGINS = "suspicious-logins"   # successful logins AFTER invalid
 
 ALLOWED_HOSTS = "allowed-hosts"
 ALLOWED_WARNED_HOSTS = "allowed-warned-hosts"
+
+RESTRICTED_USERNAMES = "restricted-usernames"
 
 SYNC_TIMESTAMP = "sync-timestamp"
 SYNC_HOSTS = "sync-hosts"

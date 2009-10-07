@@ -22,6 +22,12 @@ DENYHOSTS_CFG   = "/usr/share/denyhosts/denyhosts.cfg"
 
 import os, sys, signal, time
 
+# make sure 'ps' command is accessible (which should be
+# in either /usr/bin or /bin.  Modify the PATH so
+# popen can find it
+env = os.environ.get('PATH', "")
+os.environ['PATH'] = "/usr/bin:/bin:%s" % env
+
 STATE_NOT_RUNNING = -1
 STATE_LOCK_EXISTS = -2
 
@@ -42,10 +48,23 @@ def getpid():
     except Exception, e:
         return STATE_NOT_RUNNING
 
-    if os.access(os.path.join("/proc", str(pid)), os.F_OK):
-        return pid
+
+    if os.access("/proc", os.F_OK):
+        # proc filesystem exists, look for pid
+        if os.access(os.path.join("/proc", str(pid)), os.F_OK):
+            return pid
+        else:
+            return STATE_LOCK_EXISTS
     else:
-        return STATE_LOCK_EXISTS
+        # proc filesystem doesn't exist, use 'ps'
+        p = os.popen("ps -p %d" % pid, "r")
+        p.readline() # get the header line
+        pid_running = p.readline() 
+        # pid_running will be '' if no process is found
+        if pid_running: 
+            return pid
+        else: 
+            return STATE_LOCK_EXISTS
 
 
 def start(*args):
@@ -109,8 +128,18 @@ if __name__ == '__main__':
         args = []
 
     try:
+        # arg 1 should contain one of the cases above
         option = sys.argv[1]
-        
+    except:
+        # try to infer context (from an /etc/init.d/ script, perhaps)
+        procname = os.path.basename(sys.argv[0])
+        infer_dict = {'K': 'stop',
+                      'S': 'start'}
+        option = infer_dict.get(procname[0])
+        if not option:
+            usage()
+
+    try:
         if option in ('start', 'restart', 'condrestart'):
             if '--config' not in args and '-c' not in args:
                 args.append("--config=%s" % DENYHOSTS_CFG)

@@ -6,6 +6,7 @@ from constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_
 debug = logging.getLogger("sync").debug
 info = logging.getLogger("sync").info
 error = logging.getLogger("sync").error
+exception = logging.getLogger("sync").exception
 
 def get_plural(items):
     if len(items) != 1:  return "s"
@@ -72,6 +73,7 @@ class Sync:
         fp = open(dest_file, "r")
         for line in fp.readlines():
             hosts.append(line.strip())
+        fp.close()
 
         try:
             self.__send_new_hosts(hosts)
@@ -97,8 +99,7 @@ class Sync:
         try:
             self.__server.add_hosts(hosts)
         except Exception, e:
-            error(e)
-            
+            exception(e)
 
 
     def receive_new_hosts(self):
@@ -112,7 +113,8 @@ class Sync:
         try:
             data = self.__server.get_new_hosts(timestamp, 
                                                self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
-                                               self.__hosts_added)
+                                               self.__hosts_added,
+                                               self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY"))
             timestamp = data['timestamp']
             self.set_sync_timestamp(timestamp)
             hosts = data['hosts']
@@ -120,7 +122,7 @@ class Sync:
             self.__save_received_hosts(hosts, timestamp)
             return hosts 
         except Exception, e:
-            error(e)
+            exception(e)
             return None
         
     def __save_received_hosts(self, hosts, timestamp):

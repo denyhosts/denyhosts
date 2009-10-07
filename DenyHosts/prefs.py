@@ -1,5 +1,5 @@
 import os, sys, re
-from util import die, calculate_seconds
+from util import die, calculate_seconds, is_true
 from regex import PREFS_REGEX
 import logging
 
@@ -14,7 +14,10 @@ except:
     set = Set
 
 
-class Prefs:
+class Prefs(dict):
+    def __getitem__(self, k):
+        return self.get(k)
+    
     def __init__(self, path=None):
         # default values for some of the configurable items
         self.__data = {'ADMIN_EMAIL': None,
@@ -28,6 +31,8 @@ class Prefs:
                        'AGE_RESET_INVALID': None,
                        'AGE_RESET_VALID': None,
                        'AGE_RESET_ROOT': None,
+                       'AGE_RESET_RESTRICTED': None,
+                       'RESET_ON_SUCCESS': 'no',
                        'PLUGIN_DENY': None,
                        'PLUGIN_PURGE': None,
                        'SMTP_USERNAME': None,
@@ -50,6 +55,7 @@ class Prefs:
                        'SYNC_UPLOAD': "yes",
                        'SYNC_DOWNLOAD': "yes",
                        'SYNC_DOWNLOAD_THRESHOLD': 3,
+                       'SYNC_DOWNLOAD_RESILIENCY': '5h',
                        'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no'}
 
         # reqd[0]: required field name
@@ -57,6 +63,7 @@ class Prefs:
         self.reqd = (('DENY_THRESHOLD_INVALID', True),
                      ('DENY_THRESHOLD_VALID', True),
                      ('DENY_THRESHOLD_ROOT', True),
+                     ('DENY_THRESHOLD_RESTRICTED', True),
                      ('SECURE_LOG', True),
                      ('LOCK_FILE', True),
                      ('BLOCK_SERVICE', False),
@@ -78,6 +85,7 @@ class Prefs:
                            'DENY_THRESHOLD_INVALID', 
                            'DENY_THRESHOLD_VALID',
                            'DENY_THRESHOLD_ROOT',
+                           'DENY_THRESHOLD_RESTRICTED',
                            'SYNC_DOWNLOAD_THRESHOLD'))
 
         # these settings are converted from timespec format
@@ -88,9 +96,19 @@ class Prefs:
                                'AGE_RESET_VALID',
                                'AGE_RESET_INVALID',
                                'SYNC_INTERVAL',
+                               'SYNC_DOWNLOAD_RESILIENCY',
                                'AGE_RESET_ROOT'))
-                
+
+
+        self.process_defaults()
         if path: self.load_settings(path)
+
+    def process_defaults(self):
+        for name in self.to_seconds:
+            try:
+                self.__data[name] = calculate_seconds(self.__data[name])
+            except:
+                pass
 
         
     def load_settings(self, path):
@@ -115,7 +133,6 @@ class Prefs:
                         value = int(value)
                     if name in self.to_seconds and value:
                         value = calculate_seconds(value)
-                    
                     if name == 'USERDEF_FAILED_ENTRY_REGEX':
                         self.__data['USERDEF_FAILED_ENTRY_REGEX'].append(re.compile(value))
                     else:
@@ -150,7 +167,10 @@ class Prefs:
                         self.__data['DENY_THRESHOLD_INVALID'] = self.__data['DENY_THRESHOLD']
                     else:
                         ok = 0                        
-
+                elif name_reqd == 'DENY_THRESHOLD_RESTRICTED':
+                    print "\nNote: DENY_THRESHOLD_RESTRICTED has not been defined. Setting this"
+                    print "value to DENY_THRESHOLD_ROOT"
+                    self.__data['DENY_THRESHOLD_RESTRICTED'] = self.__data['DENY_THRESHOLD_ROOT']
                 else:
                     ok = 0
             elif val_reqd and not self.__data[name_reqd]:

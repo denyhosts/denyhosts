@@ -9,6 +9,8 @@ from glob import glob
 
 
 libpath = "/usr/share/denyhosts"
+scriptspath = "%s/scripts" % libpath
+pluginspath = "%s/plugins" % libpath
 
 #########################################################################
 
@@ -21,13 +23,13 @@ setup(name="DenyHosts",
       scripts=['denyhosts.py'],
       package_dir={'DenyHosts': 'DenyHosts'},
       packages=["DenyHosts"],
-      ##py_modules=["denyhosts_version"],
       data_files=[(libpath, glob("denyhosts.cfg-dist")),
-                  (libpath, glob("denyhosts-daemon-initscript")),
                   (libpath, glob("setup.py")),
                   (libpath, glob("daemon-control-dist")),
                   (libpath, glob("CHANGELOG.txt")),
                   (libpath, glob("README.txt")),
+                  (scriptspath, glob("scripts/*")),
+                  (pluginspath, glob("plugins/*")),
                   (libpath, glob("LICENSE.txt"))],
       license="GPL v2",
       ##extra_path='denyhosts',

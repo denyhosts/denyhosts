@@ -30,6 +30,7 @@ from denyfileutil import Purge
 from util import parse_host
 from version import VERSION
 from sync import Sync
+from restricted import Restricted
 import plugin
 
 debug = logging.getLogger("denyhosts").debug
@@ -50,6 +51,10 @@ class DenyHosts:
         self.__sync_server = prefs.get('SYNC_SERVER')
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
+
+        r = Restricted(prefs)
+        self.__restricted = r.get_restricted()
+        info("restricted: %s", self.__restricted)
         self.init_regex()
         
         try:
@@ -361,7 +366,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         login_attempt = LoginAttempt(self.__prefs,
                                      self.__allowed_hosts,
                                      suspicious_always,
-                                     self.__first_time)
+                                     self.__first_time,
+                                     1, # fetch all
+                                     self.__restricted)
 
         for line in fp:
             success = invalid = 0
@@ -459,7 +466,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             else:
                 msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
             self.__report.add_section(msg, new_denied_hosts)
-            self.sync_add_hosts(new_denied_hosts)
+            if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
             plugin_deny = self.__prefs.get('PLUGIN_DENY')
             if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
         
@@ -490,10 +497,12 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
     def sync_add_hosts(self, hosts):
         try:
-            fp = open(os.path.join(self.__prefs.get("WORK_DIR"), SYNC_HOSTS), "a")
+            filename = os.path.join(self.__prefs.get("WORK_DIR"), SYNC_HOSTS)
+            fp = open(filename, "a") 
             for host in hosts:
                 fp.write("%s\n" % host)
             fp.close()
+            os.chmod(filename, 0644)
         except Exception, e:
             error(str(e))
 

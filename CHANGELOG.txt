@@ -1,6 +1,72 @@
 DENYHOSTS CHANGELOG
 
-2.0 ( February 5, 2006)
+2.2 (coming soon)
+==================
+
+- added allowed-domains functionality (similar to allowed-hosts) for specifying
+  entire domains that will never be denied by DenyHosts (thanks to Ken Key for 
+  idea and code contribution).
+
+
+
+2.1 (February 9, 2006)
+=======================
+
+- added command line flag --sync which runs DenyHosts (command line/cron version) in
+  synchronization mode.  
+
+- added SYNC_DOWNLOAD_RESILIENCY setting to limit download synchronization data to
+  attacks that have lasted longer than this value.  That is, if the centralized
+  denyhosts.net server records an attack at 2 PM and then again at 5 PM,
+  specifying a SYNC_DOWNLOAD_RESILIENCY = 4h will not download this ip address.
+  However, if the attacker is recorded again at 6:15 PM then the ip address
+  will be downloaded by your DenyHosts instance.  This value is used in
+  conjunction with the SYNC_DOWNLOAD_THRESHOLD and only hosts that
+  satisfy both values will be downloaded.  This value has no effect if
+  SYNC_DOWNLOAD_THRESHOLD = 1 and refers to the timespan between the
+  attackers first known attack and their most recent attack.
+  Refer to http://www.denyhosts.net/faq.html#sync_download_resiliency
+
+- added RESET_ON_SUCCESS option which, when set to "yes" will automatically reset
+  the counter for the connecting ip address to 0 if the login was successful.  The
+  default is "no".  This may be helpful in the event that a user occassionally mistypes
+  their password.  See also the AGE_RESET_* options.
+  Refer to http://www.denyhosts.net/faq.html#reset_on_success
+
+- bug fix: if synchronization mode is disabled (default) then denied hosts will not be
+  added to the SYNC_HOSTS staging file.
+
+- modified daemon-control-dist to use the 'ps' command (in the event
+  that the /proc directory does not exist) to determine whether
+  the DenyHosts process is still running.  
+
+- modified daemon-control-dist to infer 'start' and 'stop' from
+  symbolically linked programs in the event that the script
+  is launched w/o arguments.  The linked filenames must begin
+  with either an "S" (start) or a "K" (kill).
+
+- added "restricted" user concept and functionality such that usernames defined
+  as restricted (such as "mysql", "lpd", etc...) which are not intended for
+  login purposes will be denied after DENY_THRESHOLD_RESTRICTED failed attempts.
+  This option is based on ideas & suggestions from Ken Key and Dave Ingram.  
+  Refer to http://www.denyhosts.net/faq.html#restricted
+
+- added DENY_THRESHOLD_RESTRICTED (for users such as apache, mysql, etc...).  Defaults
+  to DENY_THRESHOLD_ROOT setting.
+
+- added AGE_RESET_RESTRICTED parameter
+
+- added scripts/restricted_from_passwd.py which is suitable for generating a list
+  of restricted users based on /etc/passwd's login shells (such as /sbin/nologin).
+
+- added scripts/restricted_from_invalid.py which is suitable for generating a list
+  of restricted users based on WORK_DIR/users-invalid contents.
+
+- if synchronization fails, a stacktrace will be printed to the log file (or console)
+  which may be useful for isolating the problem.
+
+
+2.0 (February 5, 2006)
 =======================
 
 - DenyHosts has a new address: http://www.denyhosts.net
