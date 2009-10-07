@@ -63,6 +63,7 @@ class Migrate(DenyFileUtilBase):
     def create_temp(self, data):
         try:
             fp = open(self.temp_file, "w")
+            os.chmod(self.temp_file, 0644)
             for line in data:
                 if line.find("#") != -1:
                     fp.write(line)
@@ -82,6 +83,8 @@ class Migrate(DenyFileUtilBase):
             fp.close()
         except Exception, e:
             raise e
+        
+
         
 #################################################################################
 
@@ -156,6 +159,7 @@ class Purge(DenyFileUtilBase):
         purged_hosts = []
         try:
             fp = open(self.temp_file, "w")
+            os.chmod(self.temp_file, 0644)
             offset = 0
             num_lines = len(data)
             while offset < num_lines:
@@ -204,6 +208,5 @@ class Purge(DenyFileUtilBase):
             fp.close()
         except Exception, e:
             raise e
-
         return purged_hosts
     

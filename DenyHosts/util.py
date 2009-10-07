@@ -16,7 +16,7 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             # define a Handler which writes INFO messages or higher to the sys.stderr
             fh = logging.FileHandler(daemon_log, 'a')
             fh.setLevel(logging.DEBUG)
-            formatter = logging.Formatter('%(asctime)s - %(name)-12s: %(levelname)-8s %(message)s',
+            formatter = logging.Formatter(prefs.get('DAEMON_LOG_MESSAGE_FORMAT'),
                                           prefs.get('DAEMON_LOG_TIME_FORMAT'))
             fh.setFormatter(formatter)
             # add the handler to the root logger

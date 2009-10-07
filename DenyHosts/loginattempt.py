@@ -47,6 +47,13 @@ class LoginAttempt:
     def add(self, user, host, success, invalid):
         user_host_key = "%s - %s" % (user, host)
 
+        # from SF bug report 1345437
+        if self.__age_reset_invalid and host:              
+            self.__abusive_hosts_invalid[host].age_count(self.__age_reset_invalid)
+        if self.__age_reset_valid and host:        
+            self.__abusive_hosts_valid[host].age_count(self.__age_reset_valid)
+        # end SF bug report 1345437
+
         if success and self.__abusive_hosts_invalid.get(host, 0) > self.__deny_threshold_invalid:
             num_failures = self.__valid_users_and_hosts.get(user_host_key, 0)
             self.__suspicious_logins[user_host_key] += 1
@@ -199,14 +206,19 @@ class LoginAttempt:
 
     def __save_stats(self, fname, stats):
         path = os.path.join(self.__work_dir, fname)
-        if not stats: 
-            #debug("%s: is empty", fname)
+        if stats is None: 
+            #debug("%s: is none", fname)
             return
         
         try:
             fp = open(path, "w")
         except Exception, e:
             print e
+            return
+
+        if not stats:
+            # if stats dict is empty-- no data to process
+            fp.close()
             return
  
         keys = stats.keys()

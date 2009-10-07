@@ -22,6 +22,11 @@ SUSPICIOUS_LOGINS = "suspicious-logins"   # successful logins AFTER invalid
 ALLOWED_HOSTS = "allowed-hosts"
 ALLOWED_WARNED_HOSTS = "allowed-warned-hosts"
 
+SYNC_TIMESTAMP = "sync-timestamp"
+SYNC_HOSTS = "sync-hosts"
+SYNC_HOSTS_TMP = "sync-hosts.tmp"
+SYNC_RECEIVED_HOSTS = "sync-received"
+
 #################################################################################
 #                           Miscellaneous constants                             #
 #################################################################################
@@ -38,7 +43,7 @@ TIME_SPEC_LOOKUP =  {'s': 1,        # s
                      'w': 604800,   # week
                      'y': 31536000} # year
 
-
+SYNC_MIN_INTERVAL = 300 # 5 minutes
 
 plat = sys.platform
 if plat.startswith("freebsd"):

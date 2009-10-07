@@ -1,5 +1,46 @@
 DENYHOSTS CHANGELOG
 
+2.0 ( February 5, 2006)
+=======================
+
+- DenyHosts has a new address: http://www.denyhosts.net
+
+- Added synchronization mode capability which allows all DenyHosts daemons the
+  ability to seemlessly share denied host data.
+  See this faq entry for more information:
+  http://www.denyhosts.net/faq.html#sync
+
+
+- Added the configuration option USERDEF_FAILED_ENTRY_REGEX which allows the DenyHost
+  user the ability to add custom regular expressions in order to block potential hackers.
+  See this faq entry for more information:
+  http://www.denyhosts.net/faq.html#userdef_regex
+
+
+- FAILED_ENTRY_REGEX5 now handles more login failures such as AllowGroups and AllowUsers.
+  previously applied only to AllowGroups.
+
+- Added FAILED_ENTRY_REGEX6 to handle "Did not receive identification string from ..." 
+  messages. 
+
+- Fixed issue when a purged host was re-added. 
+  http://sourceforge.net/tracker/index.php?func=detail&aid=1345437&group_id=131204&atid=720419
+
+- fixed file permissions issue when creating some temp files
+
+- Log format message can be customized using the new DAEMON_LOG_MESSAGE_FORMAT in addition to
+  the existing DAEMON_LOG_TIME_FORMAT option.
+
+- added 1 second sleep between stop & start in daemon-control-dist for "restart" command.
+
+- Added ShoreWall plugins (thanks to Stéphane LeDauphin for the contribution).
+
+- Fixed licensing ambiguity (DenyHosts is GPL v2).
+
+- Removed test.py~ from plugins.
+
+
+
 1.1.4 (January 9, 2006)
 =======================
 

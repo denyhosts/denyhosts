@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, re
 from util import die, calculate_seconds
 from regex import PREFS_REGEX
 import logging
@@ -24,6 +24,7 @@ class Prefs:
                        'DAEMON_SLEEP': '30s',
                        'DAEMON_PURGE': '1h',
                        'DAEMON_LOG_TIME_FORMAT': None,
+                       'DAEMON_LOG_MESSAGE_FORMAT': '%(asctime)s - %(name)-12s: %(levelname)-8s %(message)s',
                        'AGE_RESET_INVALID': None,
                        'AGE_RESET_VALID': None,
                        'AGE_RESET_ROOT': None,
@@ -37,7 +38,18 @@ class Prefs:
                        'FAILED_ENTRY_REGEX3': None,
                        'FAILED_ENTRY_REGEX4': None,
                        'FAILED_ENTRY_REGEX5': None,
+                       'FAILED_ENTRY_REGEX6': None,
+#                       'FAILED_ENTRY_REGEX7': None,
+#                       'FAILED_ENTRY_REGEX8': None,
+#                       'FAILED_ENTRY_REGEX9': None,
+#                       'FAILED_ENTRY_REGEX10': None,
+                       'USERDEF_FAILED_ENTRY_REGEX': [],
                        'SUCCESSFUL_ENTRY_REGEX': None,
+                       'SYNC_INTERVAL': '1h',
+                       'SYNC_SERVER': None,
+                       'SYNC_UPLOAD': "yes",
+                       'SYNC_DOWNLOAD': "yes",
+                       'SYNC_DOWNLOAD_THRESHOLD': 3,
                        'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no'}
 
         # reqd[0]: required field name
@@ -65,16 +77,18 @@ class Prefs:
         self.to_int = set(('DENY_THRESHOLD',
                            'DENY_THRESHOLD_INVALID', 
                            'DENY_THRESHOLD_VALID',
-                           'DENY_THRESHOLD_ROOT'))
+                           'DENY_THRESHOLD_ROOT',
+                           'SYNC_DOWNLOAD_THRESHOLD'))
 
         # these settings are converted from timespec format
         # to number of seconds (ie. "1m" -> 60)
         self.to_seconds = set(('PURGE_DENY',
-                              'DAEMON_PURGE',
-                              'DAEMON_SLEEP',
-                              'AGE_RESET_VALID',
-                              'AGE_RESET_INVALID',
-                              'AGE_RESET_ROOT'))
+                               'DAEMON_PURGE',
+                               'DAEMON_SLEEP',
+                               'AGE_RESET_VALID',
+                               'AGE_RESET_INVALID',
+                               'SYNC_INTERVAL',
+                               'AGE_RESET_ROOT'))
                 
         if path: self.load_settings(path)
 
@@ -101,7 +115,11 @@ class Prefs:
                         value = int(value)
                     if name in self.to_seconds and value:
                         value = calculate_seconds(value)
-                    self.__data[name] = value
+                    
+                    if name == 'USERDEF_FAILED_ENTRY_REGEX':
+                        self.__data['USERDEF_FAILED_ENTRY_REGEX'].append(re.compile(value))
+                    else:
+                        self.__data[name] = value
             except Exception, e:
                 fp.close()
                 die("Error processing configuration parameter %s: %s" % (name, e))
@@ -147,11 +165,16 @@ class Prefs:
         return self.__data[name]
 
 
+
     def dump(self):
         print "Preferences:"
         keys = self.__data.keys()
         for key in keys:
-            print "   %s: [%s]" % (key, self.__data[key])
+            if key == 'USERDEF_FAILED_ENTRY_REGEX':
+                for rx in self.__data[key]:
+                    print "   %s: [%s]" % (key, rx.pattern)
+            else:
+                print "   %s: [%s]" % (key, self.__data[key])
 
     
     def dump_to_logger(self):
@@ -159,4 +182,9 @@ class Prefs:
         keys.sort()
         info("DenyHosts configuration settings:")
         for key in keys:
-            info("   %s: [%s]", key, self.__data[key])
+            if key == 'USERDEF_FAILED_ENTRY_REGEX':
+                for rx in self.__data[key]:
+                    info("   %s: [%s]" % (key, rx.pattern))
+            else:
+                info("   %s: [%s]", key, self.__data[key])
+

@@ -279,8 +279,26 @@ AGE_RESET_INVALID=10d
 #
 ######################################################################
 
+######################################################################
+#
+# USERDEF_FAILED_ENTRY_REGEX: if set, this value should contain
+# a regular expression that can be used to identify additional
+# hackers for your particular ssh configuration.  This functionality
+# extends the built-in regular expressions that DenyHosts uses.
+# This parameter can be specified multiple times.
+# See this faq entry for more details:
+#    http://denyhosts.sf.net/faq.html#userdef_regex
+#
+#USERDEF_FAILED_ENTRY_REGEX=
+#
+#
+######################################################################
+
+
+
 
    ######### THESE SETTINGS ARE SPECIFIC TO DAEMON MODE  ##########
+
 
 
 #######################################################################
@@ -312,6 +330,28 @@ DAEMON_LOG = /var/log/denyhosts
 #DAEMON_LOG_TIME_FORMAT = %b %d %I:%M:%S
 #
 ###################################################################### 
+
+#######################################################################
+# 
+# DAEMON_LOG_MESSAGE_FORMAT: when DenyHosts is run in daemon mode 
+# (--daemon flag) this specifies the message format of each logged
+# entry.  By default the following format is used:
+#
+# %(asctime)s - %(name)-12s: %(levelname)-8s %(message)s
+#
+# Where the "%(asctime)s" portion is expanded to the format
+# defined by DAEMON_LOG_TIME_FORMAT
+#
+# This string is passed to python's logging.Formatter contstuctor.
+# For details on the possible format types please refer to:
+# http://docs.python.org/lib/node357.html
+#
+# This is the default:
+#DAEMON_LOG_MESSAGE_FORMAT = %(asctime)s - %(name)-12s: %(levelname)-8s %(message)s
+#
+#
+###################################################################### 
+
  
 #######################################################################
 #
@@ -335,4 +375,89 @@ DAEMON_SLEEP = 30s
 DAEMON_PURGE = 1h
 #
 #######################################################################
+
+
+   #########   THESE SETTINGS ARE SPECIFIC TO     ##########
+   #########       DAEMON SYNCHRONIZATION         ##########
+
+
+#######################################################################
+#
+# Synchronization mode allows the DenyHosts daemon the ability
+# to periodically send and receive denied host data such that 
+# DenyHosts daemons worldwide can automatically inform one
+# another regarding banned hosts.   This mode is disabled by
+# default, you must uncomment SYNC_SERVER to enable this mode.
+#
+# for more information, please refer to: 
+#        http:/denyhosts.sourceforge.net/faq.html#sync 
+#
+#######################################################################
+
+
+#######################################################################
+#
+# SYNC_SERVER: The central server that communicates with DenyHost
+# daemons.  Currently, denyhosts.net is the only available server
+# however, in the future, it may be possible for organizations to
+# install their own server for internal network synchronization
+#
+# To disable synchronization (the default), do nothing. 
+#
+# To enable synchronization, you must uncomment the following line:
+#SYNC_SERVER = http://xmlrpc.denyhosts.net:9911
+#
+#######################################################################
+
+#######################################################################
+#
+# SYNC_INTERVAL: the interval of time to perform synchronizations if
+# SYNC_SERVER has been uncommented.  The default is 1 hour.
+# 
+#SYNC_INTERVAL = 1h
+#
+#######################################################################
+
+
+#######################################################################
+#
+# SYNC_UPLOAD: allow your DenyHosts daemon to transmit hosts that have
+# been denied?  This option only applies if SYNC_SERVER has
+# been uncommented.
+#
+#SYNC_UPLOAD = no
+#
+# the default:
+#SYNC_UPLOAD = yes
+#
+#######################################################################
+
+
+#######################################################################
+#
+# SYNC_DOWNLOAD: allow your DenyHosts daemon to receive hosts that have
+# been denied by others?  This option only applies if SYNC_SERVER has
+# been uncommented.
+#
+#SYNC_DOWNLOAD = no
+#
+# the default:
+#SYNC_DOWNLOAD = yes
+#
+#######################################################################
+
+#######################################################################
+#
+# SYNC_DOWNLOAD_THRESHOLD: If SYNC_DOWNLOAD is enabled this paramter
+# filters the returned hosts to those that have been blocked this many
+# times by others.  That is, if set to 1, then if a single DenyHosts
+# server has denied an ip address then you will receive the denied host.
+# 
+#SYNC_DOWNLOAD_THRESHOLD = 10
+#
+# the default:
+#SYNC_DOWNLOAD_THRESHOLD = 3
+# 
+#######################################################################
+
 

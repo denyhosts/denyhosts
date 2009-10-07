@@ -29,11 +29,12 @@ from daemon import createDaemon
 from denyfileutil import Purge
 from util import parse_host
 from version import VERSION
+from sync import Sync
 import plugin
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
-
+error = logging.getLogger("denyhosts").error
     
 class DenyHosts:
     def __init__(self, logfile, prefs, lock_file,
@@ -44,8 +45,11 @@ class DenyHosts:
         self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
-        self.__report = Report(self.__prefs.get("HOSTNAME_LOOKUP"))
+        self.__report = Report(prefs.get("HOSTNAME_LOOKUP"))
         self.__daemon = daemon
+        self.__sync_server = prefs.get('SYNC_SERVER')
+        self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
+        self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
         self.init_regex()
         
         try:
@@ -102,6 +106,7 @@ class DenyHosts:
         # exception handler (SystemExit)
         sys.exit(0)
 
+
     def toggleDebug(self, signum, frame):
         level = logging.getLogger().getEffectiveLevel()
         if level == logging.INFO:
@@ -126,6 +131,9 @@ class DenyHosts:
         info("monitoring log: %s", logfile)
         daemon_sleep = self.__prefs.get('DAEMON_SLEEP')
         purge_time = self.__prefs.get('PURGE_DENY')
+        sync_time = self.__prefs.get('SYNC_INTERVAL')
+        info("sync_time: %s", str(sync_time))
+        
         if purge_time:
             daemon_purge = self.__prefs.get('DAEMON_PURGE')
             daemon_purge = max(daemon_sleep, daemon_purge)
@@ -139,12 +147,27 @@ class DenyHosts:
             info("purging of %s is disabled", self.__prefs.get('HOSTS_DENY'))
 
 
+        if sync_time and self.__sync_server:
+            if sync_time < SYNC_MIN_INTERVAL:
+                info("SYNC_INTERVAL (%d) should be atleast %d",
+                     sync_time,
+                     SYNC_MIN_INTERVAL)
+                sync_time = SYNC_MIN_INTERVAL
+            sync_time = max(daemon_sleep, sync_time)
+            info("sync_time:      : %ld", sync_time)
+            sync_sleep_ratio = sync_time / daemon_sleep
+            self.sync_counter = 0
+            info("sync_sleep_ratio: %ld", sync_sleep_ratio)
+        else:
+            sync_sleep_ratio = None
+            info("denyhosts synchronization disabled")
+
         self.daemonLoop(logfile, last_offset, daemon_sleep,
-                        purge_time, purge_sleep_ratio)
+                        purge_time, purge_sleep_ratio, sync_sleep_ratio)
 
 
     def daemonLoop(self, logfile, last_offset, daemon_sleep,
-                   purge_time, purge_sleep_ratio):
+                   purge_time, purge_sleep_ratio, sync_sleep_ratio):
 
         fp = open(logfile, "r")
         inode = os.fstat(fp.fileno())[ST_INO]
@@ -195,24 +218,46 @@ class DenyHosts:
                 self.file_tracker.update_first_line()
                 continue
 
-            self.sleepAndPurge(daemon_sleep, purge_time, purge_sleep_ratio)
+            self.sleepAndPurge(daemon_sleep, purge_time,
+                               purge_sleep_ratio, sync_sleep_ratio)
 
 
 
-    def sleepAndPurge(self, sleep_time, purge_time, purge_sleep_ratio=None):
+    def sleepAndPurge(self, sleep_time, purge_time,
+                      purge_sleep_ratio = None, sync_sleep_ratio = None):
         time.sleep(sleep_time)
         if purge_time:
             self.purge_counter += 1
             if self.purge_counter == purge_sleep_ratio:
                 try:
-                    Purge(self.__prefs,
-                          purge_time)
-
+                    purge = Purge(self.__prefs,
+                                  purge_time)
                 except Exception, e:
                     logging.getLogger().exception(e)
                     raise
                 self.purge_counter = 0
-            
+
+        if sync_sleep_ratio:
+            #debug("sync count: %d", self.sync_counter)
+            self.sync_counter += 1
+            if self.sync_counter == sync_sleep_ratio:
+                try:
+                    sync = Sync(self.__prefs)
+                    if self.__sync_upload:
+                        debug("sync upload")
+                        timestamp = sync.send_new_hosts()
+                    if self.__sync_download:
+                        debug("sync download")
+                        new_hosts = sync.receive_new_hosts()
+                        if new_hosts:
+                            info("received new hosts: %s", str(new_hosts))
+                            self.get_denied_hosts()
+                            self.update_hosts_deny(new_hosts)
+                    sync.xmlrpc_disconnect()
+                except Exception, e:
+                    logging.getLogger().exception(e)
+                    raise
+                self.sync_counter = 0
         
 
     def get_denied_hosts(self):
@@ -222,10 +267,8 @@ class DenyHosts:
                 idx = line.find('#')
                 if idx != 1:
                     line = line[:idx]
-                    
                 try:
                     host = parse_host(line)
-
                     self.__denied_hosts[host] = 0
                     if host in self.__allowed_hosts:
                         self.__allowed_hosts.add_warned_host(host)
@@ -243,10 +286,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             self.__report.add_section(text, new_warned_hosts)
             self.__allowed_hosts.clear_warned_hosts()
 
+
     def update_hosts_deny(self, deny_hosts):
         if not deny_hosts: return None, None
 
-        #print self.__denied_hosts.keys()
+        #info("keys: %s", str( self.__denied_hosts.keys()))
         new_hosts = [host for host in deny_hosts
                      if not self.__denied_hosts.has_key(host)
                      and host not in self.__allowed_hosts]
@@ -285,7 +329,14 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         return new_hosts, status
     
 
-
+    def is_valid(self, rx_match):
+        invalid = 0
+        try:
+            if rx_match.group("invalid"): invalid = 1
+        except:
+            invalid = 1
+        return invalid
+    
     def process_log(self, logfile, offset):
         try:
             if logfile.endswith(".gz"):
@@ -318,32 +369,80 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             if not sshd_m: continue
             message = sshd_m.group('message')
 
-            m = (self.__failed_entry_regex.match(message) or 
-                self.__failed_entry_regex2.match(message) or
-                self.__failed_entry_regex3.match(message) or
-                self.__failed_entry_regex4.match(message) or
-                self.__failed_entry_regex5.match(message))
-            if m:
-                try:
-                    if m.group("invalid"): invalid = 1
-                except:
-                    invalid = 1
-            else:
-                m = self.__successful_entry_regex.match(message)
+            m = None
+            # did this line match any of the fixed failed regexes?
+            for i in FAILED_ENTRY_REGEX_RANGE:
+                rx = self.__failed_entry_regex_map.get(i)
+                if rx == None: continue
+                m = rx.search(message) 
                 if m:
-                    success = 1
+                    invalid = self.is_valid(m)
+                    break
+            else:
+                # otherwise, did the line match one of the userdef regexes?
+                for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
+                    m = rx.search(message)
+                    if m:
+                        #info("matched: %s" % rx.pattern)
+                        invalid = self.is_valid(m)
+                        break
+                else: # didn't match any of the failed regex'es, was it succesful?
+                    m = self.__successful_entry_regex.match(message)
+                    if m:
+                        success = 1
+
             if not m:
+                # line isn't important
+                continue
+
+            try:
+                user = m.group("user")
+            except:
+                user = ""
+            try:
+                host = m.group("host")
+            except:
+                error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
                 continue
             
-            if m:               
-                user = m.group("user")
-                host = m.group("host")
-                debug ("user: %s - host: %s - success: %d - invalid: %d",
-                       user,
-                       host,
-                       success,
-                       invalid)
-                login_attempt.add(user, host, success, invalid)
+            debug ("user: %s - host: %s - success: %d - invalid: %d",
+                   user,
+                   host,
+                   success,
+                   invalid)
+            login_attempt.add(user, host, success, invalid)
+                    
+            
+##            m = (self.__failed_entry_regex.match(message) or 
+##                self.__failed_entry_regex2.match(message) or
+##                self.__failed_entry_regex3.match(message) or
+##                self.__failed_entry_regex4.match(message) or
+##                self.__failed_entry_regex5.match(message) or
+##                self.__failed_entry_regex6.match(message))
+##            if m:
+##                try:
+##                    if m.group("invalid"): invalid = 1
+##                except:
+##                    invalid = 1
+##            else:
+##                m = self.__successful_entry_regex.match(message)
+##                if m:
+##                    success = 1
+##            if not m:
+##                continue
+            
+##            if m:               
+##                try:
+##                    user = m.group("user")
+##                except:
+##                    user = ""
+##                host = m.group("host")
+##                debug ("user: %s - host: %s - success: %d - invalid: %d",
+##                       user,
+##                       host,
+##                       success,
+##                       invalid)
+##                login_attempt.add(user, host, success, invalid)
                     
 
         offset = fp.tell()
@@ -360,6 +459,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             else:
                 msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
             self.__report.add_section(msg, new_denied_hosts)
+            self.sync_add_hosts(new_denied_hosts)
             plugin_deny = self.__prefs.get('PLUGIN_DENY')
             if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
         
@@ -388,6 +488,15 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         return offset
 
 
+    def sync_add_hosts(self, hosts):
+        try:
+            fp = open(os.path.join(self.__prefs.get("WORK_DIR"), SYNC_HOSTS), "a")
+            for host in hosts:
+                fp.write("%s\n" % host)
+            fp.close()
+        except Exception, e:
+            error(str(e))
+
     def get_regex(self, name, default):
         val = self.__prefs.get(name)
         if not val: 
@@ -398,10 +507,27 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
     def init_regex(self):
         self.__sshd_format_regex = self.get_regex('SSHD_FORMAT_REGEX', SSHD_FORMAT_REGEX)
-        self.__failed_entry_regex = self.get_regex('FAILED_ENTRY_REGEX', FAILED_ENTRY_REGEX)
-        self.__failed_entry_regex2 = self.get_regex('FAILED_ENTRY_REGEX2', FAILED_ENTRY_REGEX2)
-        self.__failed_entry_regex3 = self.get_regex('FAILED_ENTRY_REGEX3', FAILED_ENTRY_REGEX3)
-        self.__failed_entry_regex4 = self.get_regex('FAILED_ENTRY_REGEX4', FAILED_ENTRY_REGEX4)
-        self.__failed_entry_regex5 = self.get_regex('FAILED_ENTRY_REGEX5', FAILED_ENTRY_REGEX5)
-        self.__successful_entry_regex = self.get_regex('SUCCESSFUL_ENTRY_REGEX', SUCCESSFUL_ENTRY_REGEX)
+
+        self.__successful_entry_regex = self.get_regex('SUCCESSFUL_ENTRY_REGEX',
+                                                       SUCCESSFUL_ENTRY_REGEX)
+
+        self.__failed_entry_regex_map = {}
+        for i in FAILED_ENTRY_REGEX_RANGE:
+            if i == 1: extra = ""
+            else: extra = "%i" % i
+            self.__failed_entry_regex_map[i] = self.get_regex('FAILED_ENTRY_REGEX%s' % extra,
+                                                              FAILED_ENTRY_REGEX_MAP[i])
+
+            
+##        self.__failed_entry_regex = self.get_regex('FAILED_ENTRY_REGEX', FAILED_ENTRY_REGEX)
+##        self.__failed_entry_regex2 = self.get_regex('FAILED_ENTRY_REGEX2', FAILED_ENTRY_REGEX2)
+##        self.__failed_entry_regex3 = self.get_regex('FAILED_ENTRY_REGEX3', FAILED_ENTRY_REGEX3)
+##        self.__failed_entry_regex4 = self.get_regex('FAILED_ENTRY_REGEX4', FAILED_ENTRY_REGEX4)
+##        self.__failed_entry_regex5 = self.get_regex('FAILED_ENTRY_REGEX5', FAILED_ENTRY_REGEX5)
+##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX6', FAILED_ENTRY_REGEX6)
+##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX7', FAILED_ENTRY_REGEX7)
+##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX8', FAILED_ENTRY_REGEX8)
+##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX9', FAILED_ENTRY_REGEX9)
+##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX10', FAILED_ENTRY_REGEX10)
+
         

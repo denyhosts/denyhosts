@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Copyright 2005-2006 (C) Phil Schwartz <phil_schwartz@users.sourceforge.net>
 from DenyHosts.version import VERSION
 from distutils.core import setup
 import os
@@ -28,7 +29,7 @@ setup(name="DenyHosts",
                   (libpath, glob("CHANGELOG.txt")),
                   (libpath, glob("README.txt")),
                   (libpath, glob("LICENSE.txt"))],
-      license="GPL",
+      license="GPL v2",
       ##extra_path='denyhosts',
       long_description="""
 DenyHosts is a python program that automatically blocks ssh attacks by adding entries to 
