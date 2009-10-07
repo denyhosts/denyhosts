@@ -3,7 +3,12 @@ import string
 import time
 import socket
 import gzip
-import bz2
+try:
+    import bz2
+    HAS_BZ2 = True
+except:
+    HAS_BZ2 = False
+    
 import traceback
 import logging
 import signal
@@ -280,7 +285,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             if logfile.endswith(".gz"):
                 fp = gzip.open(logfile)
             elif logfile.endswith(".bz2"):
-                fp = bz2.BZ2File(logfile, "r")
+                if HAS_BZ2: fp = bz2.BZ2File(logfile, "r")
+                else:       raise Exception, "Can not open bzip2 file (missing bz2 module)"
             else:
                 fp = open(logfile, "r")
         except Exception, e:

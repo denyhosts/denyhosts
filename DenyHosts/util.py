@@ -84,7 +84,7 @@ Date: %s
 """ % (prefs.get('SMTP_FROM'),
        prefs.get('ADMIN_EMAIL'),
        prefs.get('SMTP_SUBJECT'),
-       time.strftime("%a, %d %B %Y %H:%M:%S %Z"))
+       time.strftime("%a, %d %b %Y %H:%M:%S %z"))
 
     msg += report_str
     try:

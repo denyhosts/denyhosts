@@ -1,6 +1,12 @@
 import os
 import logging
 
+try:
+    set = set
+except:
+    from sets import Set
+    set = Set
+
 from counter import Counter
 from constants import *
 
@@ -144,8 +150,8 @@ class LoginAttempt:
         valid_hosts = [host for host,num in self.__abusive_hosts_valid.items()
                        if num > self.__deny_threshold_valid]
 
-        
-        return invalid_hosts + valid_hosts + root_hosts
+        deny_set = set(invalid_hosts + valid_hosts + root_hosts)
+        return list(deny_set)
         
 
     def __save_stats(self, fname, stats):

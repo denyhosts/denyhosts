@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
+
+import DenyHosts.python_version
+
 import getopt
 import traceback
 import logging
@@ -9,9 +12,9 @@ from DenyHosts.util import die
 from DenyHosts.lockfile import LockFile
 from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
-from DenyHosts.constants import *
 from DenyHosts.deny_hosts import DenyHosts
 from DenyHosts.denyfileutil import Purge, Migrate, UpgradeTo099
+from DenyHosts.constants import *
 
 
 #################################################################################

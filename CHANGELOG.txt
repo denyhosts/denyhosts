@@ -1,5 +1,22 @@
 DENYHOSTS CHANGELOG
 
+1.0.2
+=====
+
+- fixed issue where multiple instances of the same host were added
+  to /etc/hosts.deny (due to exceeding multiple DENY_THRESHOLD* settings
+  simultaneously).
+
+- bz2 support is disabled if "import bz2" fails
+
+- displays more useful error message if Python version
+  is incompatible with DenyHosts.
+
+- changed format of timestamp in email messages sent by DenyHosts
+  based on patch submitted by Rick Holbert 
+  (now uses %z instead of %Z)
+
+
 1.0.1
 =====
 
