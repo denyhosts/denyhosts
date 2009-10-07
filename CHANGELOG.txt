@@ -1,5 +1,29 @@
 DENYHOSTS CHANGELOG
 
+0.9.9
+=====
+
+- if upgrading DenyHosts to this version and PURGE_DENY is set then you must invoke with
+  the --upgrade099 flag before using. eg.  $ denyhosts.py --upgrade099
+  For further details, refer to:
+  http://denyhosts.sourceforge.net/faq.html#upgrade099    
+
+- fixed bug: missing "import socket" in report.py
+
+- fixed bug: invalid comment format in /etc/hosts.deny for timestamping entries
+
+- /etc/hosts.deny entries are timestamped immediately before the entry now (rather than inline, in 
+  earlier versions).  The timestamped lines also contain the entry data for verification.  If 
+  DenyHosts determines that a purge is necessary than the verification info is compared to 
+  the actual entry line (ie. the next line).  If the two entries match, the lines are purged.  
+  Otherwise a warning is output.  The verification algorithm was based on a suggestion from Jim 
+  Cheetham.
+
+- sshd related regex patterns can now be configured within the DenyHosts configuration file in the event
+  that the default (eg. DenyHosts/regex.py) patterns do not successfully parse the end user's tcp_wrappers, 
+  operating system and/or logging implementation.  For details refer to:  
+  http://denyhosts.sourceforge.net/faq.html#custom_regex
+
 0.9.8
 =====
 

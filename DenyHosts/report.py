@@ -1,11 +1,13 @@
 import os
 import re
+import socket
 from types import ListType, TupleType
 import logging
 from util import is_true
 
 
 debug = logging.getLogger("report").debug
+warn = logging.getLogger("report").warn
 
 IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
@@ -52,10 +54,10 @@ class Report:
         else:
             return text
 
-        try:
-            hostname = socket.gethostbyaddr(ip)[0]
-            return "%s (%s)" % (ip, hostname)
-        except Exception, e:
-            return "%s (unknown)" % ip
+        hostname = socket.getfqdn(ip)
+        if hostname == ip:
+            hostname = "unknown"
+        return "%s (%s)" % (ip, hostname)
+
            
         

@@ -11,7 +11,7 @@ from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
 from DenyHosts.constants import *
 from DenyHosts.deny_hosts import DenyHosts
-from DenyHosts.denyfileutil import Purge, Migrate
+from DenyHosts.denyfileutil import Purge, Migrate, UpgradeTo099
 
 
 #################################################################################
@@ -99,12 +99,13 @@ if __name__ == '__main__':
     purge = 0
     daemon = 0
     enable_debug = 0
+    upgrade099 = 0
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvp?hV',
                                         ["file=", "ignore", "verbose", "debug", 
                                          "help", "noemail", "config=", "version",
-                                         "migrate", "purge", "daemon"])
+                                         "migrate", "purge", "daemon", "upgrade099"])
     except:
         print "\nInvalid command line option detected."
         usage()
@@ -132,6 +133,8 @@ if __name__ == '__main__':
             purge = 1
         if opt == '--daemon':
             daemon = 1
+        if opt == '--upgrade099':
+            upgrade099 = 1
         if opt == '--version':
             print "DenyHosts version:", VERSION
             sys.exit(0)
@@ -159,6 +162,13 @@ if __name__ == '__main__':
     lock_file = LockFile(prefs.get('LOCK_FILE'))
 
     lock_file.create()
+
+    if upgrade099 and not daemon:
+        if not prefs.get('PURGE_DENY'):
+            lock_file.remove()
+            die("You have supplied the --upgrade099 flag, however you have not set PURGE_DENY in your configuration file")
+        else:
+            u = UpgradeTo099(prefs.get("HOSTS_DENY"))
 
     if migrate and not daemon:
         if not prefs.get('PURGE_DENY'):

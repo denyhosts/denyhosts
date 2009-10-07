@@ -3,7 +3,7 @@ import shutil
 import time
 import logging
 
-from constants import TAB_OFFSET, DENY_DELIMITER
+from constants import DENY_DELIMITER, ENTRY_DELIMITER
 from loginattempt import AbusiveHosts
 from util import parse_host, calculate_seconds
 
@@ -72,18 +72,54 @@ class Migrate(DenyFileUtilBase):
                     fp.write("\n")
                     continue
                 
-                l = len(line)
-                if l < TAB_OFFSET:
-                    line = "%s%s" % (line, ' ' * (TAB_OFFSET - l))
-            
-                fp.write("%s %s %s\n" % (line,
-                                         DENY_DELIMITER,
-                                         time.asctime()))
+                fp.write("%s %s%s%s\n" % (DENY_DELIMITER,
+                                          time.asctime(),
+                                          ENTRY_DELIMITER,
+                                          line))
+                fp.write("%s\n" % line)
+
             fp.close()
         except Exception, e:
             raise e
         
 #################################################################################
+
+class UpgradeTo099(DenyFileUtilBase):
+    def __init__(self, deny_file):
+        DenyFileUtilBase.__init__(self, deny_file, "0.9.9")
+        self.backup()
+        self.create_temp(self.get_data())
+        self.replace()
+
+    def create_temp(self, data):
+        try:
+            fp = open(self.temp_file, "w")
+            for line in data:
+                if line.find("#") == 0:
+                    fp.write(line)
+                    continue
+                
+                line = line.strip()
+                if not line:
+                    fp.write("\n")
+                    continue
+                
+                delimiter_idx = line.find(DENY_DELIMITER)
+
+                if delimiter_idx == -1:
+                    fp.write("%s\n" % line)
+                    continue
+
+                entry = line[:delimiter_idx].strip()
+                fp.write("%s%s%s\n" % (line[delimiter_idx:],
+                                       ENTRY_DELIMITER,
+                                       entry))
+                fp.write("%s\n" % entry)
+            fp.close()
+        except Exception, e:
+            raise e
+
+#################################################################################        
 
 class Purge(DenyFileUtilBase):
     def __init__(self, deny_file, purge_timestr, work_dir):
@@ -115,35 +151,51 @@ class Purge(DenyFileUtilBase):
         purged_hosts = []
         try:
             fp = open(self.temp_file, "w")
-            for line in data:
-                delimiter_idx = line.find(DENY_DELIMITER)
-                if delimiter_idx == -1:
+            offset = 0
+            num_lines = len(data)
+            while offset < num_lines:
+                line = data[offset]
+                offset += 1
+                if not line.startswith(DENY_DELIMITER):
                     fp.write(line)
-                    continue
-                
-                entry = line[:delimiter_idx]
-                delimiter_timestamp = line[delimiter_idx:].strip()
-                timestamp = delimiter_timestamp.lstrip(DENY_DELIMITER)
-
-                try:
-                    tm = time.strptime(timestamp)
-                except Exception, e:
-                    warn("Parse error -- Ignorning timestamp: %s", timestamp)
-                    # ignoring bad time string
-                    fp.write(line)
-                    continue
-
-                epoch = long(time.mktime(tm))
-                #print entry, epoch, self.cutoff
-
-                if self.cutoff > epoch:
-                    host = parse_host(entry)
-                    if host:
-                        purged_hosts.append(host)
                     continue
                 else:
-                    fp.write(line)
-                    continue
+                    try:
+                        rest = line.lstrip(DENY_DELIMITER)
+                        timestamp, host_verify = rest.split(ENTRY_DELIMITER)
+                        tm = time.strptime(timestamp)
+                    except Exception, e:
+                        warn("Parse error -- Ignorning timestamp: %s", timestamp)
+                        # ignoring bad time string
+                        fp.write(line)
+                        continue                        
+
+                    epoch = long(time.mktime(tm))
+                    #print entry, epoch, self.cutoff
+
+                    if self.cutoff > epoch:
+                        # this entry should be purged
+                        entry = data[offset]
+                        if host_verify != entry:
+                            warn("%s purge verification failed: %s vs. %s",
+                                 self.deny_file,
+                                 host_verify.rstrip(),
+                                 entry.rstrip())
+                            
+                            fp.write(line)
+                            continue
+                        host = parse_host(entry)
+                        if host:
+                            # purge
+                            purged_hosts.append(host)
+
+                            # increment offset past purged line
+                            offset += 1
+                        continue
+                    else:
+                        fp.write(line)
+                        continue                    
+
             fp.close()
         except Exception, e:
             raise e

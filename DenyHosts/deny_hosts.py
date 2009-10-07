@@ -8,6 +8,7 @@ import traceback
 import logging
 import signal
 from stat import ST_SIZE, ST_INO
+import re
 
 from util import die, is_true, is_false, send_email
 from allowedhosts import AllowedHosts
@@ -38,6 +39,7 @@ class DenyHosts:
         self.__noemail = noemail
         self.__report = Report(self.__prefs.get("HOSTNAME_LOOKUP"))
         self.__daemon = daemon
+        self.init_regex()
         
         try:
             self.file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
@@ -258,15 +260,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 output = "%s" % host
 
             if write_timestamp:
-                l = len(output)
-                if l < TAB_OFFSET:
-                    output = "%s%s" % (output, ' ' * (TAB_OFFSET - l))
-            
-                fp.write("%s %s %s\n" % (output,
-                                         DENY_DELIMITER,
-                                         time.asctime()))
-            else:
-                fp.write("%s\n" % output)
+                fp.write("%s %s%s%s\n" % (DENY_DELIMITER,
+                                          time.asctime(),
+                                          ENTRY_DELIMITER,
+                                          output))
+            fp.write("%s\n" % output)
 
         if fp != sys.stdout:
             fp.close()
@@ -303,21 +301,21 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         for line in fp:
             success = invalid = 0
-            sshd_m = SSHD_FORMAT_REGEX.match(line)
+            sshd_m = self.__sshd_format_regex.match(line)
             if not sshd_m: continue
             message = sshd_m.group('message')
 
-            m = (FAILED_ENTRY_REGEX.match(message) or 
-                 FAILED_ENTRY_REGEX2.match(message) or 
-                 FAILED_ENTRY_REGEX3.match(message) or 
-                 FAILED_ENTRY_REGEX4.match(message))
+            m = (self.__failed_entry_regex.match(message) or 
+                self.__failed_entry_regex2.match(message) or
+                self.__failed_entry_regex3.match(message) or
+                self.__failed_entry_regex4.match(message))
             if m:
                 try:
                     if m.group("invalid"): invalid = 1
                 except:
                     invalid = 1
             else:
-                m = SUCCESSFUL_ENTRY_REGEX.match(message)
+                m = self.__successful_entry_regex.match(message)
                 if m:
                     success = 1
             if not m:
@@ -372,3 +370,21 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             self.__report.clear()
             
         return offset
+
+
+    def get_regex(self, name, default):
+        val = self.__prefs.get(name)
+        if not val: 
+            return default
+        else:
+            return re.compile(val)   
+
+
+    def init_regex(self):
+        self.__sshd_format_regex = self.get_regex('SSHD_FORMAT_REGEX', SSHD_FORMAT_REGEX)
+        self.__failed_entry_regex = self.get_regex('FAILED_ENTRY_REGEX', FAILED_ENTRY_REGEX)
+        self.__failed_entry_regex2 = self.get_regex('FAILED_ENTRY_REGEX2', FAILED_ENTRY_REGEX2)
+        self.__failed_entry_regex3 = self.get_regex('FAILED_ENTRY_REGEX3', FAILED_ENTRY_REGEX3)
+        self.__failed_entry_regex4 = self.get_regex('FAILED_ENTRY_REGEX4', FAILED_ENTRY_REGEX4)
+        self.__successful_entry_regex = self.get_regex('SUCCESSFUL_ENTRY_REGEX', SUCCESSFUL_ENTRY_REGEX)
+        
