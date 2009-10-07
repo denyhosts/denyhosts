@@ -1,5 +1,10 @@
 DENYHOSTS CHANGELOG
 
+0.7.3
+=====
+- Prefs change (reqd fields can be blank)
+
+
 0.7.2
 =====
 

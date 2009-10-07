@@ -193,11 +193,14 @@ class Prefs:
         self.__data = {'ADMIN_EMAIL': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
                        'HOSTNAME_LOOKUP': 'yes'}
-        
-        self.reqd = ('DENY_THRESHOLD',
-                     'SECURE_LOG',
-                     'HOSTS_DENY',
-                     'WORK_DIR')
+
+        # reqd[0]: required field name
+        # reqd[1]: is value required?
+        self.reqd = (('DENY_THRESHOLD', True),
+                     ('SECURE_LOG', True),
+                     ('BLOCK_SERVICE', False),
+                     ('HOSTS_DENY', True),
+                     ('WORK_DIR', True))
 
         self.to_int = ('DENY_THRESHOLD', )
                 
@@ -230,12 +233,12 @@ class Prefs:
 
     def check_required(self, path):
         ok = 1
-        for reqd in self.reqd:
-            if not self.__data.has_key(reqd):
-                print "Missing configuration parameter: %s" % reqd
+        for name_reqd, val_reqd in self.reqd:
+            if not self.__data.has_key(name_reqd):
+                print "Missing configuration parameter: %s" % name_reqd
                 ok = 0
-            elif not self.__data[reqd]:
-                print "Missing configuration value for: %s" % reqd
+            elif val_reqd and not self.__data[name_reqd]:
+                print "Missing configuration value for: %s" % name_reqd
                 ok = 0
 
         if not ok:
@@ -628,7 +631,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             status = 0
             
         for host in new_hosts:
-            block_service = self.__prefs.get('BLOCK_SERVICE').strip()
+            block_service = self.__prefs.get('BLOCK_SERVICE')
             if block_service:
                 block_service = "%s: " % block_service
                 fp.write("%s%s%s\n" % (block_service, host, BSD_STYLE))
