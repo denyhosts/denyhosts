@@ -4,10 +4,60 @@ import logging
 
 
 from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
-from regex import ALLOWED_REGEX
+from regex import ALLOWED_REGEX_MASK, IP_REGEX
 from util import is_true
 
 debug = logging.getLogger("AllowedHosts").debug
+
+class IPTrie:
+    def __init__(self):
+        self.root = {'flag': False, 'left': None, 'right': None}
+
+    def __repr__(self):
+        return repr(self.root)
+    
+    def insert(self, ip_address, mask_length):
+        int_address = to_int(ip_address)
+        current = self.root
+        for i in range(31, 31 - mask_length, -1):
+             if current['flag'] == True:
+                 return
+             bit = (int_address & (1 << i)) >> i
+             if bit == 0:
+                 if current['left'] == None:
+                     current['left'] = {'flag': False, 'left': None, 'right': None}
+                 current = current['left']
+             else:
+                 if current['right'] == None:
+                     current['right'] = {'flag': False, 'left': None, 'right': None}
+                 current = current['right']
+        current['flag'] = True
+
+    def __contains__(self, ip_address):
+        HIGH_BIT_MASK = 0x80000000
+        int_address = to_int(ip_address)
+        current = self.root
+        while True:
+            if current['flag']:
+                return True
+            bit = (int_address & HIGH_BIT_MASK) >> 31
+            int_address <<= 1
+            if bit == 0:
+                current = current['left']
+            else:
+                current = current['right']
+            if current == None:
+                return False
+
+ip_regex = re.compile(r"""(?P<octet1>\d{1,3})\.(?P<octet2>\d{1,3})\.(?P<octet3>\d{1,3})\.(?P<octet4>\d{1,3})""")
+def to_int(ip_address):
+    m = ip_regex.match(ip_address)
+    if not m:
+        raise ValueError("malformed IP address: %s" % ip_address)
+    return (int(m.group("octet1")) * 2 ** 24 +
+        int(m.group("octet2")) * 2 ** 16 +
+        int(m.group("octet3")) * 2 ** 8 +
+        int(m.group("octet4")))
 
 class AllowedHosts:
     def __init__(self, prefs):
@@ -16,7 +66,7 @@ class AllowedHosts:
         self.hostname_lookup = is_true(prefs.get("ALLOWED_HOSTS_HOSTNAME_LOOKUP"))
         self.allowed_path = os.path.join(work_dir, ALLOWED_HOSTS)
         self.warned_path = os.path.join(work_dir, ALLOWED_WARNED_HOSTS)
-        self.allowed_hosts = {}
+        self.allowed_hosts = IPTrie()
         self.warned_hosts = {}
         self.new_warned_hosts = []
         self.load_hosts()
@@ -24,12 +74,12 @@ class AllowedHosts:
         debug("done initializing AllowedHosts")
 
     def __contains__(self, ip_addr):
-        if self.allowed_hosts.has_key(ip_addr): return 1
+        if self.allowed_hosts.__contains__(ip_addr): return 1
         else: return 0
 
     def dump(self):
         print "Dumping AllowedHosts"
-        print self.allowed_hosts.keys()
+        print self.allowed_hosts.__repr__()
 
         
     def load_hosts(self):
@@ -42,28 +92,30 @@ class AllowedHosts:
         for line in fp:
             line = line.strip()
             if not line or line[0] == '#': continue
-            
-            m = ALLOWED_REGEX.match(line)
+            m = ALLOWED_REGEX_MASK.match(line)
             debug("line: %s - regex match?   %s", line, m != None)
             if m:
-                # line contains an ip address
-                first3 = m.group('first_3bits')
-                fourth = m.group('fourth')
-                wildcard = m.group('ip_wildcard')
-                ip_range = m.group('ip_range')
-
-                if fourth:
-                    self.allowed_hosts["%s%s" % (first3, fourth)] = 1
-                    self.add_hostname("%s%s" % (first3, fourth))
-                elif wildcard:
-                    for i in range(256):
-                        self.allowed_hosts["%s%s" % (first3, i)] = 1
-                        self.add_hostname("%s%s" % (first3, i))
+                ip = m.group("ip")
+                long_mask = m.group("long_mask")
+                short_mask = m.group("short_mask")
+                mask_bits = 0
+                if short_mask:
+                    mask_bits = int(short_mask)
                 else:
-                    start, end = ip_range.split("-")
-                    for i in range(int(start), int(end)):
-                        self.allowed_hosts["%s%d" % (first3, i)] = 1
-                        self.add_hostname("%s%s" % (first3, i))
+                    if long_mask:
+                        mask_bits = 0
+                        HIGH_BIT_MASK = 0x80000000
+                        mask = to_int(long_mask)
+                        # TODO: Be more clever about this
+                        bit = (mask & HIGH_BIT_MASK) >> 31
+                        while bit == 1:
+                            mask_bits += 1
+                            mask <<= 1
+                            bit = (mask & HIGH_BIT_MASK) >> 31
+                    else:
+                        # Not specifying a subnet mask matches entire IP address
+                        mask_bits = 32
+                        trie.insert(ip, mask_bits)
             else:
                 # assume that line contains hostname
                 self.allowed_hosts[line] = 1
@@ -73,9 +125,8 @@ class AllowedHosts:
                     self.allowed_hosts[ip] = 1
                 except:
                     pass
-            
         fp.close()
-        debug("allowed_hosts: %s", self.allowed_hosts.keys())
+        debug("allowed_hosts: %s", self.allowed_hosts.root)
 
 
     def add_hostname(self, ip_addr):

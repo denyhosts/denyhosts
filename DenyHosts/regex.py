@@ -48,7 +48,7 @@ TIME_SPEC_REGEX = re.compile(r"""(?P<units>\d*)\s*(?P<period>[smhdwy])?""")
 
 ALLOWED_REGEX_MASK = re.compile(r"""(?P<ip>(\d{1,3}\.){3}\d{1,3})/?((?P<long_mask>(\d{1,3}\.){3}\d{1,3})|(?P<short_mask>\d{1,2}))?""")
 
-ALLOWED_REGEX = re.compile(r"""(?P<first_3bits>\d{1,3}\.\d{1,3}\.\d{1,3}\.)((?P<fourth>\d{1,3})|(?P<ip_wildcard>\*)|\[(?P<ip_range>\d{1,3}\-\d{1,3})\])""")
+IP_REGEX = re.compile(r"""(?P<octet1>\d{1,3})\.(?P<octet2>\d{1,3})\.(?P<octet3>\d{1,3})\.(?P<octet4>\d{1,3})""")
 
 PREFS_REGEX = re.compile(r"""(?P<name>.*?)\s*[:=]\s*(?P<value>.*)""")
 
