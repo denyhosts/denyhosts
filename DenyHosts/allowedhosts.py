@@ -49,9 +49,8 @@ class IPTrie:
             if current == None:
                 return False
 
-ip_regex = re.compile(r"""(?P<octet1>\d{1,3})\.(?P<octet2>\d{1,3})\.(?P<octet3>\d{1,3})\.(?P<octet4>\d{1,3})""")
 def to_int(ip_address):
-    m = ip_regex.match(ip_address)
+    m = IP_REGEX.match(ip_address)
     if not m:
         raise ValueError("malformed IP address: %s" % ip_address)
     return (int(m.group("octet1")) * 2 ** 24 +
