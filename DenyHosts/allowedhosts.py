@@ -103,7 +103,6 @@ class AllowedHosts:
                     mask_bits = int(short_mask)
                 else:
                     if long_mask:
-                        mask_bits = 0
                         HIGH_BIT_MASK = 0x80000000
                         mask = to_int(long_mask)
                         # TODO: Be more clever about this
