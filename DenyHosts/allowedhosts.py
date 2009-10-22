@@ -9,6 +9,8 @@ from util import is_true
 
 debug = logging.getLogger("AllowedHosts").debug
 
+HIGH_BIT_MASK = 0x80000000
+
 class IPTrie:
     def __init__(self):
         self.root = {'flag': False, 'left': None, 'right': None}
@@ -20,21 +22,21 @@ class IPTrie:
         int_address = to_int(ip_address)
         current = self.root
         for i in range(31, 31 - mask_length, -1):
-             if current['flag'] == True:
-                 return
-             bit = (int_address & (1 << i)) >> i
-             if bit == 0:
-                 if current['left'] == None:
-                     current['left'] = {'flag': False, 'left': None, 'right': None}
-                 current = current['left']
-             else:
-                 if current['right'] == None:
-                     current['right'] = {'flag': False, 'left': None, 'right': None}
-                 current = current['right']
+            if current['flag'] == True:
+                return
+            bit = (int_address & HIGH_BIT_MASK) >> 31
+            int_address <<= 1
+            if bit == 0:
+                if current['left'] == None:
+                    current['left'] = {'flag': False, 'left': None, 'right': None}
+                current = current['left']
+            else:
+                if current['right'] == None:
+                    current['right'] = {'flag': False, 'left': None, 'right': None}
+                current = current['right']
         current['flag'] = True
 
     def __contains__(self, ip_address):
-        HIGH_BIT_MASK = 0x80000000
         int_address = to_int(ip_address)
         current = self.root
         while True:
