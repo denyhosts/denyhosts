@@ -21,7 +21,7 @@ class IPTrie:
     def insert(self, ip_address, mask_length):
         int_address = to_int(ip_address)
         current = self.root
-        for i in range(31, 31 - mask_length, -1):
+        for i in range(mask_length):
             if current['flag'] == True:
                 return
             bit = (int_address & HIGH_BIT_MASK) >> 31
@@ -82,7 +82,6 @@ class AllowedHosts:
         print "Dumping AllowedHosts"
         print self.allowed_hosts.__repr__()
 
-        
     def load_hosts(self):
         try:
             fp = open(self.allowed_path, "r")
@@ -104,9 +103,7 @@ class AllowedHosts:
                     mask_bits = int(short_mask)
                 else:
                     if long_mask:
-                        HIGH_BIT_MASK = 0x80000000
                         mask = to_int(long_mask)
-                        # TODO: Be more clever about this
                         bit = (mask & HIGH_BIT_MASK) >> 31
                         while bit == 1:
                             mask_bits += 1
@@ -115,20 +112,20 @@ class AllowedHosts:
                     else:
                         # Not specifying a subnet mask matches entire IP address
                         mask_bits = 32
-                        trie.insert(ip, mask_bits)
+                self.allowed_hosts.insert(ip, mask_bits)
             else:
                 # assume that line contains hostname
                 self.allowed_hosts[line] = 1
                 try:
                     # lookup ip address of host
                     ip = gethostbyname(line)
-                    self.allowed_hosts[ip] = 1
+                    self.allowed_hosts.insert(ip, 32)
                 except:
                     pass
         fp.close()
         debug("allowed_hosts: %s", self.allowed_hosts.root)
 
-
+    # TODO: Fix this
     def add_hostname(self, ip_addr):
         if not self.hostname_lookup:
             return
