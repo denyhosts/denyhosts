@@ -21,7 +21,7 @@ class IPTrie:
     def insert(self, ip_address, mask_length):
         int_address = to_int(ip_address)
         current = self.root
-        for i in range(mask_length):
+        for i in xrange(mask_length):
             if current['flag'] == True:
                 return
             bit = (int_address & HIGH_BIT_MASK) >> 31
@@ -37,7 +37,11 @@ class IPTrie:
         current['flag'] = True
 
     def __contains__(self, ip_address):
-        int_address = to_int(ip_address)
+        try:
+            int_address = to_int(ip_address)
+        except ValueError:
+            # Probably a hostname.
+            pass
         current = self.root
         while True:
             if current['flag']:
