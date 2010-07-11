@@ -41,7 +41,7 @@ class IPTrie:
             int_address = to_int(ip_address)
         except ValueError:
             # Probably a hostname.
-            pass
+            return False
         current = self.root
         while True:
             if current['flag']:
