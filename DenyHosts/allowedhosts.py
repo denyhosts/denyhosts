@@ -1,13 +1,16 @@
 import os
 from socket import getfqdn, gethostbyname
+import socket.herror
 import logging
-
+from pprint import pprint
 
 from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
 from regex import ALLOWED_REGEX_MASK, IP_REGEX
 from util import is_true
 
-debug = logging.getLogger("AllowedHosts").debug
+log = logging.getLogger("AllowedHosts")
+debug = log.debug
+warn = log.warn
 
 HIGH_BIT_MASK = 0x80000000
 
@@ -15,23 +18,23 @@ class IPTrie:
     def __init__(self):
         self.root = {'flag': False, 'left': None, 'right': None}
 
-    def __repr__(self):
+    def __str__(self):
         return repr(self.root)
-    
+
     def insert(self, ip_address, mask_length):
         int_address = to_int(ip_address)
         current = self.root
         for i in xrange(mask_length):
-            if current['flag'] == True:
+            if current['flag']:
                 return
             bit = (int_address & HIGH_BIT_MASK) >> 31
             int_address <<= 1
-            if bit == 0:
-                if current['left'] == None:
+            if not bit:
+                if current['left'] is None:
                     current['left'] = {'flag': False, 'left': None, 'right': None}
                 current = current['left']
             else:
-                if current['right'] == None:
+                if current['right'] is None:
                     current['right'] = {'flag': False, 'left': None, 'right': None}
                 current = current['right']
         current['flag'] = True
@@ -48,11 +51,11 @@ class IPTrie:
                 return True
             bit = (int_address & HIGH_BIT_MASK) >> 31
             int_address <<= 1
-            if bit == 0:
+            if not bit:
                 current = current['left']
             else:
                 current = current['right']
-            if current == None:
+            if current is None:
                 return False
 
 def to_int(ip_address):
@@ -71,20 +74,25 @@ class AllowedHosts:
         self.hostname_lookup = is_true(prefs.get("ALLOWED_HOSTS_HOSTNAME_LOOKUP"))
         self.allowed_path = os.path.join(work_dir, ALLOWED_HOSTS)
         self.warned_path = os.path.join(work_dir, ALLOWED_WARNED_HOSTS)
-        self.allowed_hosts = IPTrie()
-        self.warned_hosts = {}
+        self.allowed_ips = IPTrie()
+        self.allowed_hostnames = set()
+        self.warned_hosts = set()
         self.new_warned_hosts = []
         self.load_hosts()
         self.load_warned_hosts()
         debug("done initializing AllowedHosts")
 
-    def __contains__(self, ip_addr):
-        if self.allowed_hosts.__contains__(ip_addr): return 1
-        else: return 0
+    def __contains__(self, ip_or_hostname):
+        if ip_or_hostname in self.allowed_ips or ip_or_hostname in self.allowed_hostnames:
+            return True
+        if self.hostname_lookup:
+            pass
+        return (ip_or_hostname in self.allowed_ips or
+                (self.hostname_lookup and ip_or_hostname in self.allowed_hostnames))
 
     def dump(self):
         print "Dumping AllowedHosts"
-        print self.allowed_hosts.__repr__()
+        pprint(self.allowed_ips.root)
 
     def load_hosts(self):
         try:
@@ -95,9 +103,10 @@ class AllowedHosts:
 
         for line in fp:
             line = line.strip()
-            if not line or line[0] == '#': continue
+            if not line or line[0] == '#':
+                continue
             m = ALLOWED_REGEX_MASK.match(line)
-            debug("line: %s - regex match?   %s", line, m != None)
+            debug("line: %s - regex match?   %s", line, m is not None)
             if m:
                 ip = m.group("ip")
                 long_mask = m.group("long_mask")
@@ -116,28 +125,28 @@ class AllowedHosts:
                     else:
                         # Not specifying a subnet mask matches entire IP address
                         mask_bits = 32
-                self.allowed_hosts.insert(ip, mask_bits)
+                self.allowed_ips.insert(ip, mask_bits)
             else:
                 # assume that line contains hostname
-                self.allowed_hosts[line] = 1
-                try:
-                    # lookup ip address of host
-                    ip = gethostbyname(line)
-                    self.allowed_hosts.insert(ip, 32)
-                except:
-                    pass
+                self.allowed_hostnames.add(line)
+                if self.hostname_lookup:
+                    try:
+                        # lookup ip address of host
+                        ip = gethostbyname(line)
+                        self.allowed_ips.insert(ip, 32)
+                    except socket.herror:
+                        pass
         fp.close()
-        debug("allowed_hosts: %s", self.allowed_hosts.root)
+        debug("allowed_hosts: %s", self.allowed_ips.root)
 
     # TODO: Fix this
-    def add_hostname(self, ip_addr):
+    def add_hostname(self, hostname):
         if not self.hostname_lookup:
             return
         else:
-            hostname = getfqdn(ip_addr)
-            if hostname != ip_addr:
-                self.allowed_hosts[hostname] = 1
-
+            hostname = getfqdn(hostname)
+            if hostname != hostname:
+                self.allowed_hostnames.add(hostname)
 
     def add_warned_host(self, host):
         #debug("warned_hosts: %s", self.warned_hosts.keys())
@@ -145,22 +154,19 @@ class AllowedHosts:
         if host not in self.warned_hosts:
             debug("%s not in warned hosts" % host)
             self.new_warned_hosts.append(host)
-            self.warned_hosts[host] = None
+            self.warned_hosts.add(host)
 
-            
     def get_new_warned_hosts(self):
         return self.new_warned_hosts
-    
 
     def load_warned_hosts(self):
         try:
             fp = open(self.warned_path, "r")
             for line in fp:
-                self.warned_hosts[line.strip()] = None
+                self.warned_hosts.add(line.strip())
             fp.close()
         except:
-            pass
-
+            warn("Couldn't load warned hosts from %s" % self.warned_path)
 
     def save_warned_hosts(self):
         if not self.new_warned_hosts: return
@@ -172,7 +178,5 @@ class AllowedHosts:
         except Exception, e:
             print e
 
-
     def clear_warned_hosts(self):
         self.new_warned_hosts = []
-
