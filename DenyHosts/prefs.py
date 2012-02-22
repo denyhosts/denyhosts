@@ -11,7 +11,7 @@ ENVIRON_REGEX = re.compile(r"""\$\[(?P<environ>[A-Z_]*)\]""")
 
 try:
     set = set
-except:
+except NameError:
     from sets import Set
     set = Set
 
