@@ -34,7 +34,7 @@ class Sync:
             try:
                 #self.__server.close()
                 self.__server = None
-            except:
+            except Exception:
                 pass
             self.__connected = False
 
@@ -55,7 +55,7 @@ class Sync:
             fp = open(os.path.join(self.__work_dir,
                                    SYNC_TIMESTAMP), "w")
             fp.write(timestamp)
-        except e:
+        except Exception, e:
             error(e)
 
 
@@ -66,7 +66,7 @@ class Sync:
             src_file = os.path.join(self.__work_dir, SYNC_HOSTS)
             dest_file = os.path.join(self.__work_dir, SYNC_HOSTS_TMP)
             os.rename(src_file, dest_file)
-        except:
+        except OSError:
             return False
 
         hosts = []
@@ -79,13 +79,13 @@ class Sync:
             self.__send_new_hosts(hosts)
             info("sent %d new host%s", len(hosts), get_plural(hosts))
             self.__hosts_added = hosts
-        except:
+        except Exception:
             os.rename(dest_file, src_file)
             return False
 
         try:
             os.unlink(dest_file)
-        except:
+        except OSError:
             pass
 
         return True
@@ -128,7 +128,7 @@ class Sync:
     def __save_received_hosts(self, hosts, timestamp):
         try:
             fp = open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a")
-        except:
+        except IOError, e:
             error(e)
             return
 

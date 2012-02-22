@@ -16,7 +16,7 @@ class LockFile:
             fp = open(self.lockpath, "r")
             pid = fp.read().strip()
             fp.close()
-        except:
+        except IOError:
             pass
         return pid
 
@@ -40,8 +40,9 @@ class LockFile:
 
     def remove(self, die_=True):
         try:
-            if self.fd: os.close(self.fd)
-        except:
+            if self.fd:
+                os.close(self.fd)
+        except IOError:
             pass
 
         self.fd = None

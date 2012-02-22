@@ -7,7 +7,8 @@ from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
 from regex import ALLOWED_REGEX
 from util import is_true
 
-debug = logging.getLogger("AllowedHosts").debug
+logger = logging.getLogger("AllowedHosts")
+debug, warn = logger.debug, logger.warn
 
 class AllowedHosts:
     def __init__(self, prefs):
@@ -31,7 +32,7 @@ class AllowedHosts:
         print "Dumping AllowedHosts"
         print self.allowed_hosts.keys()
 
-        
+
     def load_hosts(self):
         try:
             fp = open(self.allowed_path, "r")
@@ -42,7 +43,7 @@ class AllowedHosts:
         for line in fp:
             line = line.strip()
             if not line or line[0] == '#': continue
-            
+
             m = ALLOWED_REGEX.match(line)
             debug("line: %s - regex match?   %s", line, m != None)
             if m:
@@ -73,7 +74,7 @@ class AllowedHosts:
                     self.allowed_hosts[ip] = 1
                 except:
                     pass
-            
+
         fp.close()
         debug("allowed_hosts: %s", self.allowed_hosts.keys())
 
@@ -95,10 +96,10 @@ class AllowedHosts:
             self.new_warned_hosts.append(host)
             self.warned_hosts[host] = None
 
-            
+
     def get_new_warned_hosts(self):
         return self.new_warned_hosts
-    
+
 
     def load_warned_hosts(self):
         try:
@@ -106,9 +107,8 @@ class AllowedHosts:
             for line in fp:
                 self.warned_hosts[line.strip()] = None
             fp.close()
-        except:
-            pass
-
+        except IOError:
+            warn("Couldn't load warned hosts from %s" % self.warned_path)
 
     def save_warned_hosts(self):
         if not self.new_warned_hosts: return

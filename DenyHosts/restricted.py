@@ -1,11 +1,6 @@
 import os
 
 from constants import RESTRICTED_USERNAMES
-try:
-    set = set
-except:
-    from sets import Set
-    set = Set
 
 class Restricted:
     def __init__(self, prefs):
@@ -21,7 +16,7 @@ class Restricted:
                 if not line: continue
                 if line[0] == '#': continue
                 self.__data.add(line)
-        except:
+        except IOError:
             pass
 
     def get_restricted(self):

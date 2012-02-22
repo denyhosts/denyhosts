@@ -6,7 +6,7 @@ import os
 
 try:
     set = set
-except:
+except NameError:
     from sets import Set
     set = Set
 
@@ -29,13 +29,13 @@ class PurgeCounter:
 
         try:
             fp = open(self.filename, "r")
-        except:
+        except IOError:
             return banned
 
         for line in fp:
             try:
                 host, count, timestamp = line.strip().split(':', 2)
-            except:
+            except Exception:
                 continue
 
             if int(count) > self.purge_threshold:
@@ -49,13 +49,13 @@ class PurgeCounter:
         counter = Counter()
         try:
             fp = open(self.filename, "r")
-        except:
+        except IOError:
             return counter
 
         for line in fp:
             try:
                 host, count, timestamp = line.strip().split(':', 2)
-            except:
+            except Exception:
                 continue
             counter[host] = CounterRecord(int(count), timestamp)
 
@@ -66,16 +66,14 @@ class PurgeCounter:
     def write_data(self, data):
         try:
             fp = open(self.filename, "w")
+            keys = data.keys()
+            keys.sort()
+
+            for key in keys:
+                fp.write("%s:%s\n" % (key, data[key]))
+            fp.close()
         except Exception, e:
             error("error saving %s: %s", self.filename, str(e))
-
-        keys = data.keys()
-        keys.sort()
-
-        for key in keys:
-            fp.write("%s:%s\n" % (key, data[key]))
-        fp.close()
-
 
     def increment(self, purged_hosts):
         data = self.get_data()

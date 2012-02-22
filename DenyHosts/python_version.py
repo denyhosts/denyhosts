@@ -1,6 +1,5 @@
 import sys
 
-
 def check_version():
     version_tuple = sys.version_info
     version = version_tuple[0] * 100 + version_tuple[1]

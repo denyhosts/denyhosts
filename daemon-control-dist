@@ -127,13 +127,13 @@ if __name__ == '__main__':
 
     try:
         args = sys.argv[2:]
-    except:
+    except Exception:
         args = []
 
     try:
         # arg 1 should contain one of the cases above
         option = sys.argv[1]
-    except:
+    except Exception:
         # try to infer context (from an /etc/init.d/ script, perhaps)
         procname = os.path.basename(sys.argv[0])
         infer_dict = {'K': 'stop',
@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
         cmd = cases[option]
         apply(cmd, args)
-    except:
+    except Exception:
         usage()
 
 

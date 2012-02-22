@@ -7,7 +7,7 @@ from util import is_true
 try:
     import syslog
     HAS_SYSLOG = True
-except:
+except ImportError:
     HAS_SYSLOG = False
 
 debug = logging.getLogger("report").debug

@@ -20,7 +20,7 @@ class FileTracker:
             fp = open(path, "r")
             first_line = fp.readline()[:-1]
             offset = long(fp.readline())
-        except:
+        except IOError:
             pass
 
         debug("__get_last_offset():")
@@ -38,7 +38,7 @@ class FileTracker:
             first_line = fp.readline()[:-1]
             fp.seek(0, 2)
             offset = fp.tell()
-        except Exception, e:
+        except IOError, e:
             raise e
 
         debug("__get_current_offset():")
@@ -52,7 +52,7 @@ class FileTracker:
         try:
             fp = open(self.logfile, "r")
             first_line = fp.readline()[:-1]
-        except Exception, e:
+        except IOError, e:
             raise e
 
         self.__first_line = first_line
@@ -60,7 +60,6 @@ class FileTracker:
 
     def get_offset(self):
         last_line, last_offset = self.__get_last_offset()
-
 
         if last_line != self.__first_line:
             # log file was rotated, start from beginning
@@ -86,7 +85,7 @@ class FileTracker:
             fp.write("%s\n" % self.__first_line)
             fp.write("%ld\n" % offset)
             fp.close()
-        except:
+        except IOError:
             print "Could not save logfile offset to: %s" % path
 
 

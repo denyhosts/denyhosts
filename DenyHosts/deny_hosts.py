@@ -6,7 +6,7 @@ import gzip
 try:
     import bz2
     HAS_BZ2 = True
-except:
+except ImportError:
     HAS_BZ2 = False
 
 
@@ -183,7 +183,7 @@ class DenyHosts:
 
             try:
                 curr_inode = os.stat(logfile)[ST_INO]
-            except:
+            except OSError:
                 info("%s has been deleted", logfile)
                 self.sleepAndPurge(daemon_sleep,
                                    purge_time,
@@ -195,7 +195,7 @@ class DenyHosts:
                 inode = curr_inode
                 try:
                     fp.close()
-                except:
+                except IOError:
                     pass
 
                 fp = open(logfile, "r")
@@ -280,7 +280,7 @@ class DenyHosts:
                     self.__denied_hosts[host] = 0
                     if host in self.__allowed_hosts:
                         self.__allowed_hosts.add_warned_host(host)
-                except:
+                except Exception:
                     pass
 
         new_warned_hosts = self.__allowed_hosts.get_new_warned_hosts()
@@ -340,8 +340,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
     def is_valid(self, rx_match):
         invalid = 0
         try:
-            if rx_match.group("invalid"): invalid = 1
-        except:
+            if rx_match.group("invalid"):
+                invalid = 1
+        except Exception:
             invalid = 1
         return invalid
 
@@ -361,7 +362,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         try:
             fp.seek(offset)
-        except:
+        except IOError:
             pass
 
         suspicious_always = is_true(self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS'))
@@ -407,11 +408,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
             try:
                 user = m.group("user")
-            except:
+            except Exception:
                 user = ""
             try:
                 host = m.group("host")
-            except:
+            except Exception:
                 error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
                 continue
 

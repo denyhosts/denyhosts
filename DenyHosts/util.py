@@ -5,6 +5,7 @@ from smtplib import SMTP
 import logging
 from constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from regex import TIME_SPEC_REGEX
+from textwrap import dedent
 from types import IntType
 
 debug = logging.getLogger("util").debug
@@ -34,14 +35,7 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             info("   %s", ' '.join(sys.argv))
             prefs.dump_to_logger()
     else: # non-daemon
-        try:
-            # python 2.4
-            logging.basicConfig(format="%(message)s")
-        except:
-            # python 2.3
-            logging.basicConfig()
-            hndlr = logging.getLogger().handlers[0]
-            hndlr.setFormatter(logging.Formatter("%(message)s"))
+        logging.basicConfig(format="%(message)s")
 
         debug = logging.getLogger("denyhosts").debug
         info = logging.getLogger("denyhosts").info
@@ -56,7 +50,8 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
 
 def die(msg, ex=None):
     print msg
-    if ex: print ex
+    if ex:
+        print ex
     sys.exit(1)
 
 
@@ -74,13 +69,13 @@ def calculate_seconds(timestr, zero_ok=False):
 
     m = TIME_SPEC_REGEX.search(timestr)
     if not m:
-        raise Exception, "Invalid time specification: string format error: %s", timestr
+        raise Exception("Invalid time specification: string format error: %s", timestr)
 
     units = int(m.group('units'))
     period = m.group('period') or 's' # seconds is the default
 
     if units == 0 and not zero_ok:
-        raise Exception, "Invalid time specification: units = 0"
+        raise Exception("Invalid time specification: units = 0")
 
     seconds = units * TIME_SPEC_LOOKUP[period]
     #info("converted %s to %ld seconds: ", timestr, seconds)
@@ -104,11 +99,12 @@ def parse_host(line):
         vals = line.split(":")
 
         # we're only concerned about the ip_address
-        if len(vals) == 1: form = vals[0]
+        if len(vals) == 1:
+            form = vals[0]
         else: form = vals[1]
 
         host = form.strip()
-    except:
+    except Exception:
         host = ""
     return host
 
@@ -116,12 +112,13 @@ def parse_host(line):
 def send_email(prefs, report_str):
     recipients = prefs['ADMIN_EMAIL'].split(',')
 
-    msg = """From: %s
-To: %s
-Subject: %s
-Date: %s
+    msg = dedent("""
+        From: %s
+        To: %s
+        Subject: %s
+        Date: %s
 
-""" % (prefs.get('SMTP_FROM'),
+        """).lstrip() % (prefs.get('SMTP_FROM'),
        prefs.get('ADMIN_EMAIL'),
        prefs.get('SMTP_SUBJECT'),
        time.strftime(prefs.get('SMTP_DATE_FORMAT')))
@@ -149,5 +146,5 @@ Date: %s
 
     try:
         smtp.quit()
-    except:
+    except Exception:
         pass

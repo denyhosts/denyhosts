@@ -5,6 +5,7 @@ import sys
 import DenyHosts.python_version
 
 import getopt
+from getopt import GetoptError
 import traceback
 import logging
 
@@ -71,7 +72,7 @@ if __name__ == '__main__':
                                          "help", "noemail", "config=", "version",
                                          "migrate", "purge", "daemon", "sync",
                                          "upgrade099"])
-    except:
+    except GetoptError:
         print "\nInvalid command line option detected."
         usage()
         sys.exit(1)

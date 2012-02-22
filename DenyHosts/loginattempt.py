@@ -2,12 +2,6 @@ import os
 import logging
 from util import is_true
 
-try:
-    set = set
-except:
-    from sets import Set
-    set = Set
-
 from counter import Counter, CounterRecord
 from constants import *
 
@@ -164,7 +158,7 @@ class LoginAttempt:
                     count = parts[1]
                     try:
                         date = ':'.join(parts[2:])
-                    except:
+                    except Exception:
                         date = None
 
                     stats[name] = CounterRecord(int(count), date)
@@ -303,7 +297,7 @@ class AbusiveHosts(LoginAttempt):
             del self.__abusive_hosts_root[host]
             del self.__abusive_hosts_restricted[host]
             del self.__abusive_hosts_valid[host]
-        except:
+        except Exception:
             pass
 
     def purge_hosts(self, hosts):

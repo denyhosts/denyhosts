@@ -35,7 +35,7 @@ class DenyFileUtilBase:
     def remove_temp(self):
         try:
             os.unlink(self.temp_file)
-        except:
+        except OSError:
             pass
 
     def create_temp(self, data_list):
@@ -48,7 +48,7 @@ class DenyFileUtilBase:
             fp = open(self.backup_file, "r")
             data = fp.readlines()
             fp.close()
-        except:
+        except IOError:
             pass
         return data
 

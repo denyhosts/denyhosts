@@ -114,7 +114,7 @@ class Prefs(dict):
         for name in self.to_seconds:
             try:
                 self.__data[name] = calculate_seconds(self.__data[name])
-            except:
+            except Exception:
                 pass
 
 
@@ -123,7 +123,6 @@ class Prefs(dict):
             fp = open(path, "r")
         except Exception, e :
             die("Error reading file: %s" % path, e)
-
 
         for line in fp:
             line = line.strip()
@@ -202,7 +201,6 @@ class Prefs(dict):
 
     def get(self, name):
         return self.__data[name]
-
 
 
     def dump(self):
