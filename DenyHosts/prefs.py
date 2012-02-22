@@ -15,12 +15,12 @@ except NameError:
     from sets import Set
     set = Set
 
-
 class Prefs(dict):
     def __getitem__(self, k):
         return self.get(k)
-    
-    def __init__(self, path=None):
+
+    def __init__(self, path=None, **kwargs):
+        super(Prefs, self).__init__(**kwargs)
         # default values for some of the configurable items
         self.__data = {'ADMIN_EMAIL': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
