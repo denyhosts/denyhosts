@@ -1,6 +1,5 @@
 import os
-from socket import getfqdn, gethostbyname
-import socket.herror
+from socket import getfqdn, gethostbyname, herror
 import logging
 from pprint import pprint
 
@@ -133,7 +132,7 @@ class AllowedHosts:
                         # lookup ip address of host
                         ip = gethostbyname(line)
                         self.allowed_ips.insert(ip, 32)
-                    except socket.herror:
+                    except herror:
                         pass
         fp.close()
         debug("allowed_hosts: %s", self.allowed_ips.root)
