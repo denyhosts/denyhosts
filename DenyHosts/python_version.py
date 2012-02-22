@@ -17,10 +17,10 @@ def check_version():
             You should install this version in addition to your current version
             (rather than upgrading your current version) because your system might
             depend on the current version.  After installing the newer version, for
-            instance version 2.7, simply invoke DenyHosts explicitly with the new
+            instance version 3.2, simply invoke DenyHosts explicitly with the new
             version of python, eg:
 
-            $ python2.7 %s
+            $ python3.2 %s
 
             ######################################################################
 
