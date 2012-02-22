@@ -18,7 +18,7 @@ IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 class Report:
     def __init__(self, hostname_lookup, use_syslog=False):
         self.report = ""
-        if (use_syslog and not HAS_SYSLOG):
+        if use_syslog and not HAS_SYSLOG:
             warn("syslog is unavailable on this platform")
         self.use_syslog = use_syslog and HAS_SYSLOG
         if self.use_syslog:

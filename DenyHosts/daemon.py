@@ -38,9 +38,9 @@ def createDaemon():
       # PGID.
       pid = os.fork()
    except OSError, e:
-      return((e.errno, e.strerror))     # ERROR (return a tuple)
+      return e.errno, e.strerror     # ERROR (return a tuple)
 
-   if (pid == 0):       # The first child.
+   if pid == 0:       # The first child.
 
       # Next we call os.setsid() to become the session leader of this new
       # session.  The process also becomes the process group leader of the
@@ -63,9 +63,9 @@ def createDaemon():
          # preventing the daemon from ever acquiring a controlling terminal.
          pid = os.fork()        # Fork a second child.
       except OSError, e:
-         return((e.errno, e.strerror))  # ERROR (return a tuple)
+         return e.errno, e.strerror  # ERROR (return a tuple)
 
-      if (pid == 0):      # The second child.
+      if pid == 0:      # The second child.
          # Ensure that the daemon doesn't keep any directory in use.  Failure
          # to do this could make a filesystem unmountable.
          os.chdir("/")
@@ -88,7 +88,7 @@ def createDaemon():
    os.open("/dev/null", os.O_RDWR)       # standard output (1)
    os.open("/dev/null", os.O_RDWR)       # standard error (2)
 
-   return(0)
+   return 0
 
 if __name__ == "__main__":
 
