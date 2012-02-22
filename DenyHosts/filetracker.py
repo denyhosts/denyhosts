@@ -9,7 +9,7 @@ class FileTracker:
         self.work_dir = work_dir
         self.logfile = logfile
         (self.__first_line, self.__offset) = self.__get_current_offset()
-        
+
 
     def __get_last_offset(self):
         path = os.path.join(self.work_dir,
@@ -26,7 +26,7 @@ class FileTracker:
         debug("__get_last_offset():")
         debug("   first_line: %s", first_line)
         debug("   offset: %ld", offset)
-            
+
         return first_line, offset
 
 
@@ -44,7 +44,7 @@ class FileTracker:
         debug("__get_current_offset():")
         debug("   first_line: %s", first_line)
         debug("   offset: %ld", offset)
-            
+
         return first_line, offset
 
     def update_first_line(self):
@@ -54,10 +54,10 @@ class FileTracker:
             first_line = fp.readline()[:-1]
         except Exception, e:
             raise e
-        
+
         self.__first_line = first_line
 
-    
+
     def get_offset(self):
         last_line, last_offset = self.__get_last_offset()
 
@@ -72,12 +72,12 @@ class FileTracker:
             # no new entries in log file
             offset = None
 
-        debug("get_offset():")        
+        debug("get_offset():")
         debug("   offset: %s", str(offset))
-            
+
         return offset
-    
-        
+
+
     def save_offset(self, offset):
         path = os.path.join(self.work_dir,
                             SECURE_LOG_OFFSET)
@@ -89,4 +89,4 @@ class FileTracker:
         except:
             print "Could not save logfile offset to: %s" % path
 
-        
+

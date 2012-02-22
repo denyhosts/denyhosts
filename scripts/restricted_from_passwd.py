@@ -27,5 +27,5 @@ for pw_tuple in passwd:
 usernames.sort()
 for username in usernames:
     print username
-    
-                     
+
+

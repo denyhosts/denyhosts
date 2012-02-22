@@ -11,7 +11,7 @@ except:
     print "you must specify your DenyHosts WORK_DIR"
     usage()
 
-try: 
+try:
     num = int(sys.argv[2])
 except:
     num = 10

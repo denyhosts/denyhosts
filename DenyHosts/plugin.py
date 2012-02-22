@@ -12,7 +12,7 @@ def execute(executable, hosts):
         debug("invoking plugin: %s %s", executable, host)
         try:
             res = os.system("%s %s" % (executable, host))
-            if res: info("plugin returned %d", res)                
+            if res: info("plugin returned %d", res)
         except Except, e:
             error("plugin error: %s", e)
 

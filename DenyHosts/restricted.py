@@ -6,13 +6,13 @@ try:
 except:
     from sets import Set
     set = Set
-    
+
 class Restricted:
     def __init__(self, prefs):
         self.filename = os.path.join(prefs['WORK_DIR'], RESTRICTED_USERNAMES)
         self.__data = set()
         self.load_restricted()
-        
+
     def load_restricted(self):
         try:
             fp = open(self.filename, "r")

@@ -34,8 +34,8 @@ setup(name="DenyHosts",
       license="GPL v2",
       ##extra_path='denyhosts',
       long_description="""
-DenyHosts is a python program that automatically blocks ssh attacks by adding entries to 
-/etc/hosts.deny. DenyHosts will also inform Linux administrators about offending hosts, attacked 
+DenyHosts is a python program that automatically blocks ssh attacks by adding entries to
+/etc/hosts.deny. DenyHosts will also inform Linux administrators about offending hosts, attacked
 users and suspicious logins.
       """
       )

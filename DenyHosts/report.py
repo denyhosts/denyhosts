@@ -24,17 +24,17 @@ class Report:
         if self.use_syslog:
             syslog.openlog("denyhosts")
         self.hostname_lookup = is_true(hostname_lookup)
-        
+
     def empty(self):
         if self.report: return 0
         else: return 1
 
     def clear(self):
         self.report = ""
-    
+
     def get_report(self):
         return self.report
-    
+
     def add_section(self, message, iterable):
         self.report += "%s:\n\n" % message
         for i in iterable:
@@ -49,12 +49,12 @@ class Report:
             else: hostname = i
 
             self.report += "%s%s\n" % (hostname, extra)
-            
+
             if self.use_syslog:
                 syslog.syslog("%s - %s%s" %(message, hostname, extra))
         self.report += "\n" + "-" * 70 + "\n"
 
-        
+
     def get_hostname(self, text):
         m = IP_ADDR_REGEX.search(text)
 
@@ -70,5 +70,5 @@ class Report:
             hostname = "unknown"
         return "%s (%s)" % (ip, hostname)
 
-           
-        
+
+

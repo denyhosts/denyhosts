@@ -16,7 +16,7 @@ ABUSIVE_HOSTS_RESTRICTED = "hosts-restricted"
 
 ABUSED_USERS_INVALID = "users-invalid"
 ABUSED_USERS_VALID = "users-valid"
-ABUSED_USERS_AND_HOSTS = "users-hosts"                              
+ABUSED_USERS_AND_HOSTS = "users-hosts"
 SUSPICIOUS_LOGINS = "suspicious-logins"   # successful logins AFTER invalid
                                           #   attempts from same host
 

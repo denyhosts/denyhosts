@@ -24,11 +24,11 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             if enable_debug:
                 # if --debug was enabled provide gory activity details
                 logging.getLogger().setLevel(logging.DEBUG)
-                #prefs.dump_to_logger()                              
+                #prefs.dump_to_logger()
             else:
                 # in daemon mode we always log some activity
                 logging.getLogger().setLevel(logging.INFO)
-                
+
             info = logging.getLogger("denyhosts").info
             info("DenyHosts launched with the following args:")
             info("   %s", ' '.join(sys.argv))
@@ -45,7 +45,7 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
 
         debug = logging.getLogger("denyhosts").debug
         info = logging.getLogger("denyhosts").info
-            
+
         if verbose:
             logging.getLogger().setLevel(logging.INFO)
         elif enable_debug:
@@ -71,7 +71,7 @@ def calculate_seconds(timestr, zero_ok=False):
     # return the number of seconds in a given timestr such as 1d (1 day),
     # 13w (13 weeks), 5s (5seconds), etc...
     if type(timestr) is IntType: return timestr
-    
+
     m = TIME_SPEC_REGEX.search(timestr)
     if not m:
         raise Exception, "Invalid time specification: string format error: %s", timestr
@@ -90,7 +90,7 @@ def calculate_seconds(timestr, zero_ok=False):
 def parse_host(line):
     # parses a line from /etc/hosts.deny
     # returns the ip address
-    
+
     # the deny file can be in the form:
     # 1) ip_address
     # 2) sshd: ip_address
@@ -113,7 +113,7 @@ def parse_host(line):
     return host
 
 
-def send_email(prefs, report_str):           
+def send_email(prefs, report_str):
     recipients = prefs['ADMIN_EMAIL'].split(',')
 
     msg = """From: %s
@@ -136,7 +136,7 @@ Date: %s
 
         if username and password:
             smtp.login(username, password)
-    
+
         smtp.sendmail(prefs.get('SMTP_FROM'),
                       recipients,
                       msg)
