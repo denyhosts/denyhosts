@@ -11,16 +11,16 @@ ENVIRON_REGEX = re.compile(r"""\$\[(?P<environ>[A-Z_]*)\]""")
 
 try:
     set = set
-except:
+except NameError:
     from sets import Set
     set = Set
-
 
 class Prefs(dict):
     def __getitem__(self, k):
         return self.get(k)
-    
-    def __init__(self, path=None):
+
+    def __init__(self, path=None, **kwargs):
+        super(Prefs, self).__init__(**kwargs)
         # default values for some of the configurable items
         self.__data = {'ADMIN_EMAIL': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
@@ -75,7 +75,7 @@ class Prefs(dict):
                      ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
                      ('WORK_DIR', True))
-        
+
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
         # since the --daemon mode requires absolute pathnames
@@ -87,7 +87,7 @@ class Prefs(dict):
 
         # these settings are converted to numeric values
         self.to_int = set(('DENY_THRESHOLD',
-                           'DENY_THRESHOLD_INVALID', 
+                           'DENY_THRESHOLD_INVALID',
                            'DENY_THRESHOLD_VALID',
                            'DENY_THRESHOLD_ROOT',
                            'DENY_THRESHOLD_RESTRICTED',
@@ -114,16 +114,15 @@ class Prefs(dict):
         for name in self.to_seconds:
             try:
                 self.__data[name] = calculate_seconds(self.__data[name])
-            except:
+            except Exception:
                 pass
 
-        
+
     def load_settings(self, path):
         try:
             fp = open(path, "r")
         except Exception, e :
             die("Error reading file: %s" % path, e)
-
 
         for line in fp:
             line = line.strip()
@@ -134,7 +133,7 @@ class Prefs(dict):
                 if m:
                     name = m.group('name').upper()
                     value = self.environ_sub(m.group('value'))
-                    
+
                     #print name, value
                     if not value: value = None
                     if name in self.to_int:
@@ -174,7 +173,7 @@ class Prefs(dict):
                         print "\n*** Using deprecated DENY_THRESHOLD value for DENY_THRESHOLD_INVALID ***"
                         self.__data['DENY_THRESHOLD_INVALID'] = self.__data['DENY_THRESHOLD']
                     else:
-                        ok = 0                        
+                        ok = 0
                 elif name_reqd == 'DENY_THRESHOLD_RESTRICTED':
                     print "\nNote: DENY_THRESHOLD_RESTRICTED has not been defined. Setting this"
                     print "value to DENY_THRESHOLD_ROOT"
@@ -198,11 +197,10 @@ class Prefs(dict):
             if not env:
                 die("Could not find environment variable: %s" % name)
             value = ENVIRON_REGEX.sub(env, value)
-                
+
 
     def get(self, name):
         return self.__data[name]
-
 
 
     def dump(self):
@@ -215,7 +213,7 @@ class Prefs(dict):
             else:
                 print "   %s: [%s]" % (key, self.__data[key])
 
-    
+
     def dump_to_logger(self):
         keys = self.__data.keys()
         keys.sort()

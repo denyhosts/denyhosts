@@ -15,8 +15,8 @@ class LockFile:
         try:
             fp = open(self.lockpath, "r")
             pid = fp.read().strip()
-            fp.close()            
-        except:
+            fp.close()
+        except IOError:
             pass
         return pid
 
@@ -33,17 +33,18 @@ class LockFile:
         except Exception, e:
             pid = self.get_pid()
             die("DenyHosts could not obtain lock (pid: %s)" % pid, e)
-            
+
         os.write(self.fd, "%s\n" % os.getpid())
         os.fsync(self.fd)
 
 
     def remove(self, die_=True):
         try:
-            if self.fd: os.close(self.fd)
-        except:
+            if self.fd:
+                os.close(self.fd)
+        except IOError:
             pass
-        
+
         self.fd = None
         try:
             os.unlink(self.lockpath)

@@ -8,9 +8,8 @@ from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
 from regex import ALLOWED_REGEX_MASK, IP_REGEX
 from util import is_true
 
-log = logging.getLogger("AllowedHosts")
-debug = log.debug
-warn = log.warn
+logger = logging.getLogger("AllowedHosts")
+debug, warn = logger.debug, logger.warn
 
 HIGH_BIT_MASK = 0x80000000
 
@@ -165,7 +164,7 @@ class AllowedHosts:
             for line in fp:
                 self.warned_hosts.add(line.strip())
             fp.close()
-        except:
+        except IOError:
             warn("Couldn't load warned hosts from %s" % self.warned_path)
 
     def save_warned_hosts(self):

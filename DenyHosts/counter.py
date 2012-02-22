@@ -31,7 +31,7 @@ class CounterRecord:
 
     def reset_count(self):
         self.__count = 0
-        
+
     def age_count(self, age):
         cutoff = long(time.time()) - age
         epoch = time.mktime(time.strptime(self.__date))
@@ -39,7 +39,7 @@ class CounterRecord:
         #debug("epoch  : %d", epoch)
         if cutoff > epoch:
             self.__count = 0
-        
+
 
 class Counter(dict):
     """
@@ -54,13 +54,10 @@ class Counter(dict):
     def __getitem__(self, k):
         try:
             return dict.__getitem__(self, k)
-        except:
+        except KeyError:
             count_rec = CounterRecord(0)
             #debug("%s - %s", k, count_rec)
             self.__setitem__(k, count_rec)
             #debug("dict: %s", dict.values(self))
             #debug("count_rec: %s", count_rec)
             return count_rec
-
-
-        

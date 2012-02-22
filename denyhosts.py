@@ -5,6 +5,7 @@ import sys
 import DenyHosts.python_version
 
 import getopt
+from getopt import GetoptError
 import traceback
 import logging
 
@@ -35,7 +36,7 @@ def usage():
     print " --daemon: run DenyHosts in daemon mode"
     print " --sync: run DenyHosts synchronization mode"
     print " --version: Prints the version of DenyHosts and exits"
-    
+
     print
     print "Note: multiple --file args can be processed. ",
     print "If multiple files are provided, --ignore is implied"
@@ -47,11 +48,11 @@ def usage():
 #################################################################################
 
 
-                
+
 
 #################################################################################
 
-    
+
 if __name__ == '__main__':
     logfiles = []
     config_file = CONFIG_FILE
@@ -67,15 +68,15 @@ if __name__ == '__main__':
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
-                                        ["file=", "ignore", "verbose", "debug", 
+                                        ["file=", "ignore", "verbose", "debug",
                                          "help", "noemail", "config=", "version",
                                          "migrate", "purge", "daemon", "sync",
                                          "upgrade099"])
-    except:
+    except GetoptError:
         print "\nInvalid command line option detected."
         usage()
         sys.exit(1)
-    
+
     for opt, arg in opts:
         if opt in ('-h', '-?', '--help'):
             usage()
@@ -106,8 +107,8 @@ if __name__ == '__main__':
             print "DenyHosts version:", VERSION
             sys.exit(0)
 
-    prefs = Prefs(config_file)    
-            
+    prefs = Prefs(config_file)
+
     first_time = 0
     try:
         os.makedirs(prefs.get('WORK_DIR'))
@@ -118,7 +119,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     setup_logging(prefs, enable_debug, verbose, daemon)
-    
+
     if not logfiles or daemon:
         logfiles = [prefs.get('SECURE_LOG')]
     elif len(logfiles) > 1:
@@ -151,7 +152,7 @@ if __name__ == '__main__':
             die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
         else:
             try:
-                p = Purge(prefs, 
+                p = Purge(prefs,
                           purge_time)
 
             except Exception, e:
@@ -178,11 +179,11 @@ if __name__ == '__main__':
         if not sync_upload and not sync_download:
            lock_file.remove()
            die("You have provided the --sync flag however your configuration file has SYNC_UPLOAD and SYNC_DOWNLOAD set to false.")
-        try:  
+        try:
             sync = Sync(prefs)
             if sync_upload:
                 timestamp = sync.send_new_hosts()
-            if sync_download: 
+            if sync_download:
                 new_hosts = sync.receive_new_hosts()
                 if new_hosts:
                     info("received new hosts: %s", str(new_hosts))
@@ -192,7 +193,7 @@ if __name__ == '__main__':
         except Exception, e:
             lock_file.remove()
             die("Error synchronizing data", e)
-        
+
     # remove lock file on exit
     lock_file.remove()
-            
+

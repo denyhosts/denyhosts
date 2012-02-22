@@ -40,7 +40,7 @@ def usage():
     print "For a list of valid 'args' refer to:"
     print "$ denyhosts.py --help"
     print
-    sys.exit(0) 
+    sys.exit(0)
 
 
 def getpid():
@@ -51,7 +51,7 @@ def getpid():
     except Exception, e:
         return STATE_NOT_RUNNING
 
-    
+
     if not sys.platform.startswith('freebsd') and os.access("/proc", os.F_OK):
         # proc filesystem exists, look for pid
         if os.access(os.path.join("/proc", str(pid)), os.F_OK):
@@ -62,18 +62,18 @@ def getpid():
         # proc filesystem doesn't exist (or it doesn't contain PIDs), use 'ps'
         p = os.popen("ps -p %d" % pid, "r")
         p.readline() # get the header line
-        pid_running = p.readline() 
+        pid_running = p.readline()
         # pid_running will be '' if no process is found
-        if pid_running: 
+        if pid_running:
             return pid
-        else: 
+        else:
             return STATE_LOCK_EXISTS
 
 
 def start(*args):
     cmd = "%s --daemon " % DENYHOSTS_BIN
     if args: cmd += ' '.join(args)
-        
+
     print "starting DenyHosts:   ", cmd
 
     os.system(cmd)
@@ -94,7 +94,7 @@ def debug():
         print "sent DenyHosts SIGUSR1"
     else:
         print "DenyHosts is not running"
-        
+
 def status():
     pid = getpid()
     if pid == STATE_LOCK_EXISTS:
@@ -109,12 +109,12 @@ def condrestart(*args):
     pid = getpid()
     if pid >= 0:
         restart(*args)
-        
+
 
 def restart(*args):
     stop()
     time.sleep(1)
-    start(*args)  
+    start(*args)
 
 
 if __name__ == '__main__':
@@ -124,16 +124,16 @@ if __name__ == '__main__':
              'status':      status,
              'condrestart': condrestart,
              'restart':     restart}
-    
+
     try:
         args = sys.argv[2:]
-    except:
+    except Exception:
         args = []
 
     try:
         # arg 1 should contain one of the cases above
         option = sys.argv[1]
-    except:
+    except Exception:
         # try to infer context (from an /etc/init.d/ script, perhaps)
         procname = os.path.basename(sys.argv[0])
         infer_dict = {'K': 'stop',
@@ -149,8 +149,8 @@ if __name__ == '__main__':
 
         cmd = cases[option]
         apply(cmd, args)
-    except:
+    except Exception:
         usage()
-    
+
 
 

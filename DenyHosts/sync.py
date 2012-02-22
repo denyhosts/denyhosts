@@ -34,14 +34,14 @@ class Sync:
             try:
                 #self.__server.close()
                 self.__server = None
-            except:
+            except Exception:
                 pass
             self.__connected = False
 
 
     def get_sync_timestamp(self):
         try:
-            fp = open(os.path.join(self.__work_dir, 
+            fp = open(os.path.join(self.__work_dir,
                                    SYNC_TIMESTAMP))
             timestamp = fp.readline()
             timestamp = long(timestamp.strip())
@@ -55,7 +55,7 @@ class Sync:
             fp = open(os.path.join(self.__work_dir,
                                    SYNC_TIMESTAMP), "w")
             fp.write(timestamp)
-        except e:
+        except Exception, e:
             error(e)
 
 
@@ -66,7 +66,7 @@ class Sync:
             src_file = os.path.join(self.__work_dir, SYNC_HOSTS)
             dest_file = os.path.join(self.__work_dir, SYNC_HOSTS_TMP)
             os.rename(src_file, dest_file)
-        except:
+        except OSError:
             return False
 
         hosts = []
@@ -79,15 +79,15 @@ class Sync:
             self.__send_new_hosts(hosts)
             info("sent %d new host%s", len(hosts), get_plural(hosts))
             self.__hosts_added = hosts
-        except:
+        except Exception:
             os.rename(dest_file, src_file)
             return False
-        
+
         try:
             os.unlink(dest_file)
-        except:
+        except OSError:
             pass
-        
+
         return True
 
 
@@ -104,14 +104,14 @@ class Sync:
 
     def receive_new_hosts(self):
         debug("receive_new_hosts()")
-        
+
         if not self.__connected and not self.xmlrpc_connect():
             error("Could not initiate xmlrpc connection")
             return
         timestamp = self.get_sync_timestamp()
 
         try:
-            data = self.__server.get_new_hosts(timestamp, 
+            data = self.__server.get_new_hosts(timestamp,
                                                self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
                                                self.__hosts_added,
                                                self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY"))
@@ -120,15 +120,15 @@ class Sync:
             hosts = data['hosts']
             info("received %d new host%s", len(hosts), get_plural(hosts))
             self.__save_received_hosts(hosts, timestamp)
-            return hosts 
+            return hosts
         except Exception, e:
             exception(e)
             return None
-        
+
     def __save_received_hosts(self, hosts, timestamp):
         try:
             fp = open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a")
-        except:
+        except IOError, e:
             error(e)
             return
 

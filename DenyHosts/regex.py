@@ -34,7 +34,7 @@ FAILED_ENTRY_REGEX_NUM = 8 # this should match the highest num failed_entry_rege
 FAILED_ENTRY_REGEX_RANGE = range(1, FAILED_ENTRY_REGEX_NUM)
 FAILED_ENTRY_REGEX_MAP = {}
 
-# create a hash of the failed entry regex'es indexed from 1 .. FAILED_ENTRY_REGEX_NUM 
+# create a hash of the failed entry regex'es indexed from 1 .. FAILED_ENTRY_REGEX_NUM
 for i in FAILED_ENTRY_REGEX_RANGE:
     if i == 1: extra = ""
     else: extra = "%i" % i

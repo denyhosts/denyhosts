@@ -7,20 +7,20 @@ def usage():
 
 try:
     work_dir = sys.argv[1]
-except:
+except IndexError:
     print "you must specify your DenyHosts WORK_DIR"
     usage()
 
-try: 
+try:
     num = int(sys.argv[2])
-except:
+except IndexError:
     num = 10
 
 fname = os.path.join(work_dir, "users-invalid")
 
 try:
     fp = open(fname, "r")
-except:
+except IOError:
     print fname, "does not exist"
     sys.exit(1)
 
@@ -32,7 +32,7 @@ for line in fp:
         username = foo[0]
         attempts = int(foo[1])
         # timestamp = foo[2].strip()
-    except:
+    except Exception:
         continue
 
     l = d.get(attempts, [])

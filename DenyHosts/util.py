@@ -5,6 +5,7 @@ from smtplib import SMTP
 import logging
 from constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from regex import TIME_SPEC_REGEX
+from textwrap import dedent
 from types import IntType
 
 debug = logging.getLogger("util").debug
@@ -24,28 +25,21 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             if enable_debug:
                 # if --debug was enabled provide gory activity details
                 logging.getLogger().setLevel(logging.DEBUG)
-                #prefs.dump_to_logger()                              
+                #prefs.dump_to_logger()
             else:
                 # in daemon mode we always log some activity
                 logging.getLogger().setLevel(logging.INFO)
-                
+
             info = logging.getLogger("denyhosts").info
             info("DenyHosts launched with the following args:")
             info("   %s", ' '.join(sys.argv))
             prefs.dump_to_logger()
     else: # non-daemon
-        try:
-            # python 2.4
-            logging.basicConfig(format="%(message)s")
-        except:
-            # python 2.3
-            logging.basicConfig()
-            hndlr = logging.getLogger().handlers[0]
-            hndlr.setFormatter(logging.Formatter("%(message)s"))
+        logging.basicConfig(format="%(message)s")
 
         debug = logging.getLogger("denyhosts").debug
         info = logging.getLogger("denyhosts").info
-            
+
         if verbose:
             logging.getLogger().setLevel(logging.INFO)
         elif enable_debug:
@@ -56,16 +50,13 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
 
 def die(msg, ex=None):
     print msg
-    if ex: print ex
+    if ex:
+        print ex
     sys.exit(1)
 
 
 def is_true(s):
-    s = s.lower()
-    if s in ('1', 't', 'true', 'y', 'yes'):
-        return True
-    else:
-        return False
+    return s.lower() in ('1', 't', 'true', 'y', 'yes')
 
 def is_false(s):
     return not is_true(s)
@@ -75,16 +66,16 @@ def calculate_seconds(timestr, zero_ok=False):
     # return the number of seconds in a given timestr such as 1d (1 day),
     # 13w (13 weeks), 5s (5seconds), etc...
     if type(timestr) is IntType: return timestr
-    
+
     m = TIME_SPEC_REGEX.search(timestr)
     if not m:
-        raise Exception, "Invalid time specification: string format error: %s", timestr
+        raise Exception("Invalid time specification: string format error: %s", timestr)
 
     units = int(m.group('units'))
     period = m.group('period') or 's' # seconds is the default
 
     if units == 0 and not zero_ok:
-        raise Exception, "Invalid time specification: units = 0"
+        raise Exception("Invalid time specification: units = 0")
 
     seconds = units * TIME_SPEC_LOOKUP[period]
     #info("converted %s to %ld seconds: ", timestr, seconds)
@@ -94,7 +85,7 @@ def calculate_seconds(timestr, zero_ok=False):
 def parse_host(line):
     # parses a line from /etc/hosts.deny
     # returns the ip address
-    
+
     # the deny file can be in the form:
     # 1) ip_address
     # 2) sshd: ip_address
@@ -108,24 +99,26 @@ def parse_host(line):
         vals = line.split(":")
 
         # we're only concerned about the ip_address
-        if len(vals) == 1: form = vals[0]
+        if len(vals) == 1:
+            form = vals[0]
         else: form = vals[1]
 
         host = form.strip()
-    except:
+    except Exception:
         host = ""
     return host
 
 
-def send_email(prefs, report_str):           
+def send_email(prefs, report_str):
     recipients = prefs['ADMIN_EMAIL'].split(',')
 
-    msg = """From: %s
-To: %s
-Subject: %s
-Date: %s
+    msg = dedent("""
+        From: %s
+        To: %s
+        Subject: %s
+        Date: %s
 
-""" % (prefs.get('SMTP_FROM'),
+        """).lstrip() % (prefs.get('SMTP_FROM'),
        prefs.get('ADMIN_EMAIL'),
        prefs.get('SMTP_SUBJECT'),
        time.strftime(prefs.get('SMTP_DATE_FORMAT')))
@@ -140,7 +133,7 @@ Date: %s
 
         if username and password:
             smtp.login(username, password)
-    
+
         smtp.sendmail(prefs.get('SMTP_FROM'),
                       recipients,
                       msg)
@@ -153,5 +146,5 @@ Date: %s
 
     try:
         smtp.quit()
-    except:
+    except Exception:
         pass
