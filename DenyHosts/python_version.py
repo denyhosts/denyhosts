@@ -1,30 +1,30 @@
 import sys
+from textwrap import dedent
+
+MINIMUM_VERSION = (2, 4)
 
 def check_version():
-    version_tuple = sys.version_info
-    version = version_tuple[0] * 100 + version_tuple[1]
-    if version < 203:
-        print "Python >= 2.3 required.  You are using:", sys.version
+    if sys.version_info < MINIMUM_VERSION:
+        min_version_str = '.'.join(str(x) for x in MINIMUM_VERSION)
+        print "Python >= %s required.  You are using:\n%s" % (min_version_str, sys.version)
 
-        print """
-######################################################################
+        print dedent("""
+            ######################################################################
 
-Visit http://www.python.org and download a more recent version of
-Python.
+            Visit http://www.python.org and download a more recent version of
+            Python.
 
-You should install this version in addition to your current version
-(rather than upgrading your current version) because your system might
-depend on the current version.  After installing the newer version, for
-instance version 2.4, simply invoke DenyHosts explicitly with the new
-version of python, eg:
+            You should install this version in addition to your current version
+            (rather than upgrading your current version) because your system might
+            depend on the current version.  After installing the newer version, for
+            instance version 2.7, simply invoke DenyHosts explicitly with the new
+            version of python, eg:
 
-$ python2.4 %s
+            $ python2.7 %s
 
-######################################################################
+            ######################################################################
 
-""" % ' '.join(sys.argv)
-
+            """) % ' '.join(sys.argv)
         sys.exit(1)
-
 
 check_version()
