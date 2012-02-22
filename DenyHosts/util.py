@@ -61,11 +61,7 @@ def die(msg, ex=None):
 
 
 def is_true(s):
-    s = s.lower()
-    if s in ('1', 't', 'true', 'y', 'yes'):
-        return True
-    else:
-        return False
+    return s.lower() in ('1', 't', 'true', 'y', 'yes')
 
 def is_false(s):
     return not is_true(s)
