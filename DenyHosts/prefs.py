@@ -9,12 +9,6 @@ info = logging.getLogger("prefs").info
 
 ENVIRON_REGEX = re.compile(r"""\$\[(?P<environ>[A-Z_]*)\]""")
 
-try:
-    set = set
-except NameError:
-    from sets import Set
-    set = Set
-
 class Prefs(dict):
     def __getitem__(self, k):
         return self.get(k)

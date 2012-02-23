@@ -1,16 +1,8 @@
-
-from counter import Counter, CounterRecord
-
-import constants
+import logging
 import os
 
-try:
-    set = set
-except NameError:
-    from sets import Set
-    set = Set
-
-import logging
+from counter import Counter, CounterRecord
+import constants
 
 error = logging.getLogger("purgecounter").error
 info = logging.getLogger("purgecounter").info
