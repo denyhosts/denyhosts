@@ -1,0 +1,16 @@
+#recursive-include help *.html
+#recursive-include translations *
+#include plugins
+#include scripts
+recursive-include plugins *
+recursive-include scripts *
+include MANIFEST.in
+include LICENSE.txt
+include README.txt
+include CHANGELOG.txt
+include DenyHosts/*.py
+include denyhosts.py
+include denyhosts.cfg-dist
+include setup.py
+include daemon-control-dist
+

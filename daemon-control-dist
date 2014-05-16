@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+# denyhosts     Bring up/down the DenyHosts daemon
+#
+# chkconfig: 2345 98 02
+# description: Activates/Deactivates the
+#    DenyHosts daemon to block ssh attempts
+#
+###############################################
+
+###############################################
+#### Edit these to suit your configuration ####
+###############################################
+
+DENYHOSTS_BIN   = "/usr/bin/denyhosts.py"
+DENYHOSTS_LOCK  = "/var/lock/subsys/denyhosts"
+DENYHOSTS_CFG   = "/usr/share/denyhosts/denyhosts.cfg"
+
+PYTHON_BIN      = "/usr/bin/env python"
+
+###############################################
+####         Do not edit below             ####
+###############################################
+
+DENYHOSTS_BIN = "%s %s" % (PYTHON_BIN, DENYHOSTS_BIN)
+
+import os, sys, signal, time
+
+# make sure 'ps' command is accessible (which should be
+# in either /usr/bin or /bin.  Modify the PATH so
+# popen can find it
+env = os.environ.get('PATH', "")
+os.environ['PATH'] = "/usr/bin:/bin:%s" % env
+
+STATE_NOT_RUNNING = -1
+STATE_LOCK_EXISTS = -2
+
+def usage():
+    print "Usage: %s {start [args...] | stop | restart [args...] | status | debug | condrestart [args...] }" % sys.argv[0]
+    print
+    print "For a list of valid 'args' refer to:"
+    print "$ denyhosts.py --help"
+    print
+    sys.exit(0) 
+
+
+def getpid():
+    try:
+        fp = open(DENYHOSTS_LOCK, "r")
+        pid = int(fp.readline().rstrip())
+        fp.close()
+    except Exception, e:
+        return STATE_NOT_RUNNING
+
+    
+    if not sys.platform.startswith('freebsd') and os.access("/proc", os.F_OK):
+        # proc filesystem exists, look for pid
+        if os.access(os.path.join("/proc", str(pid)), os.F_OK):
+            return pid
+        else:
+            return STATE_LOCK_EXISTS
+    else:
+        # proc filesystem doesn't exist (or it doesn't contain PIDs), use 'ps'
+        p = os.popen("ps -p %d" % pid, "r")
+        p.readline() # get the header line
+        pid_running = p.readline() 
+        # pid_running will be '' if no process is found
+        if pid_running: 
+            return pid
+        else: 
+            return STATE_LOCK_EXISTS
+
+
+def start(*args):
+    cmd = "%s --daemon " % DENYHOSTS_BIN
+    if args: cmd += ' '.join(args)
+        
+    print "starting DenyHosts:   ", cmd
+
+    os.system(cmd)
+
+
+def stop():
+    pid = getpid()
+    if pid >= 0:
+        os.kill(pid, signal.SIGTERM)
+        print "sent DenyHosts SIGTERM"
+    else:
+        print "DenyHosts is not running"
+
+def debug():
+    pid = getpid()
+    if pid >= 0:
+        os.kill(pid, signal.SIGUSR1)
+        print "sent DenyHosts SIGUSR1"
+    else:
+        print "DenyHosts is not running"
+        
+def status():
+    pid = getpid()
+    if pid == STATE_LOCK_EXISTS:
+        print "%s exists but DenyHosts is not running" % DENYHOSTS_LOCK
+    elif pid == STATE_NOT_RUNNING:
+        print "Denyhosts is not running"
+    else:
+        print "DenyHosts is running with pid = %d" % pid
+
+
+def condrestart(*args):
+    pid = getpid()
+    if pid >= 0:
+        restart(*args)
+        
+
+def restart(*args):
+    stop()
+    time.sleep(1)
+    start(*args)  
+
+
+if __name__ == '__main__':
+    cases = {'start':       start,
+             'stop':        stop,
+             'debug':       debug,
+             'status':      status,
+             'condrestart': condrestart,
+             'restart':     restart}
+    
+    try:
+        args = sys.argv[2:]
+    except:
+        args = []
+
+    try:
+        # arg 1 should contain one of the cases above
+        option = sys.argv[1]
+    except:
+        # try to infer context (from an /etc/init.d/ script, perhaps)
+        procname = os.path.basename(sys.argv[0])
+        infer_dict = {'K': 'stop',
+                      'S': 'start'}
+        option = infer_dict.get(procname[0])
+        if not option:
+            usage()
+
+    try:
+        if option in ('start', 'restart', 'condrestart'):
+            if '--config' not in args and '-c' not in args:
+                args.append("--config=%s" % DENYHOSTS_CFG)
+
+        cmd = cases[option]
+        apply(cmd, args)
+    except:
+        usage()
+    
+
+
