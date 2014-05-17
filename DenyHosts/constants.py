@@ -7,7 +7,6 @@ import sys
 
 SECURE_LOG_OFFSET = "offset"
 DENIED_TIMESTAMPS = "denied-timestamps"
-#PARSED_DATES = "file_dates"
 
 ABUSIVE_HOSTS_INVALID = "hosts"
 ABUSIVE_HOSTS_VALID = "hosts-valid"
@@ -36,7 +35,7 @@ PURGE_HISTORY = "purge-history"
 #                           Miscellaneous constants                             #
 #################################################################################
 
-CONFIG_FILE = "denyhosts.cfg"  # default can be overridden on cmd line
+CONFIG_FILE = "/etc/denyhosts.conf"
 
 DENY_DELIMITER = "# DenyHosts:"
 ENTRY_DELIMITER = " | "

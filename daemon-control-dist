@@ -11,9 +11,9 @@
 #### Edit these to suit your configuration ####
 ###############################################
 
-DENYHOSTS_BIN   = "/usr/bin/denyhosts.py"
-DENYHOSTS_LOCK  = "/var/lock/subsys/denyhosts"
-DENYHOSTS_CFG   = "/usr/share/denyhosts/denyhosts.cfg"
+DENYHOSTS_BIN   = "/usr/sbin/denyhosts"
+DENYHOSTS_LOCK  = "/run/denyhosts.pid"
+DENYHOSTS_CFG   = "/etc/denyhosts.conf"
 
 PYTHON_BIN      = "/usr/bin/env python"
 
@@ -144,7 +144,8 @@ if __name__ == '__main__':
 
     try:
         if option in ('start', 'restart', 'condrestart'):
-            if '--config' not in args and '-c' not in args:
+            anystartswith = lambda prefix, xs: any(map(lambda x: x.startswith(prefix), xs))
+            if not anystartswith('--config', args) and '-c' not in args:
                 args.append("--config=%s" % DENYHOSTS_CFG)
 
         cmd = cases[option]

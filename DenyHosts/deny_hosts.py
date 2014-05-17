@@ -41,7 +41,7 @@ error = logging.getLogger("denyhosts").error
 class DenyHosts:
     def __init__(self, logfile, prefs, lock_file,
                  ignore_offset=0, first_time=0,
-                 noemail=0, daemon=0):
+                 noemail=0, daemon=0, foreground=0):
         self.__denied_hosts = {}
         self.__prefs = prefs
         self.__lock_file = lock_file
@@ -49,6 +49,7 @@ class DenyHosts:
         self.__noemail = noemail
         self.__report = Report(prefs.get("HOSTNAME_LOOKUP"), is_true(prefs['SYSLOG_REPORT']))
         self.__daemon = daemon
+        self.__foreground = foreground
         self.__sync_server = prefs.get('SYNC_SERVER')
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
@@ -87,7 +88,7 @@ class DenyHosts:
             info("Log file size has not changed.  Nothing to do.")
 
             
-        if daemon:
+        if daemon and not foreground:
             info("launching DenyHosts daemon (version %s)..." % VERSION)
             #logging.getLogger().setLevel(logging.WARN)
 
@@ -101,6 +102,10 @@ class DenyHosts:
                 self.runDaemon(logfile, last_offset)
             else:
                 die("Error creating daemon: %s (%d)" % (retCode[1], retCode[0]))
+        elif foreground:
+            info("launching DenyHosts (version %s)..." % VERSION)
+            self.__lock_file.remove()
+            self.runDaemon(logfile, last_offset)
 
 
     def killDaemon(self, signum, frame):
@@ -438,7 +443,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             self.__report.add_section(msg, new_denied_hosts)
             if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
             plugin_deny = self.__prefs.get('PLUGIN_DENY')
-            if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
+            if plugin_deny: plugin.execute(plugin_deny, new_denied_hosts)
         
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
