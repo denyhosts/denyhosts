@@ -4,7 +4,73 @@ DENYHOSTS CHANGELOG
 ==================
 
 - Forked code from DenyHosts (denyhosts.sf.net)
-  New project now maintained at ***********
+  New project now maintained at denyhost.sf.net
+
+- Added private moduls patch from Marco Bertorello. Loads
+  modules from /usr/share/denyhosts
+
+- Place config, lock and executable file in more
+  standard locations. Patch provided by Marco Bertorello.
+
+- Fixed configuration (denyhosts.cfg-dist) to better support
+  Debian and Ubuntu. Patch supplied by Marco Nenciarini.
+
+- Added warning to migrate switch. Patch provided by
+  Marco Bertorello.
+
+- Avoid installing unwanted files (extra scripts and changelog).
+  Patch provided by Marco Nenciarini.
+
+- Fix bug which would not recognize an attack on the root
+  user account. Patch provided by Kyle Willmon.
+
+- Fix pattern matching bug (CVE-2007-4323).
+  Patch provided by Nico Golde.
+
+- Added foreground mode for debugging.
+  Patch supplied by Marco Bertorello.
+
+- Applied patch to fix plugin execution.
+  Patched provided by Marco Bertorello.
+
+- Added patch to prevent DenyHosts from running with
+  a double --config switch.
+  Patch provided by Maro Bertorello.
+
+- Convert path of "env" from /bin/env to /usr/bin/env
+  Patch provided by Kyle Willmon.
+
+- Added patch to perform missing bounds check in Purge action.
+  Provided by Kyle Willmon.
+
+- Added patch to include SYNC_PROXY_SERVER configuration option.
+  Provided by Kyle Willmon.
+
+- Change HOSTNAME_LOOKUP to default to "NO". Will save time.
+  Also brings us into closer alignment with FreeBSD patches.
+
+- Added /usr/sbin/nologin to restricted_from_passwd script.
+  Requirement from FreeBSD patch set.
+
+- Added variable "ETC_DIR" which dictates the location of
+  configuration files. This should usually be set to
+  /etc or /usr/local/etc
+
+- The restricted-usernames file is now loaded from the "ETC_DIR"
+  directory, rather than from "WORK_DIR" to avoid this
+  human-made configuration file from being over-writeen.
+  Closes Ubuntu bug #675034
+
+- Confirm setting timestamp over-writes old tiemstamp file.
+  Closes Ubuntu bug #564476
+
+- Applied advanced pattern check for authentication file which
+  takes into account alternative port numbers. Patch provided by
+  Helmut Grohne.
+
+- Updated license and readme files.
+
+- Updated help output from DenyHost script to include --config tip.
 
 
 

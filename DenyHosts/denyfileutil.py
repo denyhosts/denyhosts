@@ -56,10 +56,24 @@ class DenyFileUtilBase:
 
 class Migrate(DenyFileUtilBase):
     def __init__(self, deny_file):
-        DenyFileUtilBase.__init__(self, deny_file, "migrate")
-        self.backup()
-        self.create_temp(self.get_data())
-        self.replace()
+        print ""
+        print "**** WARNING ****"
+        print "migrate switch will migrate ALL your entries in your HOSTS_DENY file"
+        print "and this can be potentially dangerous, if you have some entry that "
+        print "you won't purge"
+        print ""
+        print "If you don't understand, please type 'No' and"
+        print "read /usr/share/doc/denyhosts/README.Debian"
+        print "for more info"
+        print ""
+        response = raw_input("Are you sure that you want do this? (Yes/No)")
+        if response == "Yes":
+            DenyFileUtilBase.__init__(self, deny_file, "migrate")
+            self.backup()
+            self.create_temp(self.get_data())
+            self.replace()
+        else:
+            print "nothing done"
 
     def create_temp(self, data):
         try:
@@ -175,6 +189,11 @@ class Purge(DenyFileUtilBase):
                     fp.write(line)
                     continue
                 else:
+                    if offset == num_lines:
+                        warn("DenyHosts comment line at end of file")
+                        fp.write(line)
+                        continue
+
                     timestamp = None
                     try:
                         rest = line.lstrip(DENY_DELIMITER)

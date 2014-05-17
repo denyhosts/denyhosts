@@ -1,7 +1,8 @@
-DenyHosts is a utility developed by Phil Schwartz which aims to 
+DenyHost is a utility developed by Phil Schwartz 
+and currently maintained by Jesse Smith which aims to 
 thwart sshd (ssh server) brute force attacks.
 
-Please refer to http://www.denyhosts.net/faq.html
+Please refer to http://denyhost.sf.net
 
 INSTALLATION:
 =============
@@ -34,19 +35,14 @@ this, you may wish to install from souce instead.
 ALL DISTRIBUTIONS 
 =================
 
-Once you have installed DenyHosts, by default the directory
-/usr/share/denyhosts will be created and a sample configuration 
-file will be copied into it. A sample daemon-control script will 
-also be copied into the /usr/share/denyhosts directory.
-
 DenyHosts requires that a configuration file be created before
-it can function.  The sample configuration file denyhosts.cfg-dist
+it can function.  The sample configuration file denyhosts.conf
 contains most of the possible settings and should be copied and
 then edited as such:
 
-# cp denyhosts.cfg-dist denyhosts.cfg
+# cp denyhosts.conf /etc
 
-# <edit> denyhosts.cfg
+# <edit> /etc/denyhosts.conf
 
 (where <edit> is your preferred text editor such as emacs, vi, etc)
 

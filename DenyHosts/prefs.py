@@ -74,12 +74,14 @@ class Prefs(dict):
                      ('BLOCK_SERVICE', False),
                      ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
-                     ('WORK_DIR', True))
+                     ('WORK_DIR', True),
+                     ('ETC_DIR', True))
         
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
         # since the --daemon mode requires absolute pathnames
         self.make_abs = ('WORK_DIR',
+                         'ETC_DIR',
                          'LOCK_FILE',
                          'SECURE_LOG',
                          'HOSTS_DENY',
