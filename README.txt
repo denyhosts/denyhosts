@@ -64,7 +64,7 @@ near the top:
 
 DENYHOSTS_BIN   = "/usr/bin/denyhosts.py"
 DENYHOSTS_LOCK  = "/var/lock/subsys/denyhosts"
-DENYHOSTS_CFG   = "/usr/share/denyhosts/denyhosts.cfg"
+DENYHOSTS_CFG   = "/etc/denyhosts.conf"
 
 
 These defaults should be reasonable for many systems.  You

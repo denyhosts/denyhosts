@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Copyright 2005-2006 (C) Phil Schwartz <phil_schwartz@users.sourceforge.net>
+# Copyright 2014 (C) Jesse Smith <jessefrgsmith@yahoo.ca>
+
 from DenyHosts.version import VERSION
 from distutils.core import setup
 import os

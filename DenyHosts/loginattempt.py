@@ -1,5 +1,6 @@
 import os
 import logging
+import errno
 from util import is_true
 
 try:
@@ -173,7 +174,7 @@ class LoginAttempt:
                     ##debug(e)
                     pass                
         except IOError, e:
-            if e.errno == 2: debug("%s does not exist", fname)
+            if e.errno == errno.ENOENT: debug("%s does not exist", fname)
             else: print e
         except Exception, e:
             if not self.__first_time: print e
