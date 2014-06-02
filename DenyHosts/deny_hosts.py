@@ -336,6 +336,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                                           output))
             fp.write("%s\n" % output)
 
+        plugin_deny = self.__prefs.get('PLUGIN_DENY')
+        if plugin_deny: plugin.execute(plugin_deny, new_hosts)
+
         if fp != sys.stdout:
             fp.close()
 
@@ -380,31 +383,32 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         for line in fp:
             success = invalid = 0
-            sshd_m = self.__sshd_format_regex.match(line)
-            if not sshd_m: continue
-            message = sshd_m.group('message')
-            
             m = None
-            # did this line match any of the fixed failed regexes?
-            for i in FAILED_ENTRY_REGEX_RANGE:
-                rx = self.__failed_entry_regex_map.get(i)
-                if rx == None: continue
-                m = rx.search(message) 
-                if m:
-                    invalid = self.is_valid(m)
-                    break
-            else:
-                # otherwise, did the line match one of the userdef regexes?
-                for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
-                    m = rx.search(message)
+            sshd_m = self.__sshd_format_regex.match(line)
+            if sshd_m:
+                message = sshd_m.group('message')
+                
+                # did this line match any of the fixed failed regexes?
+                for i in FAILED_ENTRY_REGEX_RANGE:
+                    rx = self.__failed_entry_regex_map.get(i)
+                    if rx == None: continue
+                    m = rx.search(message) 
                     if m:
-                        #info("matched: %s" % rx.pattern)
                         invalid = self.is_valid(m)
                         break
                 else: # didn't match any of the failed regex'es, was it succesful?
                     m = self.__successful_entry_regex.match(message)
                     if m:
                         success = 1
+
+            # otherwise, did the line match one of the userdef regexes?
+            if not m:
+                for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
+                    m = rx.search(line)
+                    if m:
+                        #info("matched: %s" % rx.pattern)
+                        invalid = self.is_valid(m)
+                        break
 
             if not m:
                 # line isn't important
@@ -516,4 +520,5 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 ##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX9', FAILED_ENTRY_REGEX9)
 ##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX10', FAILED_ENTRY_REGEX10)
 
-        
+       
+# vim: set sw=4 et :

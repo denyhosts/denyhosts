@@ -1,5 +1,31 @@
 DENYHOSTS CHANGELOG
 
+- Use standard errno instead of hardcoded errno value.
+  Patch provided by Pino Toscano.
+
+- Make sure PLUGIN_DENY is called for each host we receive from
+  the sync server.
+  Patch provided by Sean M. Collins.
+
+- Made sure only new hosts in hosts.deny are reported as new, not
+  all hosts. This prevents the PLUGIN_DENY plugin from getting
+  old entries repeatedly.
+  Patch provided by Chris Erdle.
+
+- We now check user defined regular expression filters, even
+  if we already found a match with an existing filter. This
+  allows the user to filter more services without using
+  a plugin.
+  Patch provided by Ben.
+
+- Added --purge-all command line flag to allow us to remove all
+  old entries from the deny file without waiting.
+  Patch provided by 9MediaCenterGUI on SourceForge.
+
+- Updated copyright information and some documentation.
+
+
+
 2.7 (May 18, 2014)
 ==================
 

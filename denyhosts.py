@@ -34,6 +34,7 @@ def usage():
     print " --unlock: if lockfile exists, remove it and run as normal"
     print " --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge"
     print " --purge: expire entries older than your PURGE_DENY setting"
+    print " --purge-all: expire all entries"
     print " --daemon: run DenyHosts in daemon mode"
     print " --foreground: run DenyHosts in foreground mode"
     print " --sync: run DenyHosts synchronization mode"
@@ -44,7 +45,7 @@ def usage():
     print "If multiple files are provided, --ignore is implied"
     print
     print "When run in --daemon mode the following flags are ignored:"
-    print "     --file, --purge, --migrate, --sync, --verbose"
+    print "     --file, --purge, --purge-all, --migrate, --sync, --verbose"
 
 
 #################################################################################
@@ -63,6 +64,7 @@ if __name__ == '__main__':
     verbose = 0
     migrate = 0
     purge = 0
+    purge_all = 0
     sync_mode = 0
     daemon = 0
     foreground = 0
@@ -73,7 +75,7 @@ if __name__ == '__main__':
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
                                         ["file=", "ignore", "verbose", "debug", 
                                          "help", "noemail", "config=", "version",
-                                         "migrate", "purge", "daemon", "foreground",
+                                         "migrate", "purge", "purge-all", "daemon", "foreground",
                                          "sync", "upgrade099"])
     except:
         print "\nInvalid command line option detected."
@@ -106,6 +108,8 @@ if __name__ == '__main__':
             daemon = 1
         if opt == '--foreground':
             foreground = 1
+        if opt == '--purge-all':
+            purge_all = 1
         if opt == '--upgrade099':
             upgrade099 = 1
         if opt == '--version':
@@ -149,6 +153,15 @@ if __name__ == '__main__':
             die("You have supplied the --migrate flag however you have not set PURGE_DENY in your configuration file.")
         else:
             m = Migrate(prefs.get("HOSTS_DENY"))
+
+    # Try to purge old records without any delay
+    if purge_all and not daemon:
+         purge_time = 1
+         try:
+            p = Purge(prefs, purge_time)
+         except Exception, e:
+            lock_file.remove()
+            die(str(e))
 
     if purge and not (daemon or foreground):
         purge_time = prefs.get('PURGE_DENY')
