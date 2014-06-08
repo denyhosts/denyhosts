@@ -11,6 +11,7 @@ from glob import glob
 
 
 etcpath = "/etc"
+manpath = "/usr/share/man/man8"
 libpath = "/usr/share/denyhosts"
 scriptspath = "%s/scripts" % libpath
 pluginspath = "%s/plugins" % libpath
@@ -26,7 +27,8 @@ setup(name="DenyHost",
       scripts=['denyhosts.py', 'daemon-control-dist'],
       package_dir={'DenyHosts': 'DenyHosts'},
       packages=["DenyHosts"],
-      data_files=[(etcpath, glob("denyhosts.conf"))],
+      data_files=[(etcpath, glob("denyhosts.conf")),
+                  (manpath, glob("denyhosts.8"))],
 #      data_files=[(libpath, glob("denyhosts.cfg-dist")),
 #                  (libpath, glob("setup.py")),
 #                  (libpath, glob("daemon-control-dist")),

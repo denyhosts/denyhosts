@@ -138,7 +138,7 @@ class UpgradeTo099(DenyFileUtilBase):
         except Exception, e:
             raise e
 
-#################################################################################        
+#################################################################################
 
 class Purge(DenyFileUtilBase):
     def __init__(self, prefs, cutoff):
@@ -147,13 +147,13 @@ class Purge(DenyFileUtilBase):
         work_dir = prefs.get('WORK_DIR')
         self.purge_threshold = prefs['PURGE_THRESHOLD']
         self.purge_counter = PurgeCounter(prefs)
-        
+
         self.cutoff = long(time.time()) - cutoff
         debug("relative cutoff: %ld (seconds)", cutoff)
         debug("absolute cutoff: %ld (epoch)", self.cutoff)
         info("purging entries older than: %s",
              time.asctime(time.localtime(self.cutoff)))
-        
+
         self.backup()
 
         purged_hosts = self.create_temp(self.get_data())
@@ -166,13 +166,13 @@ class Purge(DenyFileUtilBase):
             self.purge_counter.increment(purged_hosts)
         else:
             self.remove_temp()
-            
+
         info("num entries purged: %d", num_purged)
         plugin_purge = prefs.get('PLUGIN_PURGE')
         if plugin_purge:
             plugin.execute(plugin_purge, purged_hosts)
-            
-        
+
+
     def create_temp(self, data):
         purged_hosts = []
         banned = self.purge_counter.get_banned_for_life()
@@ -236,4 +236,36 @@ class Purge(DenyFileUtilBase):
         except Exception, e:
             raise e
         return purged_hosts
+
+
+#################################################################################        
+
+class PurgeIP(DenyFileUtilBase):
+    def __init__(self, prefs, purgeip_list):
+        deny_file = prefs.get('HOSTS_DENY')
+        DenyFileUtilBase.__init__(self, deny_file, "purgeip")
+        work_dir = prefs.get('WORK_DIR')
+        self.purge_counter = PurgeCounter(prefs)
+        
+        info("purging listed IP addresses.",)
+        
+        self.backup()
+
+        purged_hosts = purgeip_list
+        num_purged = len(purged_hosts)
+        if num_purged > 0:
+            self.replace()
+            abusive_hosts = AbusiveHosts(prefs)
+            abusive_hosts.purge_hosts(purged_hosts)
+            abusive_hosts.save_abusive_hosts()
+            self.purge_counter.increment(purged_hosts)
+        else:
+            self.remove_temp()
+            
+        info("num entries purged: %d", num_purged)
+        plugin_purge = prefs.get('PLUGIN_PURGE')
+        if plugin_purge:
+            plugin.execute(plugin_purge, purged_hosts)
+            
+        
     

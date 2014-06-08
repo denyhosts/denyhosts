@@ -14,7 +14,7 @@ from DenyHosts.lockfile import LockFile
 from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
 from DenyHosts.deny_hosts import DenyHosts
-from DenyHosts.denyfileutil import Purge, Migrate, UpgradeTo099
+from DenyHosts.denyfileutil import Purge, PurgeIP, Migrate, UpgradeTo099
 from DenyHosts.constants import *
 from DenyHosts.sync import Sync
 
@@ -24,7 +24,7 @@ from DenyHosts.sync import Sync
 
 def usage():
     print "Usage:"
-    print "%s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--purge] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0]
+    print "%s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip=ip] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0]
     print
     print
     print " --config: The pathname of the configuration file"
@@ -35,6 +35,7 @@ def usage():
     print " --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge"
     print " --purge: expire entries older than your PURGE_DENY setting"
     print " --purge-all: expire all entries"
+    print " --purgeip: expire designated IP entry immediately"
     print " --daemon: run DenyHosts in daemon mode"
     print " --foreground: run DenyHosts in foreground mode"
     print " --sync: run DenyHosts synchronization mode"
@@ -44,8 +45,10 @@ def usage():
     print "Note: multiple --file args can be processed. ",
     print "If multiple files are provided, --ignore is implied"
     print
+    print "Note: multiple --purgeip arguments can be processed. "
+    print
     print "When run in --daemon mode the following flags are ignored:"
-    print "     --file, --purge, --purge-all, --migrate, --sync, --verbose"
+    print "     --file, --purge, --purge-all, --purgeip, --migrate, --sync, --verbose"
 
 
 #################################################################################
@@ -58,6 +61,7 @@ def usage():
     
 if __name__ == '__main__':
     logfiles = []
+    purgeip_list = []
     config_file = CONFIG_FILE
     ignore_offset = 0
     noemail = 0
@@ -69,13 +73,14 @@ if __name__ == '__main__':
     daemon = 0
     foreground = 0
     enable_debug = 0
+    purgeip = 0
     upgrade099 = 0
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
                                         ["file=", "ignore", "verbose", "debug", 
                                          "help", "noemail", "config=", "version",
-                                         "migrate", "purge", "purge-all", "daemon", "foreground",
+                                         "migrate", "purge", "purge-all", "purgeip", "daemon", "foreground",
                                          "sync", "upgrade099"])
     except:
         print "\nInvalid command line option detected."
@@ -110,6 +115,9 @@ if __name__ == '__main__':
             foreground = 1
         if opt == '--purge-all':
             purge_all = 1
+        if opt == '--purgeip':
+            purgeip_list.append(arg)
+            purgeip = 1
         if opt == '--upgrade099':
             upgrade099 = 1
         if opt == '--version':
@@ -153,6 +161,21 @@ if __name__ == '__main__':
             die("You have supplied the --migrate flag however you have not set PURGE_DENY in your configuration file.")
         else:
             m = Migrate(prefs.get("HOSTS_DENY"))
+
+    # clear out specific IP addresses
+    if purgeip and not daemon:
+        if len(purgeip_list) < 1:
+            lock_file.remove()
+            die("You have provided the --purgeip flag however you have not listed any IP addresses to purge.")
+        else:
+            try:
+                p = PurgeIP(prefs, 
+                          purgeip_list)
+
+            except Exception, e:
+                lock_file.remove()
+                die(str(e))
+
 
     # Try to purge old records without any delay
     if purge_all and not daemon:

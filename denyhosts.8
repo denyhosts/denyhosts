@@ -1,0 +1,56 @@
+.TH DENYHOSTS "8" "June 2014" "DenyHosts version: 2.8" "User Commands"
+.SH NAME
+DenyHosts \- version: 2.8
+.SH DESCRIPTION
+.B DenyHosts
+is a python program that automatically blocks ssh attacks by
+adding entries to /etc/hosts.deny.
+.B DenyHosts
+will also inform system administrators about offending hosts,
+attacked users and suspicious logins.
+
+Usage:
+/usr/sbin/denyhosts [\-f logfile | \fB\-\-file\fR=\fIlogfile]\fR [ \fB\-c\fR configfile | \fB\-\-config\fR=\fIconfigfile]\fR [\-i | \fB\-\-ignore]\fR [\-n | \fB\-\-noemail]\fR [\-\-purge] [\-\-migrate] [\-\-daemon] [\-\-sync] [\-\-version]
+.TP
+\fB\-\-file\fR:
+The name of log file to parse
+.HP
+\fB\-\-config\fR: The configuration file to use, typically /etc/denyhosts.conf
+.HP
+\fB\-\-ignore\fR: Ignore last processed offset (start processing from beginning)
+.HP
+\fB\-\-noemail\fR: Do not send an email report
+.HP
+\fB\-\-unlock\fR: if lockfile exists, remove it and run as normal
+.HP
+\fB\-\-migrate\fR: migrate your HOSTS_DENY file so that it is suitable for \fB\-\-purge\fR
+.HP
+\fB\-\-purge\fR: expire entries older than your PURGE_DENY setting
+.HP
+\fB\-\-purge\-all\fR: expire all entries immediately
+.HP
+\fB\-\-purgeip\fR: remove specified IP address from blocked list
+.HP
+\fB\-\-daemon\fR: run DenyHosts in daemon mode
+.HP
+\fB\-\-foreground\fR: run DenyHosts in foreground mode
+.HP
+\fB\-\-sync\fR: run DenyHosts synchronization mode
+.HP
+\fB\-\-version\fR: Prints the version of DenyHosts and exits
+.PP
+Note: multiple \fB\-\-file\fR args can be processed.  If multiple files are provided, \fB\-\-ignore\fR is implied
+.PP
+Note: in a Debian system, the default running mode is \fBdaemon mode\fR and the configuration file is \fB/etc/denyhosts.conf\fR
+.SS "When run in --daemon mode the following flags are ignored:"
+.HP
+\fB\-\-file\fR, \fB\-\-purge\fR, \fB\-\-migrate\fR, \fB\-\-sync\fR, \fB\-\-verbose\fR
+
+.SH "SEE ALSO"
+Please refer to http://denyhost.sourceforge.net/faq.html for full documentation.
+.SH AUTHOR
+.B DenyHosts
+was written by Phil Schwartz <phil_schwartz@users.sourceforge.net>
+.PP
+This manual page was written by Marco Bertorello <marco@bertorello.ns0.it>
+for the Debian project (but may be used by others).
