@@ -53,7 +53,7 @@ class DenyHosts:
         self.__sync_server = prefs.get('SYNC_SERVER')
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
-
+        self.__iptables = prefs.get("IPTABLES")
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -89,7 +89,7 @@ class DenyHosts:
 
             
         if daemon and not foreground:
-            info("launching DenyHosts daemon (version %s)..." % VERSION)
+            info("launching DenyHost daemon (version %s)..." % VERSION)
             #logging.getLogger().setLevel(logging.WARN)
 
             # remove lock file since createDaemon will
@@ -103,7 +103,7 @@ class DenyHosts:
             else:
                 die("Error creating daemon: %s (%d)" % (retCode[1], retCode[0]))
         elif foreground:
-            info("launching DenyHosts (version %s)..." % VERSION)
+            info("launching DenyHost (version %s)..." % VERSION)
             self.__lock_file.remove()
             self.runDaemon(logfile, last_offset)
 
@@ -135,7 +135,7 @@ class DenyHosts:
         #signal.signal(signal.SIGHUP, self.killDaemon)
         signal.signal(signal.SIGTERM, self.killDaemon)
         signal.signal(signal.SIGUSR1, self.toggleDebug)
-        info("DenyHosts daemon is now running, pid: %s", os.getpid())
+        info("DenyHost daemon is now running, pid: %s", os.getpid())
         info("send daemon process a TERM signal to terminate cleanly")
         info("  eg.  kill -TERM %s", os.getpid())
         self.__lock_file.create()  
@@ -172,7 +172,7 @@ class DenyHosts:
             info("sync_sleep_ratio: %ld", sync_sleep_ratio)
         else:
             sync_sleep_ratio = None
-            info("denyhosts synchronization disabled")
+            info("denyhost synchronization disabled")
 
         self.daemonLoop(logfile, last_offset, daemon_sleep,
                         purge_time, purge_sleep_ratio, sync_sleep_ratio)
@@ -338,6 +338,19 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         plugin_deny = self.__prefs.get('PLUGIN_DENY')
         if plugin_deny: plugin.execute(plugin_deny, new_hosts)
+        if self.__iptables:
+           debug("Trying to create iptables rules")
+           try:
+              for host in new_hosts:
+                  my_host = str(host)
+                  new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
+                  debug("Running iptabes rule: %s", new_rule)
+                  info("Creating new firewall rule %s", new_rule)
+                  os.system(new_rule);
+           
+           except Exception, e:
+               print e
+               print "Unable to write new firewall rule."
 
         if fp != sys.stdout:
             fp.close()

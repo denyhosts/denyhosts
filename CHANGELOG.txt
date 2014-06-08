@@ -24,6 +24,18 @@ DENYHOSTS CHANGELOG
 
 - Updated copyright information and some documentation.
 
+- Added manual page from Debian and fixed typo. Added
+  additional command line options to man page.
+
+- Added --purgeip option to allow us to remove specific
+  IP addresses from the blocked list at start time.
+  Patch provided by Nelson Howell.
+  Should close Debian bug 529089.
+
+- Updated FAILED_ENTRY_REGEX7 to be more flexible.
+
+- Added ability to use Linux iptables to block incoming
+  connections. See IPTABLES option in the configuration file.
 
 
 2.7 (May 18, 2014)

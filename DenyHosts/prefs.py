@@ -38,6 +38,7 @@ class Prefs(dict):
                        'RESET_ON_SUCCESS': 'no',
                        'PLUGIN_DENY': None,
                        'PLUGIN_PURGE': None,
+                       'IPTABLES': None,
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
                        'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
@@ -85,7 +86,8 @@ class Prefs(dict):
                          'LOCK_FILE',
                          'SECURE_LOG',
                          'HOSTS_DENY',
-                         'DAEMON_LOG')
+                         'DAEMON_LOG',
+                         'IPTABLES')
 
         # these settings are converted to numeric values
         self.to_int = set(('DENY_THRESHOLD',

@@ -21,7 +21,9 @@ FAILED_ENTRY_REGEX5 = re.compile(r"""User (?P<user>.*) .*from (?P<host>.*) not a
 
 FAILED_ENTRY_REGEX6 = re.compile(r"""Did not receive identification string .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
-FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) from (?P<host>.*) not allowed because not listed in AllowUsers""")
+FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) .*from
+(::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) not allowed because not
+listed in AllowUsers""")
 
 
 # these are reserved for future versions
