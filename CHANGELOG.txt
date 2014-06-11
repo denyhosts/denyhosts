@@ -37,6 +37,12 @@ DENYHOSTS CHANGELOG
 - Added ability to use Linux iptables to block incoming
   connections. See IPTABLES option in the configuration file.
 
+- Made it possible to block specific ports, allowing remote
+  hosts to conenct to some services while being blocked on
+  others.
+  See the BLOCKPORT option in the configuration file.
+
+
 
 2.7 (May 18, 2014)
 ==================

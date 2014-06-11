@@ -39,6 +39,7 @@ class Prefs(dict):
                        'PLUGIN_DENY': None,
                        'PLUGIN_PURGE': None,
                        'IPTABLES': None,
+                       'BLOCKPORT': None,
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
                        'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
@@ -76,7 +77,9 @@ class Prefs(dict):
                      ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
                      ('WORK_DIR', True),
-                     ('ETC_DIR', True))
+                     ('ETC_DIR', True),
+                     ('IPTABLES', False),
+                     ('BLOCKPORT', False))
         
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
