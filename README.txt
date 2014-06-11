@@ -10,12 +10,12 @@ INSTALLATION:
 SOURCE DISTRIBUTION
 ===================
 
-If you downloaded the source distribution file (DenyHosts-#.#.#-tar.gz)
+If you downloaded the source distribution file (DenyHosts-#.#-tar.gz)
 then:
 
-$ tar zxvf DenyHosts-2.7.tar.gz       (Where #.#.# is the version)
+$ tar zxvf DenyHosts-2.8.tar.gz       (Where #.#.# is the version)
 
-$ cd DenyHosts-2.7
+$ cd DenyHosts-2.8
 
 as root:
 

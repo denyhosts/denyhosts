@@ -54,6 +54,7 @@ class DenyHosts:
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
         self.__iptables = prefs.get("IPTABLES")
+        self.__blockport = prefs.get("BLOCKPORT")
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -343,7 +344,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
            try:
               for host in new_hosts:
                   my_host = str(host)
-                  new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
+                  if self.__blockport:
+                     new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + my_host + " -j DROP"
+                  else:
+                     new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
                   debug("Running iptabes rule: %s", new_rule)
                   info("Creating new firewall rule %s", new_rule)
                   os.system(new_rule);

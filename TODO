@@ -12,8 +12,7 @@ stopped by systemd
 
 Try to support Fedora's journal logging as an alternative to /var/log/secure
 
-Support IPTables and PF firewall as alternative/addition to hosts.deny.
-(Test IPTables)
+PF firewall as alternative/addition to hosts.deny.
 
 In cases where DenyHosts cannot write to disk, it should not crash.
 
