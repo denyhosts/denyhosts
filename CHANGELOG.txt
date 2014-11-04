@@ -1,7 +1,30 @@
 DENYHOSTS CHANGELOG
 
-2.7 (June 12, 2014)
-==================
+2.9 (November 3, 2014)
+======================
+
+- DenyHost now supports working with the PF
+  packet filter, a popular firewall for FreeBSD,
+  OpenBSD, TrueOS, PC-BSD and NetBSD.
+  To enable PF support in DenyHost, comment
+  out the IPTABLES option in the denyhosts.conf file
+  and enable the PFCTL_PATH and PF_TABLE options.
+
+  DenyHost will add misbehaving IP addresses to the
+  PF table specified by "PF_TABLE". This table
+  should be blocked using the pf.conf file. Please
+  see the denyhosts.conf file for more information
+  and example PF rules for blocking incoming traffic.
+
+  Please note that even if /etc/hosts.deny is not used
+  to block incoming connectins, the file should still exists
+  or DenyHosts may throw an error. (This should be fixed
+  in the next release.)
+
+
+
+2.8 (June 12, 2014)
+===================
 
 - Use standard errno instead of hardcoded errno value.
   Patch provided by Pino Toscano.
