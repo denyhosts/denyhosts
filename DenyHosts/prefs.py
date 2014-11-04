@@ -40,6 +40,8 @@ class Prefs(dict):
                        'PLUGIN_PURGE': None,
                        'IPTABLES': None,
                        'BLOCKPORT': None,
+                       'PFCTL_PATH': None,
+                       'PF_TABLE': None,
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
                        'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
@@ -79,7 +81,9 @@ class Prefs(dict):
                      ('WORK_DIR', True),
                      ('ETC_DIR', True),
                      ('IPTABLES', False),
-                     ('BLOCKPORT', False))
+                     ('BLOCKPORT', False),
+                     ('PFCTL_PATH', False),
+                     ('PF_TABLE', False))
         
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
@@ -90,7 +94,8 @@ class Prefs(dict):
                          'SECURE_LOG',
                          'HOSTS_DENY',
                          'DAEMON_LOG',
-                         'IPTABLES')
+                         'IPTABLES',
+                         'PFCTL_PATH')
 
         # these settings are converted to numeric values
         self.to_int = set(('DENY_THRESHOLD',

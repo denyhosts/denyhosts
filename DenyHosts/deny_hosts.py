@@ -55,6 +55,8 @@ class DenyHosts:
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
         self.__iptables = prefs.get("IPTABLES")
         self.__blockport = prefs.get("BLOCKPORT")
+        self.__pfctl = prefs.get("PFCTL_PATH")
+        self.__pftable = prefs.get("PF_TABLE")
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -355,6 +357,21 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
            except Exception, e:
                print e
                print "Unable to write new firewall rule."
+
+        if self.__pfctl and self.__pftable:
+             debug("Trying to update PF table.")
+             try:
+               for host in new_hosts:
+                   my_host = str(host)
+                   new_rule = self.__pfctl + " -t " + self.__pftable + " -T add " + my_host
+                   debug("Running PF update rule: %s", new_rule)
+                   info("Creating new PF rule %s", new_rule)
+                   os.system(new_rule);
+            
+             except Exception, e:
+                print e
+                print "Unable to write new PF rule."
+
 
         if fp != sys.stdout:
             fp.close()
