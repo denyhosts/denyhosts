@@ -12,9 +12,9 @@ SOURCE DISTRIBUTION
 If you downloaded the source distribution file (DenyHosts-#.#.#-tar.gz)
 then:
 
-$ tar zxvf DenyHosts-#.#.#-tar.gz       (Where #.#.# is the version)
+$ tar zxvf DenyHosts-2.7.tar.gz       (Where #.#.# is the version)
 
-$ cd DenyHosts-#.#.#
+$ cd DenyHosts-2.7
 
 as root:
 
