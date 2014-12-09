@@ -1,6 +1,6 @@
 DENYHOSTS CHANGELOG
 
-2.7 ()
+2.7 (May 18, 2014)
 ==================
 
 - Forked code from DenyHosts (denyhosts.sf.net)
