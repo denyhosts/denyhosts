@@ -1,7 +1,7 @@
 DenyHosts
 =========
 
-[![Build Status](https://travis-ci.org/mruffalo/denyhosts.svg)](https://travis-ci.org/mruffalo/denyhosts)
+[![Build Status](https://travis-ci.org/denyhosts/denyhosts.svg)](https://travis-ci.org/denyhosts/denyhosts)
 
 DenyHosts is a utility developed by Phil Schwartz which aims to
 thwart sshd (ssh server) brute force attacks.
