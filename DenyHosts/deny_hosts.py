@@ -556,9 +556,4 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 ##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX9', FAILED_ENTRY_REGEX9)
 ##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX10', FAILED_ENTRY_REGEX10)
 
-<<<<<<< HEAD
-
-=======
-
 # vim: set sw=4 et :
->>>>>>> GerHobbelt/sourceforge-master
