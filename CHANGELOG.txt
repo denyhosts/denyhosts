@@ -1,5 +1,8 @@
 DENYHOSTS CHANGELOG
 
+2.7 (June 12, 2014)
+==================
+
 - Use standard errno instead of hardcoded errno value.
   Patch provided by Pino Toscano.
 
@@ -39,7 +42,7 @@ DENYHOSTS CHANGELOG
 
 - Made it possible to block specific ports, allowing remote
   hosts to conenct to some services while being blocked on
-  others.
+  others by the iptables firewall.
   See the BLOCKPORT option in the configuration file.
 
 
