@@ -1,0 +1,22 @@
+
+Debian bug 690524
+When sshd passwordauthenication is turned off (key access only)
+then DenyHost does not detect the denied log entry. This means
+we are not blocking the remote host when multiple attempts are
+made to access the local service. We should try to
+detect bad connections to key-only systems.
+
+
+See about making denyhost fork earlier to avoid "hanging" and being
+stopped by systemd
+
+Try to support Fedora's journal logging as an alternative to /var/log/secure
+
+PF firewall as alternative/addition to hosts.deny.
+
+In cases where DenyHosts cannot write to disk, it should not crash.
+
+Consider support for IPv6
+
+Create new sync server.
+

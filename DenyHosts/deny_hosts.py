@@ -41,7 +41,7 @@ error = logging.getLogger("denyhosts").error
 class DenyHosts:
     def __init__(self, logfile, prefs, lock_file,
                  ignore_offset=0, first_time=0,
-                 noemail=0, daemon=0):
+                 noemail=0, daemon=0, foreground=0):
         self.__denied_hosts = {}
         self.__prefs = prefs
         self.__lock_file = lock_file
@@ -49,10 +49,14 @@ class DenyHosts:
         self.__noemail = noemail
         self.__report = Report(prefs.get("HOSTNAME_LOOKUP"), is_true(prefs['SYSLOG_REPORT']))
         self.__daemon = daemon
+        self.__foreground = foreground
         self.__sync_server = prefs.get('SYNC_SERVER')
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
-
+        self.__iptables = prefs.get("IPTABLES")
+        self.__blockport = prefs.get("BLOCKPORT")
+        self.__pfctl = prefs.get("PFCTL_PATH")
+        self.__pftable = prefs.get("PF_TABLE")
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -86,9 +90,9 @@ class DenyHosts:
         elif not daemon:
             info("Log file size has not changed.  Nothing to do.")
 
-
-        if daemon:
+        if daemon and not foreground:
             info("launching DenyHosts daemon (version %s)..." % VERSION)
+
             #logging.getLogger().setLevel(logging.WARN)
 
             # remove lock file since createDaemon will
@@ -101,6 +105,10 @@ class DenyHosts:
                 self.runDaemon(logfile, last_offset)
             else:
                 die("Error creating daemon: %s (%d)" % (retCode[1], retCode[0]))
+        elif foreground:
+            info("launching DenyHost (version %s)..." % VERSION)
+            self.__lock_file.remove()
+            self.runDaemon(logfile, last_offset)
 
 
     def killDaemon(self, signum, frame):
@@ -130,7 +138,7 @@ class DenyHosts:
         #signal.signal(signal.SIGHUP, self.killDaemon)
         signal.signal(signal.SIGTERM, self.killDaemon)
         signal.signal(signal.SIGUSR1, self.toggleDebug)
-        info("DenyHosts daemon is now running, pid: %s", os.getpid())
+        info("DenyHost daemon is now running, pid: %s", os.getpid())
         info("send daemon process a TERM signal to terminate cleanly")
         info("  eg.  kill -TERM %s", os.getpid())
         self.__lock_file.create()
@@ -167,7 +175,7 @@ class DenyHosts:
             info("sync_sleep_ratio: %ld", sync_sleep_ratio)
         else:
             sync_sleep_ratio = None
-            info("denyhosts synchronization disabled")
+            info("denyhost synchronization disabled")
 
         self.daemonLoop(logfile, last_offset, daemon_sleep,
                         purge_time, purge_sleep_ratio, sync_sleep_ratio)
@@ -331,6 +339,40 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                                           output))
             fp.write("%s\n" % output)
 
+        plugin_deny = self.__prefs.get('PLUGIN_DENY')
+        if plugin_deny: plugin.execute(plugin_deny, new_hosts)
+        if self.__iptables:
+           debug("Trying to create iptables rules")
+           try:
+              for host in new_hosts:
+                  my_host = str(host)
+                  if self.__blockport:
+                     new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + my_host + " -j DROP"
+                  else:
+                     new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
+                  debug("Running iptabes rule: %s", new_rule)
+                  info("Creating new firewall rule %s", new_rule)
+                  os.system(new_rule);
+
+           except Exception, e:
+               print e
+               print "Unable to write new firewall rule."
+
+        if self.__pfctl and self.__pftable:
+             debug("Trying to update PF table.")
+             try:
+               for host in new_hosts:
+                   my_host = str(host)
+                   new_rule = self.__pfctl + " -t " + self.__pftable + " -T add " + my_host
+                   debug("Running PF update rule: %s", new_rule)
+                   info("Creating new PF rule %s", new_rule)
+                   os.system(new_rule);
+
+             except Exception, e:
+                print e
+                print "Unable to write new PF rule."
+
+
         if fp != sys.stdout:
             fp.close()
 
@@ -376,31 +418,32 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         for line in fp:
             success = invalid = 0
-            sshd_m = self.__sshd_format_regex.match(line)
-            if not sshd_m: continue
-            message = sshd_m.group('message')
-
             m = None
-            # did this line match any of the fixed failed regexes?
-            for i in FAILED_ENTRY_REGEX_RANGE:
-                rx = self.__failed_entry_regex_map.get(i)
-                if rx == None: continue
-                m = rx.search(message)
-                if m:
-                    invalid = self.is_valid(m)
-                    break
-            else:
-                # otherwise, did the line match one of the userdef regexes?
-                for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
+            sshd_m = self.__sshd_format_regex.match(line)
+            if sshd_m:
+                message = sshd_m.group('message')
+
+                # did this line match any of the fixed failed regexes?
+                for i in FAILED_ENTRY_REGEX_RANGE:
+                    rx = self.__failed_entry_regex_map.get(i)
+                    if rx == None: continue
                     m = rx.search(message)
                     if m:
-                        #info("matched: %s" % rx.pattern)
                         invalid = self.is_valid(m)
                         break
                 else: # didn't match any of the failed regex'es, was it succesful?
                     m = self.__successful_entry_regex.match(message)
                     if m:
                         success = 1
+
+            # otherwise, did the line match one of the userdef regexes?
+            if not m:
+                for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
+                    m = rx.search(line)
+                    if m:
+                        #info("matched: %s" % rx.pattern)
+                        invalid = self.is_valid(m)
+                        break
 
             if not m:
                 # line isn't important
@@ -439,7 +482,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             self.__report.add_section(msg, new_denied_hosts)
             if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
             plugin_deny = self.__prefs.get('PLUGIN_DENY')
-            if plugin_deny: plugin.execute(plugin_deny, deny_hosts)
+
+            if plugin_deny: plugin.execute(plugin_deny, new_denied_hosts)
 
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
@@ -512,4 +556,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 ##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX9', FAILED_ENTRY_REGEX9)
 ##        self.__failed_entry_regex6 = self.get_regex('FAILED_ENTRY_REGEX10', FAILED_ENTRY_REGEX10)
 
+<<<<<<< HEAD
 
+=======
+
+# vim: set sw=4 et :
+>>>>>>> GerHobbelt/sourceforge-master

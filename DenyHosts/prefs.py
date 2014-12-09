@@ -32,6 +32,10 @@ class Prefs(dict):
                        'RESET_ON_SUCCESS': 'no',
                        'PLUGIN_DENY': None,
                        'PLUGIN_PURGE': None,
+                       'IPTABLES': None,
+                       'BLOCKPORT': None,
+                       'PFCTL_PATH': None,
+                       'PF_TABLE': None,
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
                        'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
@@ -68,16 +72,24 @@ class Prefs(dict):
                      ('BLOCK_SERVICE', False),
                      ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
-                     ('WORK_DIR', True))
+                     ('WORK_DIR', True),
+                     ('ETC_DIR', True),
+                     ('IPTABLES', False),
+                     ('BLOCKPORT', False),
+                     ('PFCTL_PATH', False),
+                     ('PF_TABLE', False))
 
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
         # since the --daemon mode requires absolute pathnames
         self.make_abs = ('WORK_DIR',
+                         'ETC_DIR',
                          'LOCK_FILE',
                          'SECURE_LOG',
                          'HOSTS_DENY',
-                         'DAEMON_LOG')
+                         'DAEMON_LOG',
+                         'IPTABLES',
+                         'PFCTL_PATH')
 
         # these settings are converted to numeric values
         self.to_int = set(('DENY_THRESHOLD',

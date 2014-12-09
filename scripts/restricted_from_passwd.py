@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 ############################################################################
 # this script will read the /etc/passwd file and extract usernames
@@ -12,6 +12,7 @@
 ############################################################################
 
 RESTRICTED_SHELLS = ("/sbin/nologin",
+                     "/usr/sbin/nologin",
                      "/sbin/shutdown",
                      "/sbin/halt")
 

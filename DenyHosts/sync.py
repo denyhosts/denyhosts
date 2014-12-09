@@ -1,4 +1,5 @@
-from xmlrpclib import ServerProxy
+from xmlrpclib import ServerProxy, Transport
+from httplib import HTTP
 import logging
 import os
 import time
@@ -12,6 +13,21 @@ def get_plural(items):
     if len(items) != 1:  return "s"
     else:                return ""
 
+class ProxiedTransport(Transport):
+    def set_proxy(self, proxy):
+        self.proxy = proxy
+
+    def make_connection(self, host):
+        self.realhost = host
+        h = HTTP(self.proxy)
+        return h
+
+    def send_request(self, connection, handler, request_body):
+        connection.putrequest("POST", 'http://%s%s' % (self.realhost, handler))
+
+    def send_host(self, connection, host):
+        connection.putheader('Host', self.realhost)
+
 class Sync:
     def __init__(self, prefs):
         self.__prefs = prefs
@@ -21,7 +37,9 @@ class Sync:
 
     def xmlrpc_connect(self):
         try:
-            self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
+            p = ProxiedTransport()
+            p.set_proxy(self.__prefs.get('SYNC_PROXY_SERVER'))
+            self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'), transport=p)
             self.__connected = True
         except Exception, e:
             error(str(e))

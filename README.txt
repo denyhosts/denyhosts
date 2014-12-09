@@ -1,7 +1,8 @@
-DenyHosts is a utility developed by Phil Schwartz which aims to 
+DenyHost is a utility developed by Phil Schwartz 
+and currently maintained by Jesse Smith which aims to 
 thwart sshd (ssh server) brute force attacks.
 
-Please refer to http://www.denyhosts.net/faq.html
+Please refer to http://denyhost.sf.net
 
 INSTALLATION:
 =============
@@ -9,12 +10,12 @@ INSTALLATION:
 SOURCE DISTRIBUTION
 ===================
 
-If you downloaded the source distribution file (DenyHosts-#.#.#-tar.gz)
+If you downloaded the source distribution file (DenyHosts-#.#-tar.gz)
 then:
 
-$ tar zxvf DenyHosts-#.#.#-tar.gz       (Where #.#.# is the version)
+$ tar zxvf DenyHosts-2.8.tar.gz       (Where #.#.# is the version)
 
-$ cd DenyHosts-#.#.#
+$ cd DenyHosts-2.8
 
 as root:
 
@@ -34,19 +35,14 @@ this, you may wish to install from souce instead.
 ALL DISTRIBUTIONS 
 =================
 
-Once you have installed DenyHosts, by default the directory
-/usr/share/denyhosts will be created and a sample configuration 
-file will be copied into it. A sample daemon-control script will 
-also be copied into the /usr/share/denyhosts directory.
-
 DenyHosts requires that a configuration file be created before
-it can function.  The sample configuration file denyhosts.cfg-dist
+it can function.  The sample configuration file denyhosts.conf
 contains most of the possible settings and should be copied and
 then edited as such:
 
-# cp denyhosts.cfg-dist denyhosts.cfg
+# cp denyhosts.conf /etc
 
-# <edit> denyhosts.cfg
+# <edit> /etc/denyhosts.conf
 
 (where <edit> is your preferred text editor such as emacs, vi, etc)
 
@@ -68,7 +64,7 @@ near the top:
 
 DENYHOSTS_BIN   = "/usr/bin/denyhosts.py"
 DENYHOSTS_LOCK  = "/var/lock/subsys/denyhosts"
-DENYHOSTS_CFG   = "/usr/share/denyhosts/denyhosts.cfg"
+DENYHOSTS_CFG   = "/etc/denyhosts.conf"
 
 
 These defaults should be reasonable for many systems.  You

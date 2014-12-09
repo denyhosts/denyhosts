@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+sys.path.insert(0, '/usr/share/denyhosts')
 
 import DenyHosts.python_version
 
@@ -14,7 +15,7 @@ from DenyHosts.lockfile import LockFile
 from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
 from DenyHosts.deny_hosts import DenyHosts
-from DenyHosts.denyfileutil import Purge, Migrate, UpgradeTo099
+from DenyHosts.denyfileutil import Purge, PurgeIP, Migrate, UpgradeTo099
 from DenyHosts.constants import *
 from DenyHosts.sync import Sync
 
@@ -24,16 +25,20 @@ from DenyHosts.sync import Sync
 
 def usage():
     print "Usage:"
-    print "%s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--purge] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0]
+    print "%s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip=ip] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0]
     print
     print
+    print " --config: The pathname of the configuration file"
     print " --file:   The name of log file to parse"
     print " --ignore: Ignore last processed offset (start processing from beginning)"
     print " --noemail: Do not send an email report"
     print " --unlock: if lockfile exists, remove it and run as normal"
     print " --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge"
     print " --purge: expire entries older than your PURGE_DENY setting"
+    print " --purge-all: expire all entries"
+    print " --purgeip: expire designated IP entry immediately"
     print " --daemon: run DenyHosts in daemon mode"
+    print " --foreground: run DenyHosts in foreground mode"
     print " --sync: run DenyHosts synchronization mode"
     print " --version: Prints the version of DenyHosts and exits"
 
@@ -41,8 +46,10 @@ def usage():
     print "Note: multiple --file args can be processed. ",
     print "If multiple files are provided, --ignore is implied"
     print
+    print "Note: multiple --purgeip arguments can be processed. "
+    print
     print "When run in --daemon mode the following flags are ignored:"
-    print "     --file, --purge, --migrate, --sync, --verbose"
+    print "     --file, --purge, --purge-all, --purgeip, --migrate, --sync, --verbose"
 
 
 #################################################################################
@@ -55,23 +62,27 @@ def usage():
 
 if __name__ == '__main__':
     logfiles = []
+    purgeip_list = []
     config_file = CONFIG_FILE
     ignore_offset = 0
     noemail = 0
     verbose = 0
     migrate = 0
     purge = 0
+    purge_all = 0
     sync_mode = 0
     daemon = 0
+    foreground = 0
     enable_debug = 0
+    purgeip = 0
     upgrade099 = 0
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
                                         ["file=", "ignore", "verbose", "debug",
                                          "help", "noemail", "config=", "version",
-                                         "migrate", "purge", "daemon", "sync",
-                                         "upgrade099"])
+                                         "migrate", "purge", "purge-all", "purgeip", "daemon", "foreground",
+                                         "sync", "upgrade099"])
     except GetoptError:
         print "\nInvalid command line option detected."
         usage()
@@ -101,6 +112,13 @@ if __name__ == '__main__':
             sync_mode = 1
         if opt == '--daemon':
             daemon = 1
+        if opt == '--foreground':
+            foreground = 1
+        if opt == '--purge-all':
+            purge_all = 1
+        if opt == '--purgeip':
+            purgeip_list.append(arg)
+            purgeip = 1
         if opt == '--upgrade099':
             upgrade099 = 1
         if opt == '--version':
@@ -131,21 +149,45 @@ if __name__ == '__main__':
 
     lock_file.create()
 
-    if upgrade099 and not daemon:
+    if upgrade099 and not (daemon or foreground):
         if not prefs.get('PURGE_DENY'):
             lock_file.remove()
             die("You have supplied the --upgrade099 flag, however you have not set PURGE_DENY in your configuration file")
         else:
             u = UpgradeTo099(prefs.get("HOSTS_DENY"))
 
-    if migrate and not daemon:
+    if migrate and not (daemon or foreground):
         if not prefs.get('PURGE_DENY'):
             lock_file.remove()
             die("You have supplied the --migrate flag however you have not set PURGE_DENY in your configuration file.")
         else:
             m = Migrate(prefs.get("HOSTS_DENY"))
 
-    if purge and not daemon:
+    # clear out specific IP addresses
+    if purgeip and not daemon:
+        if len(purgeip_list) < 1:
+            lock_file.remove()
+            die("You have provided the --purgeip flag however you have not listed any IP addresses to purge.")
+        else:
+            try:
+                p = PurgeIP(prefs,
+                          purgeip_list)
+
+            except Exception, e:
+                lock_file.remove()
+                die(str(e))
+
+
+    # Try to purge old records without any delay
+    if purge_all and not daemon:
+         purge_time = 1
+         try:
+            p = Purge(prefs, purge_time)
+         except Exception, e:
+            lock_file.remove()
+            die(str(e))
+
+    if purge and not (daemon or foreground):
         purge_time = prefs.get('PURGE_DENY')
         if not purge_time:
             lock_file.remove()
@@ -162,7 +204,9 @@ if __name__ == '__main__':
     try:
         for f in logfiles:
             dh = DenyHosts(f, prefs, lock_file, ignore_offset,
-                           first_time, noemail, daemon)
+                           first_time, noemail, daemon, foreground)
+    except KeyboardInterrupt:
+        pass
     except SystemExit, e:
         pass
     except Exception, e:
@@ -170,7 +214,7 @@ if __name__ == '__main__':
         print "\nDenyHosts exited abnormally"
 
 
-    if sync_mode and not daemon:
+    if sync_mode and not (daemon or foreground):
         if not prefs.get('SYNC_SERVER'):
             lock_file.remove()
             die("You have provided the --sync flag however your configuration file is missing a value for SYNC_SERVER.")

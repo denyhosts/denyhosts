@@ -1,5 +1,148 @@
 DENYHOSTS CHANGELOG
 
+2.9 (November 3, 2014)
+======================
+
+- DenyHost now supports working with the PF
+  packet filter, a popular firewall for FreeBSD,
+  OpenBSD, TrueOS, PC-BSD and NetBSD.
+  To enable PF support in DenyHost, comment
+  out the IPTABLES option in the denyhosts.conf file
+  and enable the PFCTL_PATH and PF_TABLE options.
+
+  DenyHost will add misbehaving IP addresses to the
+  PF table specified by "PF_TABLE". This table
+  should be blocked using the pf.conf file. Please
+  see the denyhosts.conf file for more information
+  and example PF rules for blocking incoming traffic.
+
+  Please note that even if /etc/hosts.deny is not used
+  to block incoming connectins, the file should still exists
+  or DenyHosts may throw an error. (This should be fixed
+  in the next release.)
+
+
+
+2.8 (June 12, 2014)
+===================
+
+- Use standard errno instead of hardcoded errno value.
+  Patch provided by Pino Toscano.
+
+- Make sure PLUGIN_DENY is called for each host we receive from
+  the sync server.
+  Patch provided by Sean M. Collins.
+
+- Made sure only new hosts in hosts.deny are reported as new, not
+  all hosts. This prevents the PLUGIN_DENY plugin from getting
+  old entries repeatedly.
+  Patch provided by Chris Erdle.
+
+- We now check user defined regular expression filters, even
+  if we already found a match with an existing filter. This
+  allows the user to filter more services without using
+  a plugin.
+  Patch provided by Ben.
+
+- Added --purge-all command line flag to allow us to remove all
+  old entries from the deny file without waiting.
+  Patch provided by 9MediaCenterGUI on SourceForge.
+
+- Updated copyright information and some documentation.
+
+- Added manual page from Debian and fixed typo. Added
+  additional command line options to man page.
+
+- Added --purgeip option to allow us to remove specific
+  IP addresses from the blocked list at start time.
+  Patch provided by Nelson Howell.
+  Should close Debian bug 529089.
+
+- Updated FAILED_ENTRY_REGEX7 to be more flexible.
+
+- Added ability to use Linux iptables to block incoming
+  connections. See IPTABLES option in the configuration file.
+
+- Made it possible to block specific ports, allowing remote
+  hosts to conenct to some services while being blocked on
+  others by the iptables firewall.
+  See the BLOCKPORT option in the configuration file.
+
+
+
+2.7 (May 18, 2014)
+==================
+
+- Forked code from DenyHosts (denyhosts.sf.net)
+  New project now maintained at denyhost.sf.net
+
+- Added private moduls patch from Marco Bertorello. Loads
+  modules from /usr/share/denyhosts
+
+- Place config, lock and executable file in more
+  standard locations. Patch provided by Marco Bertorello.
+
+- Fixed configuration (denyhosts.cfg-dist) to better support
+  Debian and Ubuntu. Patch supplied by Marco Nenciarini.
+
+- Added warning to migrate switch. Patch provided by
+  Marco Bertorello.
+
+- Avoid installing unwanted files (extra scripts and changelog).
+  Patch provided by Marco Nenciarini.
+
+- Fix bug which would not recognize an attack on the root
+  user account. Patch provided by Kyle Willmon.
+
+- Fix pattern matching bug (CVE-2007-4323).
+  Patch provided by Nico Golde.
+
+- Added foreground mode for debugging.
+  Patch supplied by Marco Bertorello.
+
+- Applied patch to fix plugin execution.
+  Patched provided by Marco Bertorello.
+
+- Added patch to prevent DenyHosts from running with
+  a double --config switch.
+  Patch provided by Maro Bertorello.
+
+- Convert path of "env" from /bin/env to /usr/bin/env
+  Patch provided by Kyle Willmon.
+
+- Added patch to perform missing bounds check in Purge action.
+  Provided by Kyle Willmon.
+
+- Added patch to include SYNC_PROXY_SERVER configuration option.
+  Provided by Kyle Willmon.
+
+- Change HOSTNAME_LOOKUP to default to "NO". Will save time.
+  Also brings us into closer alignment with FreeBSD patches.
+
+- Added /usr/sbin/nologin to restricted_from_passwd script.
+  Requirement from FreeBSD patch set.
+
+- Added variable "ETC_DIR" which dictates the location of
+  configuration files. This should usually be set to
+  /etc or /usr/local/etc
+
+- The restricted-usernames file is now loaded from the "ETC_DIR"
+  directory, rather than from "WORK_DIR" to avoid this
+  human-made configuration file from being over-writeen.
+  Closes Ubuntu bug #675034
+
+- Confirm setting timestamp over-writes old tiemstamp file.
+  Closes Ubuntu bug #564476
+
+- Applied advanced pattern check for authentication file which
+  takes into account alternative port numbers. Patch provided by
+  Helmut Grohne.
+
+- Updated license and readme files.
+
+- Updated help output from DenyHost script to include --config tip.
+
+
 
 2.6 (Dec 7, 2006)
 ==================
