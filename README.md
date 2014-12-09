@@ -6,7 +6,7 @@ DenyHosts
 DenyHosts is a utility developed by Phil Schwartz which aims to
 thwart sshd (ssh server) brute force attacks.
 
-Please refer to https://github.com/mruffalo/denyhosts for more information.
+Please refer to https://github.com/denyhosts/denyhosts for more information.
 
 Installation
 ============
