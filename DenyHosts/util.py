@@ -171,3 +171,6 @@ def send_email(prefs, report_str):
         smtp.quit()
     except Exception:
         pass
+
+def normalize_whitespace(string):
+    return ' '.join(string.split())
