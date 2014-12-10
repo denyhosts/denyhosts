@@ -1,6 +1,5 @@
-
-import time
 import logging
+import time
 
 debug = logging.getLogger("counter").debug
 

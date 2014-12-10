@@ -1,7 +1,5 @@
-import sys
-import os
 import logging
-
+import os
 
 error = logging.getLogger("plugin").error
 info = logging.getLogger("plugin").info
@@ -15,4 +13,3 @@ def execute(executable, hosts):
             if res: info("plugin returned %d", res)
         except Exception, e:
             error("plugin error: %s", e)
-

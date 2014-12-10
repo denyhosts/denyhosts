@@ -1,4 +1,3 @@
-
 import sys
 
 #################################################################################
@@ -55,4 +54,3 @@ if plat.startswith("freebsd"):
     BSD_STYLE = " : deny"
 else:
     BSD_STYLE = ""
-

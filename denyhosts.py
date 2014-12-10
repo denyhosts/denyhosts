@@ -8,7 +8,6 @@ import DenyHosts.python_version
 import getopt
 from getopt import GetoptError
 import traceback
-import logging
 
 from DenyHosts.util import die, setup_logging, is_true
 from DenyHosts.lockfile import LockFile
@@ -20,8 +19,6 @@ from DenyHosts.constants import *
 from DenyHosts.sync import Sync
 
 #################################################################################
-
-
 
 def usage():
     print "Usage:"
@@ -240,4 +237,3 @@ if __name__ == '__main__':
 
     # remove lock file on exit
     lock_file.remove()
-

@@ -1,7 +1,6 @@
+import logging
 import os
 from socket import getfqdn, gethostbyname
-import logging
-
 
 from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
 from regex import ALLOWED_REGEX
@@ -123,4 +122,3 @@ class AllowedHosts:
 
     def clear_warned_hosts(self):
         self.new_warned_hosts = []
-

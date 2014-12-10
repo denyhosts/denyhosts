@@ -1,11 +1,12 @@
-import os, sys, re
-from util import die, calculate_seconds, is_true
-from regex import PREFS_REGEX
 import logging
+import os
+import re
+
+from regex import PREFS_REGEX
+from util import die, calculate_seconds
 
 debug = logging.getLogger("prefs").debug
 info = logging.getLogger("prefs").info
-
 
 ENVIRON_REGEX = re.compile(r"""\$\[(?P<environ>[A-Z_]*)\]""")
 
@@ -230,4 +231,3 @@ class Prefs(dict):
                     info("   %s: [%s]" % (key, rx.pattern))
             else:
                 info("   %s: [%s]", key, self.__data[key])
-

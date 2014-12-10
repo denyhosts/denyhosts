@@ -1,14 +1,14 @@
-import sys
-import os
-import time
+import logging
 from smtplib import SMTP
 from smtplib import SMTPResponseException
 from smtplib import SMTPHeloError
-import logging
+import sys
+from textwrap import dedent
+import time
+from types import IntType
+
 from constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from regex import TIME_SPEC_REGEX
-from textwrap import dedent
-from types import IntType
 
 debug = logging.getLogger("util").debug
 
@@ -20,7 +20,7 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             fh = logging.FileHandler(daemon_log, 'a')
             fh.setLevel(logging.DEBUG)
             formatter = logging.Formatter(prefs.get('DAEMON_LOG_MESSAGE_FORMAT'),
-                                          prefs.get('DAEMON_LOG_TIME_FORMAT'))
+                prefs.get('DAEMON_LOG_TIME_FORMAT'))
             fh.setFormatter(formatter)
             # add the handler to the root logger
             logging.getLogger().addHandler(fh)
@@ -49,20 +49,17 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             debug("Debug mode enabled.")
             prefs.dump_to_logger()
 
-
 def die(msg, ex=None):
     print msg
     if ex:
         print ex
     sys.exit(1)
 
-
 def is_true(s):
     return s.lower() in ('1', 't', 'true', 'y', 'yes')
 
 def is_false(s):
     return not is_true(s)
-
 
 def calculate_seconds(timestr, zero_ok=False):
     # return the number of seconds in a given timestr such as 1d (1 day),
@@ -82,7 +79,6 @@ def calculate_seconds(timestr, zero_ok=False):
     seconds = units * TIME_SPEC_LOOKUP[period]
     #info("converted %s to %ld seconds: ", timestr, seconds)
     return seconds
-
 
 def parse_host(line):
     # parses a line from /etc/hosts.deny
@@ -109,7 +105,6 @@ def parse_host(line):
     except Exception:
         host = ""
     return host
-
 
 def send_email(prefs, report_str):
     recipients = prefs['ADMIN_EMAIL'].split(',')

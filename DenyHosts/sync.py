@@ -46,7 +46,6 @@ class Sync:
             self.__connected = False
         return self.__connected
 
-
     def xmlrpc_disconnect(self):
         if self.__connected:
             try:
@@ -55,7 +54,6 @@ class Sync:
             except Exception:
                 pass
             self.__connected = False
-
 
     def get_sync_timestamp(self):
         try:
@@ -75,7 +73,6 @@ class Sync:
             fp.write(timestamp)
         except Exception, e:
             error(e)
-
 
     def send_new_hosts(self):
         debug("send_new_hosts()")
@@ -108,7 +105,6 @@ class Sync:
 
         return True
 
-
     def __send_new_hosts(self, hosts):
         if not self.__connected and not self.xmlrpc_connect():
             error("Could not initiate xmlrpc connection")
@@ -118,7 +114,6 @@ class Sync:
             self.__server.add_hosts(hosts)
         except Exception, e:
             exception(e)
-
 
     def receive_new_hosts(self):
         debug("receive_new_hosts()")
@@ -130,9 +125,9 @@ class Sync:
 
         try:
             data = self.__server.get_new_hosts(timestamp,
-                                               self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
+                self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
                                                self.__hosts_added,
-                                               self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY"))
+                self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY"))
             timestamp = data['timestamp']
             self.set_sync_timestamp(timestamp)
             hosts = data['hosts']
@@ -154,4 +149,3 @@ class Sync:
         for host in hosts:
             fp.write("%s:%s\n" % (host, timestr))
         fp.close()
-

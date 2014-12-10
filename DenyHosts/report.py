@@ -1,8 +1,7 @@
-import os
+import logging
 import re
 import socket
 from types import ListType, TupleType
-import logging
 from util import is_true
 try:
     import syslog
@@ -69,6 +68,3 @@ class Report:
         if hostname == ip:
             hostname = "unknown"
         return "%s (%s)" % (ip, hostname)
-
-
-

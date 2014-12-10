@@ -1,38 +1,28 @@
-import os, sys
-import string
-import time
-import socket
+import logging
 import gzip
+import os
+import signal
+from stat import ST_SIZE, ST_INO
+import time
 try:
     import bz2
     HAS_BZ2 = True
 except ImportError:
     HAS_BZ2 = False
 
-
-import traceback
-import logging
-import signal
-from stat import ST_SIZE, ST_INO
-import re
-
-from util import die, is_true, is_false, send_email
 from allowedhosts import AllowedHosts
-from loginattempt import LoginAttempt
-from lockfile import LockFile
-from filetracker import FileTracker
-from prefs import Prefs
-from report import Report
-from version import VERSION
 from constants import *
-from regex import *
 from daemon import createDaemon
 from denyfileutil import Purge
-from util import parse_host
-from version import VERSION
-from sync import Sync
-from restricted import Restricted
+from filetracker import FileTracker
+from loginattempt import LoginAttempt
 import plugin
+from regex import *
+from report import Report
+from restricted import Restricted
+from sync import Sync
+from util import die, is_true, parse_host, send_email
+from version import VERSION
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info

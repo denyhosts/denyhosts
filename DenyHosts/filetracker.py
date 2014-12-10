@@ -10,7 +10,6 @@ class FileTracker:
         self.logfile = logfile
         (self.__first_line, self.__offset) = self.__get_current_offset()
 
-
     def __get_last_offset(self):
         path = os.path.join(self.work_dir,
                             SECURE_LOG_OFFSET)
@@ -28,7 +27,6 @@ class FileTracker:
         debug("   offset: %ld", offset)
 
         return first_line, offset
-
 
     def __get_current_offset(self):
         first_line = ""
@@ -57,7 +55,6 @@ class FileTracker:
 
         self.__first_line = first_line
 
-
     def get_offset(self):
         last_line, last_offset = self.__get_last_offset()
 
@@ -76,7 +73,6 @@ class FileTracker:
 
         return offset
 
-
     def save_offset(self, offset):
         path = os.path.join(self.work_dir,
                             SECURE_LOG_OFFSET)
@@ -87,5 +83,3 @@ class FileTracker:
             fp.close()
         except IOError:
             print "Could not save logfile offset to: %s" % path
-
-

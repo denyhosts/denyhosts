@@ -9,7 +9,6 @@ class LockFile:
     def exists(self):
         return os.access(self.lockpath, os.F_OK)
 
-
     def get_pid(self):
         pid = ""
         try:
@@ -19,7 +18,6 @@ class LockFile:
         except IOError:
             pass
         return pid
-
 
     def create(self):
         try:
@@ -36,7 +34,6 @@ class LockFile:
 
         os.write(self.fd, "%s\n" % os.getpid())
         os.fsync(self.fd)
-
 
     def remove(self, die_=True):
         try:

@@ -1,8 +1,8 @@
 import logging
 import os
 
-from counter import Counter, CounterRecord
 import constants
+from counter import Counter, CounterRecord
 
 error = logging.getLogger("purgecounter").error
 info = logging.getLogger("purgecounter").info
