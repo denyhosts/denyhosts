@@ -7,7 +7,7 @@ from counter import Counter, CounterRecord
 error = logging.getLogger("purgecounter").error
 info = logging.getLogger("purgecounter").info
 
-class PurgeCounter:
+class PurgeCounter(object):
     def __init__(self, prefs):
         self.filename = os.path.join(prefs['WORK_DIR'],
                                      constants.PURGE_HISTORY)

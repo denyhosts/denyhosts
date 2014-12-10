@@ -9,7 +9,7 @@ from constants import *
 debug = logging.getLogger("loginattempt").debug
 info = logging.getLogger("loginattempt").info
 
-class LoginAttempt:
+class LoginAttempt(object):
     def __init__(self, prefs, allowed_hosts, suspicious_always=1,
                  first_time=0, fetch_all=1, restricted=None):
         if restricted == None: restricted = set()

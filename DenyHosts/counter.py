@@ -3,7 +3,7 @@ import time
 
 debug = logging.getLogger("counter").debug
 
-class CounterRecord:
+class CounterRecord(object):
     def __init__(self, count=0, date=None):
         self.__count = count
         if not date:

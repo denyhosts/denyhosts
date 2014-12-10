@@ -1,7 +1,7 @@
 import os
 from util import die
 
-class LockFile:
+class LockFile(object):
     def __init__(self, lockpath):
         self.lockpath = lockpath
         self.fd = None

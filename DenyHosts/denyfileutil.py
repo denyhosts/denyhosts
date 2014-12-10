@@ -13,7 +13,7 @@ debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
 warn = logging.getLogger("denyfileutil").warn
 
-class DenyFileUtilBase:
+class DenyFileUtilBase(object):
     def __init__(self, deny_file, extra_file_id=""):
         self.deny_file = deny_file
         self.backup_file = "%s.%s.bak" % (deny_file, extra_file_id)

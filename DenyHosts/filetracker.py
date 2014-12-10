@@ -4,7 +4,7 @@ from constants import SECURE_LOG_OFFSET
 
 debug = logging.getLogger("filetracker").debug
 
-class FileTracker:
+class FileTracker(object):
     def __init__(self, work_dir, logfile):
         self.work_dir = work_dir
         self.logfile = logfile

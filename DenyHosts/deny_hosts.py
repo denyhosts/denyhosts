@@ -28,7 +28,7 @@ debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
 error = logging.getLogger("denyhosts").error
 
-class DenyHosts:
+class DenyHosts(object):
     def __init__(self, logfile, prefs, lock_file,
                  ignore_offset=0, first_time=0,
                  noemail=0, daemon=0, foreground=0):

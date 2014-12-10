@@ -9,7 +9,7 @@ from util import is_true
 logger = logging.getLogger("AllowedHosts")
 debug, warn = logger.debug, logger.warn
 
-class AllowedHosts:
+class AllowedHosts(object):
     def __init__(self, prefs):
         debug("initializing AllowedHosts")
         work_dir = prefs.get("WORK_DIR")
