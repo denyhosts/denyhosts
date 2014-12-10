@@ -227,6 +227,7 @@ if __name__ == '__main__':
             if sync_download:
                 new_hosts = sync.receive_new_hosts()
                 if new_hosts:
+                    # MMR: What is 'info' here?
                     info("received new hosts: %s", str(new_hosts))
                     sync.get_denied_hosts()
                     sync.update_hosts_deny(new_hosts)

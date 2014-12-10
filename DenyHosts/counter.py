@@ -40,6 +40,7 @@ class CounterRecord(object):
             self.__count = 0
 
 
+# TODO replace this with collections.defaultdict
 class Counter(dict):
     """
      Behaves like a dictionary, except that if the key isn't found, 0 is returned
