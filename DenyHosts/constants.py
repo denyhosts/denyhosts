@@ -39,12 +39,14 @@ CONFIG_FILE = "/etc/denyhosts.conf"
 DENY_DELIMITER = "# DenyHosts:"
 ENTRY_DELIMITER = " | "
 
-TIME_SPEC_LOOKUP =  {'s': 1,        # s
-                     'm': 60,       # minute
-                     'h': 3600,     # hour
-                     'd': 86400,    # day
-                     'w': 604800,   # week
-                     'y': 31536000} # year
+TIME_SPEC_LOOKUP =  {
+    's': 1,        # s
+    'm': 60,       # minute
+    'h': 3600,     # hour
+    'd': 86400,    # day
+    'w': 604800,   # week
+    'y': 31536000, # year
+}
 
 SYNC_MIN_INTERVAL = 300 # 5 minutes
 

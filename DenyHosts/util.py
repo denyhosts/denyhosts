@@ -99,7 +99,8 @@ def parse_host(line):
         # we're only concerned about the ip_address
         if len(vals) == 1:
             form = vals[0]
-        else: form = vals[1]
+        else:
+            form = vals[1]
 
         host = form.strip()
     except Exception:
@@ -115,10 +116,13 @@ def send_email(prefs, report_str):
         Subject: %s
         Date: %s
 
-        """).lstrip() % (prefs.get('SMTP_FROM'),
-       prefs.get('ADMIN_EMAIL'),
-       prefs.get('SMTP_SUBJECT'),
-       time.strftime(prefs.get('SMTP_DATE_FORMAT')))
+        """).lstrip() % (
+            prefs.get('SMTP_FROM'),
+            prefs.get('ADMIN_EMAIL'),
+            prefs.get('SMTP_SUBJECT'),
+            time.strftime(prefs.get('SMTP_DATE_FORMAT')
+        )
+    )
 
     msg += report_str
     try:
@@ -128,7 +132,7 @@ def send_email(prefs, report_str):
             smtp.set_debuglevel(1)
 
         smtp.connect(prefs.get('SMTP_HOST'),
-                     prefs.get('SMTP_PORT'))
+            prefs.get('SMTP_PORT'))
 
         # If the server supports ESMTP and TLS, then convert the message exchange to TLS via the
         # STARTTLS command.

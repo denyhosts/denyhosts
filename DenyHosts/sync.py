@@ -1,17 +1,21 @@
-from xmlrpclib import ServerProxy, Transport
 from httplib import HTTP
 import logging
 import os
 import time
+from xmlrpclib import ServerProxy, Transport
+
 from constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS
+
 debug = logging.getLogger("sync").debug
 info = logging.getLogger("sync").info
 error = logging.getLogger("sync").error
 exception = logging.getLogger("sync").exception
 
 def get_plural(items):
-    if len(items) != 1:  return "s"
-    else:                return ""
+    if len(items) != 1:
+        return "s"
+    else:
+        return ""
 
 class ProxiedTransport(Transport):
     def set_proxy(self, proxy):
