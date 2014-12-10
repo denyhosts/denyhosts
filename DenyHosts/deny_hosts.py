@@ -362,6 +362,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
              except Exception, e:
                 print e
                 print "Unable to write new PF rule."
+                debug("Unable to create PF rule. %s", e)
 
 
         if fp != sys.stdout:

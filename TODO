@@ -7,14 +7,12 @@ made to access the local service. We should try to
 detect bad connections to key-only systems.
 
 
-See about making denyhost fork earlier to avoid "hanging" and being
-stopped by systemd
-
-Try to support Fedora's journal logging as an alternative to /var/log/secure
-
-PF firewall as alternative/addition to hosts.deny.
-
 In cases where DenyHosts cannot write to disk, it should not crash.
+Likewise, if /etc/hosts.deny does not exist, that should not make
+DenyHost panic or crash.
+
+Add new option to write list of banned IP addresses to a location
+such as /etc/blacklist
 
 Consider support for IPv6
 

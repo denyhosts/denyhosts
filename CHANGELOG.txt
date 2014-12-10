@@ -1,5 +1,16 @@
 DENYHOSTS CHANGELOG
 
+3.0 
+======================
+
+- Updated example rule for PF in configuration file
+  to make black listing attacking IPs more effective.
+
+- Added debugging info in case we cannot create a new
+  PF table entry.
+
+
+
 2.9 (November 3, 2014)
 ======================
 
