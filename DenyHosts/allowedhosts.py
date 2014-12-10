@@ -44,7 +44,7 @@ class AllowedHosts(object):
             if not line or line[0] == '#': continue
 
             m = ALLOWED_REGEX.match(line)
-            debug("line: %s - regex match?   %s", line, m != None)
+            debug("line: %s - regex match?   %s", line, m is not None)
             if m:
                 # line contains an ip address
                 first3 = m.group('first_3bits')

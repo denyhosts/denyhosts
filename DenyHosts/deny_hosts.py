@@ -68,7 +68,7 @@ class DenyHosts(object):
             last_offset = self.file_tracker.get_offset()
 
 
-        if last_offset != None:
+        if last_offset is not None:
             self.get_denied_hosts()
             info("Processing log file (%s) from offset (%ld)",
                  logfile,
@@ -202,7 +202,8 @@ class DenyHosts(object):
 
 
             offset = os.fstat(fp.fileno())[ST_SIZE]
-            if last_offset == None: last_offset = offset
+            if last_offset is None:
+                last_offset = offset
 
             if offset > last_offset:
                 # new data added to logfile
@@ -313,7 +314,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             fp = sys.stdout
             status = 0
 
-        write_timestamp = self.__prefs.get('PURGE_DENY') != None
+        write_timestamp = self.__prefs.get('PURGE_DENY') is not None
         for host in new_hosts:
             block_service = self.__prefs.get('BLOCK_SERVICE')
             if block_service:
@@ -416,7 +417,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 # did this line match any of the fixed failed regexes?
                 for i in FAILED_ENTRY_REGEX_RANGE:
                     rx = self.__failed_entry_regex_map.get(i)
-                    if rx == None: continue
+                    if rx is None:
+                        continue
                     m = rx.search(message)
                     if m:
                         invalid = self.is_valid(m)
