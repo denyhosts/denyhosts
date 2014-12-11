@@ -159,7 +159,7 @@ Date: %s
             # login/sendmail methods when neither helo()/ehlo() methods have been
             # previously called.  Because we have already called ehlo() above, we must
             # manually fallback to calling helo() here.
-            (code, resp) = self.helo()
+            (code, resp) = smtp.helo()
             if not (200 <= code <= 299):
                 raise SMTPHeloError(code, resp)
 
