@@ -2,12 +2,11 @@ from __future__ import print_function, unicode_literals
 
 from os.path import dirname, join as ospj
 from random import randint
+import unittest
 
 from DenyHosts.constants import SYNC_TIMESTAMP
 from DenyHosts.prefs import Prefs
 from DenyHosts.sync import Sync
-
-import unittest
 
 class SyncTestStaticTimestamp(unittest.TestCase):
     """

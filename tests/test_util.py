@@ -1,8 +1,8 @@
 from __future__ import print_function, unicode_literals
 
-from DenyHosts.util import is_false, is_true, parse_host
-
 import unittest
+
+from DenyHosts.util import is_false, is_true, parse_host
 
 # List of 2-tuples: line to parse, expected host
 HOST_TEST_DATA = [
