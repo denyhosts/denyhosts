@@ -1,8 +1,15 @@
 from __future__ import print_function, unicode_literals
 
-from DenyHosts.util import is_false, is_true
+from DenyHosts.util import is_false, is_true, parse_host
 
 import unittest
+
+# List of 2-tuples: line to parse, expected host
+HOST_TEST_DATA = [
+    ('host', 'host'),
+    ('ALL:127.0.0.1', '127.0.0.1'),
+    (3, ''),
+]
 
 class UtilsTest(unittest.TestCase):
     def setUp(self):
@@ -22,3 +29,7 @@ class UtilsTest(unittest.TestCase):
 
         for string in self.false_strings:
             self.assertTrue(is_false(string))
+
+    def test_parse_host(self):
+        for line, expected in HOST_TEST_DATA:
+            self.assertEqual(parse_host(line), expected)
