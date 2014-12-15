@@ -1,6 +1,6 @@
 from __future__ import print_function, unicode_literals
 
-from os.path import join as ospj
+from os.path import dirname, join as ospj
 from random import randint
 
 from DenyHosts.constants import SYNC_TIMESTAMP
@@ -15,7 +15,7 @@ class SyncTestStaticTimestamp(unittest.TestCase):
     """
     def setUp(self):
         self.prefs = Prefs()
-        self.prefs._Prefs__data['WORK_DIR'] = 'data/sync/static'
+        self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync/static')
         self.sync = Sync(self.prefs)
 
     def test_get_sync_timestamp(self):
@@ -30,7 +30,7 @@ class SyncTestDynamicTimestamp(unittest.TestCase):
     """
     def setUp(self):
         self.prefs = Prefs()
-        self.prefs._Prefs__data['WORK_DIR'] = 'data/sync/dynamic'
+        self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync/dynamic')
         self.sync = Sync(self.prefs)
         self.value = randint(0, 1e9)
 
