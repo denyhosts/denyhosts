@@ -25,3 +25,16 @@ class EmptyRestrictedTest(unittest.TestCase):
     def test_no_data_file(self):
         restricted = Restricted(self.prefs)
         self.assertFalse(restricted.get_restricted())
+
+class RestrictedTest(unittest.TestCase):
+    """
+    Tests creating a Restricted object with a data file.
+    """
+    def setUp(self):
+        self.prefs = Prefs()
+        self.prefs._Prefs__data['ETC_DIR'] = ospj(dirname(__file__), 'data/restricted')
+        self.test_hosts = set(['host1', 'host2'])
+
+    def test_no_data_file(self):
+        restricted = Restricted(self.prefs)
+        self.assertEqual(restricted.get_restricted(), self.test_hosts)
