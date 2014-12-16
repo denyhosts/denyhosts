@@ -84,3 +84,22 @@ class CounterRecordTest(unittest.TestCase):
         c = CounterRecord(count=count, date=date_str)
         c.age_count(0)
         self.assertEqual(c.get_count(), 0)
+
+class CounterTest(unittest.TestCase):
+    def test_init(self):
+        c = Counter()
+        self.assertEqual(len(c), 0)
+
+    def test_missing_key(self):
+        c = Counter()
+        key = 'key'
+        value = c[key]
+        self.assertEqual(value.get_count(), 0)
+        self.assertTrue(key in c)
+
+    def test_existing_key(self):
+        key = 'key'
+        value = object()
+        c = Counter()
+        c[key] = value
+        self.assertTrue(c[key] is value)
