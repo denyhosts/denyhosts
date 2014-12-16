@@ -4,7 +4,6 @@ from os.path import dirname, join as ospj
 from tempfile import mkdtemp
 import unittest
 
-from DenyHosts.constants import RESTRICTED_USERNAMES
 from DenyHosts.prefs import Prefs
 from DenyHosts.restricted import Restricted
 

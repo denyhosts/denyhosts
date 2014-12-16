@@ -33,6 +33,17 @@ class CounterRecordTest(unittest.TestCase):
         c = CounterRecord(count=count)
         self.assertTrue(c.get_count() is count)
 
+    def test_str(self):
+        """
+        CounterRecord.__str__ is actually used in PurgeCounter.write_data, so it's
+        worth testing
+        """
+        count = 1
+        date = object()
+        c = CounterRecord(count=count, date=date)
+        string = '%d:%s' % (count, date)
+        self.assertEqual(str(c), string)
+
     def test_add(self):
         """
         CounterRecord.__add__ is *horrible* design, but that's how it's been for a
