@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 from smtplib import SMTP
 from smtplib import SMTPResponseException
 from smtplib import SMTPHeloError
@@ -17,7 +18,8 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
         daemon_log = prefs.get('DAEMON_LOG')
         if daemon_log:
             # define a Handler which writes INFO messages or higher to the sys.stderr
-            fh = logging.FileHandler(daemon_log, 'a')
+            # fh = logging.FileHandler(daemon_log, 'a')
+            fh = logging.handlers.RotatingFileHandler(daemon_log, 'a', 1024*1024, 7)
             fh.setLevel(logging.DEBUG)
             formatter = logging.Formatter(prefs.get('DAEMON_LOG_MESSAGE_FORMAT'),
                 prefs.get('DAEMON_LOG_TIME_FORMAT'))

@@ -1,6 +1,6 @@
 DENYHOSTS CHANGELOG
 
-3.0 
+2.9
 ======================
 
 - Updated example rule for PF in configuration file

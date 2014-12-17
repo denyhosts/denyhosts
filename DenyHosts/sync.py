@@ -41,9 +41,10 @@ class Sync(object):
 
     def xmlrpc_connect(self):
         try:
-            p = ProxiedTransport()
-            p.set_proxy(self.__prefs.get('SYNC_PROXY_SERVER'))
-            self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'), transport=p)
+            #p = ProxiedTransport()
+            #p.set_proxy(self.__prefs.get('SYNC_PROXY_SERVER'))
+            #self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'), transport=p)
+            self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
             self.__connected = True
         except Exception, e:
             error(str(e))
