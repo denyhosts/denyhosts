@@ -18,6 +18,10 @@ class CounterRecord(object):
         return "CountRecord <%d - %s>" % (self.__count, self.__date)
 
     def __add__(self, increment):
+        # AAAAH!
+        # Expressions like `a + 4` are usually assumed to not have any side effects,
+        # but this is not the case with CounterRecord objects. With `c = CounterRecord()`,
+        # simply evaluating `c + 1` will increment c.__count by 1. This is horrifying.
         self.__count += increment
         self.__date = time.asctime()
         return self

@@ -154,8 +154,7 @@ def send_email(prefs, report_str):
             # previously called.  Because we have already called ehlo() above, we must
             # manually fallback to calling helo() here.
 
-            # MMR: what is 'self' here?
-            (code, resp) = self.helo()
+            (code, resp) = smtp.helo()
             if not (200 <= code <= 299):
                 raise SMTPHeloError(code, resp)
 
