@@ -4,7 +4,7 @@ from os.path import dirname, join as ospj
 from random import randint
 import unittest
 from SimpleXMLRPCServer import SimpleXMLRPCServer
-from threading import Lock, Thread
+from threading import Lock, Thread, local as thread_local
 import xmlrpclib
 
 from DenyHosts.constants import SYNC_TIMESTAMP
@@ -26,15 +26,23 @@ class SyncServerTest(unittest.TestCase):
     Base class of all Sync test classes that use a mock sync server.
     """
     def sync_server(self):
+        self.thread_local.alive = True
         server = None
         try:
             server = SimpleXMLRPCServer(('127.0.0.1', 9911), allow_none=True, logRequests=False)
+            server.register_function(self._exit, 'exit')
             sync_server = MockSyncServer()
             server.register_instance(sync_server)
         finally:
             self.lock.release()
         if server is not None:
-            server.serve_forever()
+            while True:
+                if not self.thread_local.alive:
+                    break
+                server.handle_request()
+
+    def _exit(self):
+        self.thread_local.alive = False
 
     def setUp(self):
         # Poor-man's version of a threading.Barrier (which was added in 3.2). Make a
@@ -49,6 +57,7 @@ class SyncServerTest(unittest.TestCase):
         # TODO: use a real threading.Barrier when we drop support for Python 2
         self.lock = Lock()
         self.lock.acquire()
+        self.thread_local = thread_local()
         self.server_thread = Thread(target=self.sync_server)
         self.server_thread.daemon = True
         self.server_thread.start()
@@ -57,16 +66,20 @@ class SyncServerTest(unittest.TestCase):
         self.lock.release()
 
     def tearDown(self):
-        # TODO kill server when done with test, otherwise we'll keep
-        # listening on this port and further tests will fail.
-        # Can't use SimpleXMLRPCServer.serve_forever with this requirement
-        pass
+        self.remote_sync_server.exit()
 
 class MockSyncServerTest(SyncServerTest):
+    """
+    Test the mock sync server itself.
+    """
     def test_add_hosts(self):
         hosts = ['host1', 'host2']
         self.remote_sync_server.add_hosts(['host1', 'host2'])
         self.assertEqual(self.remote_sync_server.get_new_hosts(None, None, None, None), hosts)
+
+    def test_add_no_hosts(self):
+        self.remote_sync_server.add_hosts([])
+        self.assertFalse(self.remote_sync_server.get_new_hosts(None, None, None, None))
 
 class SyncTestStaticTimestamp(unittest.TestCase):
     """
