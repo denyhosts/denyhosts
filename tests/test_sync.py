@@ -19,7 +19,10 @@ class MockSyncServer(object):
         self.hosts = []
 
     def get_new_hosts(self, timestamp, threshold, hosts_added, download_resiliency):
-        return self.hosts
+        return {
+            'hosts': self.hosts,
+            'timestamp': '0',
+        }
 
     def add_hosts(self, hosts):
         self.hosts.extend(hosts)
@@ -78,11 +81,13 @@ class MockSyncServerTest(SyncServerTest):
     def test_add_hosts(self):
         hosts = ['host1', 'host2']
         self.remote_sync_server.add_hosts(['host1', 'host2'])
-        self.assertEqual(self.remote_sync_server.get_new_hosts(None, None, None, None), hosts)
+        data = self.remote_sync_server.get_new_hosts(None, None, None, None)
+        self.assertEqual(data['hosts'], hosts)
 
     def test_add_no_hosts(self):
         self.remote_sync_server.add_hosts([])
-        self.assertFalse(self.remote_sync_server.get_new_hosts(None, None, None, None))
+        data = self.remote_sync_server.get_new_hosts(None, None, None, None)
+        self.assertFalse(data['hosts'])
 
 class SyncTestStaticTimestamp(unittest.TestCase):
     """
