@@ -121,13 +121,18 @@ class SyncTestDynamicTimestamp(unittest.TestCase):
             saved_timestamp = int(f.read().strip())
         self.assertEqual(self.value, saved_timestamp)
 
-class SyncTestSendHosts(SyncServerTest):
+class SyncTestBasic(SyncServerTest):
     def setUp(self):
-        super(SyncTestSendHosts, self).setUp()
+        super(SyncTestBasic, self).setUp()
         self.prefs = Prefs()
         self.prefs._Prefs__data['SYNC_SERVER'] = LOCAL_SYNC_SERVER_URL
-        self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync')
+        self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync/static')
 
-    def test_connect(self):
+    def test_connect_disconnect(self):
         sync = Sync(self.prefs)
         self.assertTrue(sync.xmlrpc_connect())
+        self.assertFalse(sync._Sync__server is None)
+        self.assertTrue(sync._Sync__connected)
+        sync.xmlrpc_disconnect()
+        self.assertTrue(sync._Sync__server is None)
+        self.assertFalse(sync._Sync__connected)
