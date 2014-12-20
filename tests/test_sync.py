@@ -62,7 +62,6 @@ class SyncServerTest(unittest.TestCase):
         self.lock.acquire()
         self.thread_local = thread_local()
         self.server_thread = Thread(target=self.sync_server)
-        self.server_thread.daemon = True
         self.server_thread.start()
         self.lock.acquire()
         self.remote_sync_server = xmlrpclib.ServerProxy(LOCAL_SYNC_SERVER_URL, allow_none=True)
@@ -70,6 +69,7 @@ class SyncServerTest(unittest.TestCase):
 
     def tearDown(self):
         self.remote_sync_server.exit()
+        self.server_thread.join()
 
 class MockSyncServerTest(SyncServerTest):
     """
