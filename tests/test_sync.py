@@ -4,10 +4,11 @@ from os.path import dirname, join as ospj
 from random import randint
 import unittest
 from SimpleXMLRPCServer import SimpleXMLRPCServer
+from tempfile import mkdtemp
 from threading import Lock, Thread, local as thread_local
 import xmlrpclib
 
-from DenyHosts.constants import SYNC_TIMESTAMP
+from DenyHosts.constants import SYNC_HOSTS, SYNC_TIMESTAMP
 from DenyHosts.prefs import Prefs
 from DenyHosts.sync import Sync
 
@@ -18,7 +19,16 @@ class MockSyncServer(object):
     def __init__(self):
         self.hosts = []
 
+    def get_hosts(self):
+        """
+        Test method to directly return stored hosts
+        """
+        return self.hosts
+
     def get_new_hosts(self, timestamp, threshold, hosts_added, download_resiliency):
+        """
+        Matches the API inferred from the Sync class
+        """
         return {
             'hosts': self.hosts,
             'timestamp': '0',
@@ -136,3 +146,22 @@ class SyncTestBasic(SyncServerTest):
         sync.xmlrpc_disconnect()
         self.assertTrue(sync._Sync__server is None)
         self.assertFalse(sync._Sync__connected)
+
+class SyncTestSendHosts(SyncServerTest):
+    def setUp(self):
+        super(SyncTestSendHosts, self).setUp()
+        self.prefs = Prefs()
+        self.prefs._Prefs__data['SYNC_SERVER'] = LOCAL_SYNC_SERVER_URL
+        work_dir = mkdtemp()
+        self.prefs._Prefs__data['WORK_DIR'] = work_dir
+
+        self.test_hosts = ['host1', 'host2', 'host3']
+        with open(ospj(work_dir, SYNC_HOSTS), 'w') as f:
+            for host in self.test_hosts:
+                print(host, file=f)
+
+    def test_send_hosts(self):
+        sync = Sync(self.prefs)
+        self.assertFalse(sync._Sync__hosts_added)
+        self.assertTrue(sync.send_new_hosts())
+        self.assertEqual(sync._Sync__hosts_added, self.test_hosts)
