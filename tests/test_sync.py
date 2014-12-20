@@ -11,6 +11,9 @@ from DenyHosts.constants import SYNC_TIMESTAMP
 from DenyHosts.prefs import Prefs
 from DenyHosts.sync import Sync
 
+LOCAL_SYNC_SERVER_ADDRESS = ('127.0.0.1', 9911)
+LOCAL_SYNC_SERVER_URL = 'http://%s:%d' % LOCAL_SYNC_SERVER_ADDRESS
+
 class MockSyncServer(object):
     def __init__(self):
         self.hosts = []
@@ -29,7 +32,7 @@ class SyncServerTest(unittest.TestCase):
         self.thread_local.alive = True
         server = None
         try:
-            server = SimpleXMLRPCServer(('127.0.0.1', 9911), allow_none=True, logRequests=False)
+            server = SimpleXMLRPCServer(LOCAL_SYNC_SERVER_ADDRESS, allow_none=True, logRequests=False)
             server.register_function(self._exit, 'exit')
             sync_server = MockSyncServer()
             server.register_instance(sync_server)
@@ -62,7 +65,7 @@ class SyncServerTest(unittest.TestCase):
         self.server_thread.daemon = True
         self.server_thread.start()
         self.lock.acquire()
-        self.remote_sync_server = xmlrpclib.ServerProxy('http://127.0.0.1:9911', allow_none=True)
+        self.remote_sync_server = xmlrpclib.ServerProxy(LOCAL_SYNC_SERVER_URL, allow_none=True)
         self.lock.release()
 
     def tearDown(self):
@@ -114,4 +117,12 @@ class SyncTestDynamicTimestamp(unittest.TestCase):
         self.assertEqual(self.value, saved_timestamp)
 
 class SyncTestSendHosts(SyncServerTest):
-    pass
+    def setUp(self):
+        super(SyncTestSendHosts, self).setUp()
+        self.prefs = Prefs()
+        self.prefs._Prefs__data['SYNC_SERVER'] = LOCAL_SYNC_SERVER_URL
+        self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync')
+
+    def test_connect(self):
+        sync = Sync(self.prefs)
+        self.assertTrue(sync.xmlrpc_connect())
