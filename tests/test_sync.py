@@ -8,7 +8,7 @@ from tempfile import mkdtemp
 from threading import Lock, Thread, local as thread_local
 import xmlrpclib
 
-from DenyHosts.constants import SYNC_HOSTS, SYNC_TIMESTAMP
+from DenyHosts.constants import SYNC_HOSTS, SYNC_RECEIVED_HOSTS, SYNC_TIMESTAMP
 from DenyHosts.prefs import Prefs
 from DenyHosts.sync import Sync
 
@@ -93,11 +93,13 @@ class MockSyncServerTest(SyncServerTest):
         self.remote_sync_server.add_hosts(['host1', 'host2'])
         data = self.remote_sync_server.get_new_hosts(None, None, None, None)
         self.assertEqual(data['hosts'], hosts)
+        self.assertEqual(self.remote_sync_server.get_hosts(), hosts)
 
     def test_add_no_hosts(self):
         self.remote_sync_server.add_hosts([])
         data = self.remote_sync_server.get_new_hosts(None, None, None, None)
         self.assertFalse(data['hosts'])
+        self.assertFalse(self.remote_sync_server.get_hosts())
 
 class SyncTestStaticTimestamp(unittest.TestCase):
     """
@@ -165,3 +167,21 @@ class SyncTestSendHosts(SyncServerTest):
         self.assertFalse(sync._Sync__hosts_added)
         self.assertTrue(sync.send_new_hosts())
         self.assertEqual(sync._Sync__hosts_added, self.test_hosts)
+
+class SyncTestReceiveHosts(SyncServerTest):
+    def setUp(self):
+        super(SyncTestReceiveHosts, self).setUp()
+        self.prefs = Prefs()
+        self.prefs._Prefs__data['SYNC_SERVER'] = LOCAL_SYNC_SERVER_URL
+        self.work_dir = mkdtemp()
+        self.prefs._Prefs__data['WORK_DIR'] = self.work_dir
+        self.test_hosts = ['host1', 'host2', 'host3']
+        self.remote_sync_server.add_hosts(self.test_hosts)
+
+    def test_send_hosts(self):
+        sync = Sync(self.prefs)
+        self.assertEqual(sync.receive_new_hosts(), self.test_hosts)
+        filename = ospj(self.work_dir, SYNC_RECEIVED_HOSTS)
+        with open(filename) as f:
+            hosts = [line.strip().split(':')[0] for line in f]
+        self.assertEqual(self.test_hosts, hosts)
