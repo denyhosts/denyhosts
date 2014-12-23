@@ -19,7 +19,7 @@ class AllowedHostsBase(unittest.TestCase):
         self.allowed_hosts = AllowedHosts(prefs)
 
 class AllowedHostsBasicTest(AllowedHostsBase):
-    def test_positive(self):
+    def test_positives(self):
         self.assertTrue('127.0.0.1' in self.allowed_hosts)
         self.assertTrue('172.16.0.1' in self.allowed_hosts)
 
@@ -30,7 +30,7 @@ class AllowedHostsBasicTest(AllowedHostsBase):
         self.assertFalse('bogus' in self.allowed_hosts)
 
 class AllowedHostsWildcardTest(AllowedHostsBase):
-    def test_positive(self):
+    def test_positives(self):
         self.assertTrue('192.168.1.1' in self.allowed_hosts)
         self.assertTrue('192.168.1.255' in self.allowed_hosts)
 
@@ -39,10 +39,17 @@ class AllowedHostsWildcardTest(AllowedHostsBase):
         self.assertFalse('255.255.255.255' in self.allowed_hosts)
 
 class AllowedHostsRangeTest(AllowedHostsBase):
-    def test_positive(self):
+    def test_positives(self):
         self.assertTrue('1.1.1.20' in self.allowed_hosts)
         self.assertTrue('1.1.1.39' in self.allowed_hosts)
 
     def test_negatives(self):
         self.assertFalse('1.1.1.10' in self.allowed_hosts)
         self.assertFalse('1.1.1.50' in self.allowed_hosts)
+
+class AllowedHostsHostnameTest(AllowedHostsBase):
+    def test_positives(self):
+        self.assertTrue('hostname' in self.allowed_hosts)
+
+    def test_negatives(self):
+        self.assertFalse('another_hostname' in self.allowed_hosts)
