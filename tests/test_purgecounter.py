@@ -76,3 +76,18 @@ class PurgeCounterTestWriteData(unittest.TestCase):
 
         with open(self.filename) as f:
             self.assertEqual(f.read(), self.test_string)
+
+class PurgeCounterTestIncrement(unittest.TestCase):
+    def setUp(self):
+        self.prefs = Prefs()
+        work_dir = mkdtemp()
+        self.filename = ospj(work_dir, PURGE_HISTORY)
+        self.prefs._Prefs__data['WORK_DIR'] = work_dir
+        self.hosts = set(['host1', 'host2'])
+
+    def test_increment(self):
+        purge_counter = PurgeCounter(self.prefs)
+        self.assertFalse(purge_counter.get_data())
+        purge_counter.increment(self.hosts)
+        data = purge_counter.get_data()
+        self.assertEqual(set(data), self.hosts)
