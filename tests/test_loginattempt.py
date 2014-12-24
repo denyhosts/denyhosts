@@ -1,9 +1,11 @@
 from __future__ import print_function, unicode_literals
 
-from os.path import dirname, join as ospj
+from os.path import join as ospj
 from tempfile import mkdtemp
+import time
 import unittest
 
+from DenyHosts.counter import CounterRecord
 from DenyHosts.prefs import Prefs
 from DenyHosts.loginattempt import LoginAttempt
 from DenyHosts.constants import (
@@ -31,11 +33,12 @@ LOGIN_ATTEMPT_ATTRIBUTE_FILENAMES = [
     (SUSPICIOUS_LOGINS, 'get_suspicious_logins'),
 ]
 
-class BasicLoginAttemptTest(unittest.TestCase):
+class LoginAttemptTestBase(unittest.TestCase):
     def setUp(self):
         self.allowed_hosts = ['host1', 'host2']
         self.prefs = Prefs()
-        self.prefs._Prefs__data['WORK_DIR'] = mkdtemp()
+        self.work_dir = mkdtemp()
+        self.prefs._Prefs__data['WORK_DIR'] = self.work_dir
 
         keys = [
             'DENY_THRESHOLD_INVALID',
@@ -46,7 +49,26 @@ class BasicLoginAttemptTest(unittest.TestCase):
         for key in keys:
             self.prefs._Prefs__data[key] = 0
 
+class BasicLoginAttemptTest(LoginAttemptTestBase):
     def test_no_data_file(self):
         login_attempt = LoginAttempt(self.prefs, set(self.allowed_hosts))
         for filename, method_name in LOGIN_ATTEMPT_ATTRIBUTE_FILENAMES:
             self.assertFalse(getattr(login_attempt, method_name)())
+
+class LoginAttemptDataFileTest(LoginAttemptTestBase):
+    def test_data_files(self):
+        login_attempt = LoginAttempt(self.prefs, set(self.allowed_hosts))
+        host = 'host'
+        count = 1
+        asctime = time.asctime()
+        test_counter_record = CounterRecord(count=count, date=asctime)
+        for filename, method_name in LOGIN_ATTEMPT_ATTRIBUTE_FILENAMES:
+            path = ospj(self.work_dir, filename)
+            with open(path, 'w') as f:
+                print('%s:%d:%s' % (host, count, asctime), file=f)
+            data = getattr(login_attempt, method_name)()
+            self.assertTrue(host in data)
+            # TODO fix this after defining CounterRecord.__eq__
+            real_counter_record = data[host]
+            self.assertEqual(test_counter_record.get_count(), real_counter_record.get_count())
+            self.assertEqual(test_counter_record.get_date(), real_counter_record.get_date())
