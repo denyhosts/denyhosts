@@ -1,36 +1,18 @@
-from httplib import HTTP
 import logging
 import os
 import time
-from xmlrpclib import ServerProxy, Transport
+from xmlrpclib import ServerProxy
 
 from constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS
 
-debug = logging.getLogger("sync").debug
-info = logging.getLogger("sync").info
-error = logging.getLogger("sync").error
-exception = logging.getLogger("sync").exception
+logger = logging.getLogger("sync")
+debug, info, error, exception = logger.debug, logger.info, logger.error, logger.exception
 
 def get_plural(items):
     if len(items) != 1:
         return "s"
     else:
         return ""
-
-class ProxiedTransport(Transport):
-    def set_proxy(self, proxy):
-        self.proxy = proxy
-
-    def make_connection(self, host):
-        self.realhost = host
-        h = HTTP(self.proxy)
-        return h
-
-    def send_request(self, connection, handler, request_body):
-        connection.putrequest("POST", 'http://%s%s' % (self.realhost, handler))
-
-    def send_host(self, connection, host):
-        connection.putheader('Host', self.realhost)
 
 class Sync(object):
     def __init__(self, prefs):
@@ -41,9 +23,6 @@ class Sync(object):
 
     def xmlrpc_connect(self):
         try:
-            #p = ProxiedTransport()
-            #p.set_proxy(self.__prefs.get('SYNC_PROXY_SERVER'))
-            #self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'), transport=p)
             self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
             self.__connected = True
         except Exception, e:
