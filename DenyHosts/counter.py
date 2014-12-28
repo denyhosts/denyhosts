@@ -3,6 +3,7 @@ import time
 
 debug = logging.getLogger("counter").debug
 
+# TODO define __eq__ for this class
 class CounterRecord(object):
     def __init__(self, count=0, date=None):
         self.__count = count
