@@ -71,7 +71,7 @@ class LoginAttempt(object):
             self.__abusive_hosts_invalid[host].reset_count()
 
 
-        if success and self.__abusive_hosts_invalid.get(host).get_count() > self.__deny_threshold_invalid:
+        if success and self.__abusive_hosts_invalid[host].get_count() > self.__deny_threshold_invalid: 
             num_failures = self.__valid_users_and_hosts.get(user_host_key, 0)
             self.__suspicious_logins[user_host_key] += 1
             if self.__suspicious_always or host not in self.__allowed_hosts:
