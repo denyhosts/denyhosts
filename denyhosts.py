@@ -107,6 +107,8 @@ if __name__ == '__main__':
             purge = 1
         if opt in ('-s', '--sync'):
             sync_mode = 1
+        if opt in ('-s', '--unlock'):
+            unlock = 1
         if opt == '--daemon':
             daemon = 1
         if opt == '--foreground':
@@ -143,6 +145,9 @@ if __name__ == '__main__':
     if not prefs.get('ADMIN_EMAIL'): noemail = 1
 
     lock_file = LockFile(prefs.get('LOCK_FILE'))
+
+    if unlock:
+        lock_file.remove()
 
     lock_file.create()
 
