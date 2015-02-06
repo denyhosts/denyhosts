@@ -60,7 +60,8 @@ class Prefs(dict):
                        'SYNC_DOWNLOAD_THRESHOLD': 3,
                        'SYNC_DOWNLOAD_RESILIENCY': '5h',
                        'PURGE_THRESHOLD': 0,
-                       'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no'}
+                       'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no',
+                       'ETC_DIR': '/etc'}
 
         # reqd[0]: required field name
         # reqd[1]: is value required? (False = value can be blank)
@@ -74,7 +75,7 @@ class Prefs(dict):
                      ('PURGE_DENY', False),
                      ('HOSTS_DENY', True),
                      ('WORK_DIR', True),
-                     ('ETC_DIR', True),
+                     ('ETC_DIR', False),
                      ('IPTABLES', False),
                      ('BLOCKPORT', False),
                      ('PFCTL_PATH', False),
