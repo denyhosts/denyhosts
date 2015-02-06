@@ -1,6 +1,6 @@
 DENYHOSTS CHANGELOG
 
-2.9
+2.10
 ======================
 
 - Updated example rule for PF in configuration file
@@ -9,6 +9,16 @@ DENYHOSTS CHANGELOG
 - Added debugging info in case we cannot create a new
   PF table entry.
 
+- Fixed syntax for comparing suspecious logins. Avoids
+  always testing true/false depending on Python version.
+
+- No longer require ETC_DIR in the configuration file.
+  Use a default value "/etc" if ETC_DIR is not manually
+  specified.
+
+- Make sure DenyHosts logs when running in foreground mode.
+  When in foreground, warnings are logged to a file rather
+  than outputted to terminal. Keeps things clean.
 
 
 2.9 (November 3, 2014)

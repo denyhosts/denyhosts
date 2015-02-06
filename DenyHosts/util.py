@@ -14,7 +14,6 @@ from regex import TIME_SPEC_REGEX
 debug = logging.getLogger("util").debug
 
 def setup_logging(prefs, enable_debug, verbose, daemon):
-    if daemon:
         daemon_log = prefs.get('DAEMON_LOG')
         if daemon_log:
             # define a Handler which writes INFO messages or higher to the sys.stderr
@@ -37,18 +36,6 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             info = logging.getLogger("denyhosts").info
             info("DenyHosts launched with the following args:")
             info("   %s", ' '.join(sys.argv))
-            prefs.dump_to_logger()
-    else: # non-daemon
-        logging.basicConfig(format="%(message)s")
-
-        debug = logging.getLogger("denyhosts").debug
-        info = logging.getLogger("denyhosts").info
-
-        if verbose:
-            logging.getLogger().setLevel(logging.INFO)
-        elif enable_debug:
-            logging.getLogger().setLevel(logging.DEBUG)
-            debug("Debug mode enabled.")
             prefs.dump_to_logger()
 
 def die(msg, ex=None):
