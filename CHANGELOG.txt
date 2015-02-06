@@ -20,6 +20,9 @@ DENYHOSTS CHANGELOG
   When in foreground, warnings are logged to a file rather
   than outputted to terminal. Keeps things clean.
 
+- Add --unlock command line arguement to remove old
+  lock files.
+
 
 2.9 (November 3, 2014)
 ======================

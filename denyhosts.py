@@ -73,13 +73,14 @@ if __name__ == '__main__':
     enable_debug = 0
     purgeip = 0
     upgrade099 = 0
+    unlock = 0
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
                                         ["file=", "ignore", "verbose", "debug",
                                          "help", "noemail", "config=", "version",
                                          "migrate", "purge", "purge-all", "purgeip", "daemon", "foreground",
-                                         "sync", "upgrade099"])
+                                         "unlock", "sync", "upgrade099"])
     except GetoptError:
         print "\nInvalid command line option detected."
         usage()
@@ -147,7 +148,8 @@ if __name__ == '__main__':
     lock_file = LockFile(prefs.get('LOCK_FILE'))
 
     if unlock:
-        lock_file.remove()
+        if os.path.isfile( prefs.get('LOCK_FILE') ):
+           lock_file.remove()
 
     lock_file.create()
 
