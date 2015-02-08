@@ -1,10 +1,8 @@
 DenyHosts
 =========
 
-[![Build Status](https://travis-ci.org/denyhosts/denyhosts.svg)](https://travis-ci.org/denyhosts/denyhosts)
-
-DenyHosts is a utility developed by Phil Schwartz which aims to
-thwart sshd (ssh server) brute force attacks.
+DenyHosts is a utility developed by Phil Schwartz and maintained by a
+number of developers which aims to thwart sshd (ssh server) brute force attacks.
 
 Please refer to https://github.com/denyhosts/denyhosts for more information.
 
@@ -17,9 +15,9 @@ Source Distribution
 If you downloaded the source distribution file (DenyHosts-#.#-tar.gz)
 then:
 
-    $ tar zxvf DenyHosts-2.8.tar.gz       (Where #.#.# is the version)
+    $ tar zxvf DenyHosts-2.10.tar.gz       (Where #.#.# is the version)
 
-    $ cd DenyHosts-2.8
+    $ cd denyhosts
 
 as root:
 

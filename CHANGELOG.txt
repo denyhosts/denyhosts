@@ -23,6 +23,8 @@ DENYHOSTS CHANGELOG
 - Add --unlock command line arguement to remove old
   lock files.
 
+- Updated README file with new version/maintainer information.
+
 
 2.9 (November 3, 2014)
 ======================
