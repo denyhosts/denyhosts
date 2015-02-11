@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import platform
 import sys
 sys.path.insert(0, '/usr/share/denyhosts')
 
@@ -124,6 +125,10 @@ if __name__ == '__main__':
         if opt == '--version':
             print "DenyHosts version:", VERSION
             sys.exit(0)
+
+    # This is generally expected to be in the environment, but there's no
+    # non-hackish way to get systemd to set it, so just hack it in here.
+    os.environ['HOSTNAME'] = platform.node()
 
     prefs = Prefs(config_file)
 
