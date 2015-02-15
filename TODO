@@ -1,6 +1,3 @@
-Block attacks for root when root is not an authorized user.
-"error: PAM: authentication error for root from 221.235.188.203"
-
 Debian bug 690524
 When sshd passwordauthenication is turned off (key access only)
 then DenyHost does not detect the denied log entry. This means

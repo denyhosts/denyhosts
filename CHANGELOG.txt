@@ -23,7 +23,8 @@ DENYHOSTS CHANGELOG
 - Add --unlock command line arguement to remove old
   lock files.
 
-- Updated README file with new version/maintainer information.
+- Updated README, version and Makefile with new 
+  version/maintainer information.
 
 - Added check for PAM failures on FreeBSD. This should block both
   failed user logins that are reported by PAM and also block
@@ -33,6 +34,7 @@ DENYHOSTS CHANGELOG
   attempts at the firewall level before the OpenSSH service
   is contacted.
 
+- Add systemd unit file, denyhosts.service
 
 
 
