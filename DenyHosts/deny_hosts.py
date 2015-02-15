@@ -4,6 +4,7 @@ import os
 import signal
 from stat import ST_SIZE, ST_INO
 import time
+import subprocess
 try:
     import bz2
     HAS_BZ2 = True
@@ -29,6 +30,19 @@ info = logging.getLogger("denyhosts").info
 error = logging.getLogger("denyhosts").error
 warning = logging.getLogger("denyhosts").warning
 
+
+def system_execute(args, valid_retcodes = [0]):
+    try:
+        retcode = subprocess.call(args)
+        if not retcode in valid_retcodes:
+            raise RuntimeError("Return code %d" % retcode)
+        return retcode
+    except Exception as e:
+        error("Failure to execute %s" % " ".join(args))
+        error(str(e))
+        raise
+
+
 class DenyHosts(object):
     def __init__(self, logfile, prefs, lock_file,
                  ignore_offset=0, first_time=0,
@@ -45,10 +59,14 @@ class DenyHosts(object):
         self.__sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         self.__sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
         self.__iptables = prefs.get("IPTABLES")
+        self.__ipset_cmd = prefs.get("IPSET_COMMAND")
+        self.__ipset_name = prefs.get("IPSET_NAME")
         self.__blockport = prefs.get("BLOCKPORT")
         self.__pfctl = prefs.get("PFCTL_PATH")
         self.__pftable = prefs.get("PF_TABLE")
         self.__pftablefile = prefs.get("PF_TABLE_FILE")
+        self.__fw_initialized = False
+        self.__fw_blocked_hosts = set()
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -296,15 +314,166 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             self.__allowed_hosts.clear_warned_hosts()
 
 
+    def firewall_init(self):
+        try:
+            if self.__iptables and self.__ipset_name and self.__ipset_cmd:
+                args = [self.__ipset_cmd, "list", self.__ipset_name]
+                debug("Checking if ipset exists: %s", " ".join(args))
+                check_result = system_execute(args, [0,1])
+                if check_result == 0:
+                    debug("Ipset already exists")
+                else:
+                    args = [self.__ipset_cmd, "create", self.__ipset_name, "hash:ip", "-exist"]
+                    debug("Creating an ipset: %s", " ".join(args))
+                    system_execute(args)
+                if self.__blockport:
+                    match_rule = ["INPUT", "-p", "tcp", "--dport", self.__blockport, "-m", "set", "--match-set", self.__ipset_name, "src", "-j", "DROP"]
+                else:
+                    match_rule = ["INPUT", "-m", "set", "--match-set", self.__ipset_name, "src", "-j", "DROP"]
+                args = [self.__iptables, "-C"] + match_rule
+                debug("Checking if ipset match rule exists: %s", " ".join(args))
+                check_result = system_execute(args, [0,1])  #check produces an error if ipset does not yet exist
+                if check_result == 0:
+                    debug("Ipset match rule already exists")
+                else:
+                    args = [self.__iptables, "-I"] + match_rule
+                    debug("Creating ipset match rule: %s", " ".join(args))
+                    system_execute(args)
+            self.__fw_initialized = True
+        except Exception as e:
+            print(e)
+            print("Unable to setup the firewall")
+
+
+    def firewall_block(self, hosts):
+        if self.__iptables:
+            if self.__ipset_name and self.__ipset_cmd:
+                self.firewall_init()  #we call this in case firewall rule or ipset were deleted
+                debug("Adding host to the ipset")
+                try:
+                    for host in hosts:
+                        my_host = str(host)
+                        args = [self.__ipset_cmd, "add", self.__ipset_name, my_host, "-exist"]
+                        debug("Adding host to the ipset: %s", " ".join(args))
+                        info("Adding %s to ipset %s", my_host, self.__ipset_name)
+                        system_execute(args)
+                        self.__fw_blocked_hosts.add(host)
+                except Exception as e:
+                    print(e)
+                    print("Unable to add a host to ipset")
+            else:
+                debug("Trying to create iptables rules")
+                try:
+                    for host in hosts:
+                        my_host = str(host)
+                        if self.__blockport:
+                            args = [self.__iptables, "-I", "INPUT", "-p", "tcp", "--dport", self.__blockport, "-s", my_host, "-j", "DROP"]
+                        else:
+                            args = [self.__iptables, "-I", "INPUT", "-s", my_host, "-j", "DROP"]
+                        cmd = " ".join(args)
+                        debug("Adding iptables rule: %s", cmd)
+                        info("Creating new firewall rule %s", cmd)
+                        system_execute(args)
+                        self.__fw_blocked_hosts.add(host)
+                except Exception as e:
+                    print(e)
+                    print("Unable to write new firewall rule.")
+
+        elif self.__pfctl and self.__pftable:
+            debug("Trying to update PF table.")
+            try:
+                for host in hosts:
+                    my_host = str(host)
+                    args = [self.__pfctl, "-t", self.__pftable, "-T", "add", my_host]
+                    cmd = " ".join(args)
+                    debug("Running PF update rule: %s", cmd)
+                    info("Creating new PF rule %s", cmd)
+                    system_execute(args);
+                    self.__fw_blocked_hosts.add(host)
+            except Exception as e:
+                print(e)
+                print("Unable to write new PF rule.")
+
+        if self.__pftablefile:
+              debug("Trying to write host to PF table file %s", self.__pftablefile)
+              try:
+                 pf_file = open(self.__pftablefile, "a")
+                 for host in new_hosts:
+                    my_host = str(host)
+                    pf_file.write("%s\n" % my_host)
+                    info("Wrote new host %s to table file %s", my_host, self.__pftablefile)
+                 pf_file.close()
+              except Exception as e:
+                  print(e)
+                  print("Unable to write new host to PF table file.")
+                  debug("Unable to write new host to PF table file %s", self.__pftablefile)
+
+
+    #Check if host is blocked by the firewall (True means blocked).
+    #Note: firewall_check() may be executed before firewall is set up for DenyHost, and should return False in such a situation.
+    def firewall_check(self, host):
+        my_host = str(host)
+        check_result = False
+        debug("Checking if host %s is blocked by firewall", my_host)
+        if self.__iptables:
+            try:
+                if self.__ipset_name and self.__ipset_cmd:
+                    args = [self.__ipset_cmd, "test", self.__ipset_name, my_host, "-quiet"]
+                    debug("Checking if host is in the ipset: %s", " ".join(args))
+                    check_result = system_execute(args, [0,1])  #returns 1 if ipset does not exist or host is not in ipset
+                else:
+                    if self.__blockport:
+                        args = [self.__iptables, "-C", "INPUT", "-p", "tcp", "--dport", self.__blockport, "-s", my_host, "-j", "DROP"]
+                    else:
+                        args = [self.__iptables, "-C", "INPUT", "-s", my_host, "-j", "DROP"]
+                    debug("Checking if firewall rule exists: %s", " ".join(args))
+                    check_result = system_execute(args, [0,1])
+            except Exception as e:
+                print(e)
+                print("Unable to check if firewall blocks host %s" % my_host)
+                return False
+
+        elif self.__pfctl and self.__pftable:
+            raise RuntimeException("firewall_check not implemented for PF")
+
+        if check_result == 0:
+            debug("Host is already blocked by firewall")
+            self.__fw_blocked_hosts.add(host)
+            return True
+        else:
+            debug("Host is not blocked by firewall")
+            return False
+
+
     def update_hosts_deny(self, deny_hosts):
         if not deny_hosts: return None, None
 
+        debug("deny_hosts: %s", str(deny_hosts))
         #info("keys: %s", str( self.__denied_hosts.keys()))
+
+        #Perform firewall host blocking
+        #Temporarily we do not implement this logic for PF
+        #if self.__iptables or (self.__pfctl and self.__pftable) or (self.__pftablefile):
+        if self.__iptables:
+            if not self.__fw_initialized:
+                self.firewall_init()
+            fw_hosts = [host for host in deny_hosts
+                        if host not in self.__allowed_hosts
+                        and host not in self.__fw_blocked_hosts
+                        and not self.firewall_check(host)]
+            if fw_hosts:
+                self.firewall_block(fw_hosts)
+
         new_hosts = [host for host in deny_hosts
                      if host not in self.__denied_hosts
                      and host not in self.__allowed_hosts]
 
+        if not new_hosts: return None, None
         debug("new hosts: %s", str(new_hosts))
+
+        #When firewall_check is implemented for PF, remove this special logic
+        if self.__pfctl and self.__pftable:
+            self.firewall_block(new_hosts)
 
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
@@ -332,55 +501,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                                           output))
             fp.write("%s\n" % output)
 
-        plugin_deny = self.__prefs.get('PLUGIN_DENY')
-        if plugin_deny: plugin.execute(plugin_deny, new_hosts)
-        if self.__iptables:
-           debug("Trying to create iptables rules")
-           try:
-              for host in new_hosts:
-                  my_host = str(host)
-                  if self.__blockport:
-                     new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + my_host + " -j DROP"
-                  else:
-                     new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
-                  debug("Running iptabes rule: %s", new_rule)
-                  info("Creating new firewall rule %s", new_rule)
-                  os.system(new_rule);
-
-           except Exception as e:
-               print(e)
-               print("Unable to write new firewall rule.")
-
-        if self.__pfctl and self.__pftable:
-             debug("Trying to update PF table.")
-             try:
-               for host in new_hosts:
-                   my_host = str(host)
-                   new_rule = self.__pfctl + " -t " + self.__pftable + " -T add " + my_host
-                   debug("Running PF update rule: %s", new_rule)
-                   info("Creating new PF rule %s", new_rule)
-                   os.system(new_rule);
-                   
-             except Exception as e:
-                print(e)
-                print("Unable to write new PF rule.")
-                debug("Unable to create PF rule. %s", e)
-        if self.__pftablefile:
-              debug("Trying to write host to PF table file %s", self.__pftablefile)
-              try:
-                 pf_file = open(self.__pftablefile, "a")
-                 for host in new_hosts:
-                    my_host = str(host)
-                    pf_file.write("%s\n" % my_host)
-                    info("Wrote new host %s to table file %s", my_host, self.__pftablefile)
-                 pf_file.close()
-              except Exception as e:
-                  print(e)
-                  print("Unable to write new host to PF table file.")
-                  debug("Unable to write new host to PF table file %s", self.__pftablefile)
-
         if fp != sys.stdout:
             fp.close()
+
+        plugin_deny = self.__prefs.get('PLUGIN_DENY')
+        if plugin_deny: plugin.execute(plugin_deny, new_hosts)
 
         return new_hosts, status
 
