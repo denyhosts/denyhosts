@@ -14,6 +14,7 @@ the Dovecot imap service. This is an option which can be
 enabled/disabled in the configuration file. It is turned off
 by default.
 
+Add IPset support to better handle IPTable firewall rules.
 
 
 3.0
@@ -48,7 +49,6 @@ with accounts not found on the local system.
 While these connections to non-existent accounts are relatively harmless, 
 they are usually used as part of a brute force attack and filtering them
 before they reach OpenSSH is a good idea.
-
 
 
 2.10

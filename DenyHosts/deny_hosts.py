@@ -31,9 +31,13 @@ error = logging.getLogger("denyhosts").error
 warning = logging.getLogger("denyhosts").warning
 
 
-def system_execute(args, valid_retcodes = [0]):
+def system_execute(args, valid_retcodes = [0], use_stderr = True):
     try:
-        retcode = subprocess.call(args)
+        if (use_stderr):
+            retcode = subprocess.call(args)
+        else:
+            with open(os.devnull, "w") as fnull:
+                retcode = subprocess.call(args, stderr = fnull)
         if not retcode in valid_retcodes:
             raise RuntimeError("Return code %d" % retcode)
         return retcode
@@ -317,7 +321,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
     def firewall_init(self):
         try:
             if self.__iptables and self.__ipset_name and self.__ipset_cmd:
-                args = [self.__ipset_cmd, "list", self.__ipset_name]
+                args = [self.__ipset_cmd, "list", self.__ipset_name, "-quiet"]
                 debug("Checking if ipset exists: %s", " ".join(args))
                 check_result = system_execute(args, [0,1])
                 if check_result == 0:
@@ -332,7 +336,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                     match_rule = ["INPUT", "-m", "set", "--match-set", self.__ipset_name, "src", "-j", "DROP"]
                 args = [self.__iptables, "-C"] + match_rule
                 debug("Checking if ipset match rule exists: %s", " ".join(args))
-                check_result = system_execute(args, [0,1])  #check produces an error if ipset does not yet exist
+                check_result = system_execute(args, [0,1], False)  #check produces an error if ipset does not yet exist
                 if check_result == 0:
                     debug("Ipset match rule already exists")
                 else:
