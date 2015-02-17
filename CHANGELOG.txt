@@ -1,5 +1,14 @@
 DENYHOSTS CHANGELOG
 
+3.0
+======================
+
+- Add IPset support to better handle IPTable firewall rules.
+
+- Cleaned up some warnings and improved IPset code.
+
+
+
 2.10
 ======================
 
