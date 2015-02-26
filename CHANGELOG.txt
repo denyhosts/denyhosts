@@ -1,5 +1,14 @@
 DENYHOSTS CHANGELOG
 
+2.11?
+======================
+
+Added patch from Fedora to fix initial sync issue and
+insure info logging stream is active.
+(Provided by Jason Tibbitts.)
+
+
+
 2.10
 ======================
 
