@@ -19,6 +19,7 @@ from DenyHosts.denyfileutil import Purge, PurgeIP, Migrate, UpgradeTo099
 from DenyHosts.constants import *
 from DenyHosts.sync import Sync
 
+info = logging.getLogger("denyhosts").info
 #################################################################################
 
 def usage():
@@ -243,6 +244,8 @@ if __name__ == '__main__':
                     info("received new hosts: %s", str(new_hosts))
                     sync.get_denied_hosts()
                     sync.update_hosts_deny(new_hosts)
+                    dh.get_denied_hosts()
+                    dh.update_hosts_deny(new_hosts)
             sync.xmlrpc_disconnect()
         except Exception, e:
             lock_file.remove()
