@@ -354,7 +354,7 @@ insure info logging stream is active.
 
 - added 1 second sleep between stop & start in daemon-control-dist for "restart" command.
 
-- Added ShoreWall plugins (thanks to Stéphane LeDauphin for the contribution).
+- Added ShoreWall plugins (thanks to StÃ©phane LeDauphin for the contribution).
 
 - Fixed licensing ambiguity (DenyHosts is GPL v2).
 
