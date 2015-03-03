@@ -7,6 +7,9 @@ Added patch from Fedora to fix initial sync issue and
 insure info logging stream is active.
 (Provided by Jason Tibbitts.)
 
+Added "import logging" to denyhosts.py to avoid errors
+when setting up logging. (See above change.)
+
 
 
 2.10

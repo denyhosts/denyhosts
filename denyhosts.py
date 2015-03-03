@@ -2,6 +2,7 @@
 import os
 import platform
 import sys
+import logging
 sys.path.insert(0, '/usr/share/denyhosts')
 
 import DenyHosts.python_version
