@@ -61,12 +61,15 @@ class DenyHosts(object):
         self.init_regex()
 
         self.__allowed_hosts = AllowedHosts(self.__prefs)
+        last_offset = None
 
         if self.__use_journal:
             # If cursor exists, seek to it.  Otherwise read all entries.
             self.__cursor_file = os.path.join(self.__prefs.get('WORK_DIR'), SECURE_LOG_CURSOR)
             self.__cursor = ""
             self.__journal = journal.Reader()
+            self.__journal.add_match('SYSLOG_IDENTIFIER=sshd')
+            self.__journal.get_next()
 
             try:
                 fp = open(self.__cursor_file, "r")
@@ -229,7 +232,7 @@ class DenyHosts(object):
                 # Have processed all pending journal entries; save off the cursor
                 try:
                     fp = open(self.__cursor_file, "w")
-                    fp.write(cursor)
+                    fp.write(str(cursor))
                     fp.write("\n")
                     fp.close()
                 except IOError:
