@@ -71,13 +71,8 @@ class DenyHosts(object):
             self.__journal.add_match('SYSLOG_IDENTIFIER=sshd')
             self.__journal.get_next()
 
-            try:
-                fp = open(self.__cursor_file, "r")
-                self.__cursor = fp.readline()
-            except IOError:
-                pass
-
-            if len(self.__cursor):
+            self.read_cursor()
+            if self.__cursor:
                 try:
                     self.__journal.seek_cursor(self.__cursor)
                 except ValueError:
@@ -87,15 +82,10 @@ class DenyHosts(object):
             self.get_denied_hosts()
             info("Processing journal from cursor (%s)", self.__cursor)
             cursor = self.process_log(None, None)
+            debug(cursor)
 
-            # Have processed all pending journal entries; save off the cursor
-            try:
-                fp = open(self.__cursor_file, "w")
-                fp.write(cursor)
-                fp.write("\n")
-                fp.close()
-            except IOError:
-                error("Could not save cursor to %s" % self.__cursor_file)
+            # Have processed all pending journal entries; save off the cursor:
+            self.save_cursor(cursor)
 
         # Otherwise, not using the journal....
         else:
@@ -228,15 +218,8 @@ class DenyHosts(object):
             # If using the journal, we can always just iterate over any new entries
             if self.__use_journal:
                 cursor = self.process_log(None, None)
-
-                # Have processed all pending journal entries; save off the cursor
-                try:
-                    fp = open(self.__cursor_file, "w")
-                    fp.write(str(cursor))
-                    fp.write("\n")
-                    fp.close()
-                except IOError:
-                    error("Could not save cursor to %s" % self.__cursor_file)
+                debug(cursor)
+                self.save_cursor(cursor)
 
             # If not using the journal....
             else:
@@ -473,7 +456,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         if self.__use_journal:
             entry = None
+            count = 0
             for entry in self.__journal:
+                count += 1
+                if count % 1000 == 0:
+                    info("Processed {} entries....".format(count))
                 success = invalid = 0
                 m = None
                 # did this line match any of the fixed failed regexes?
@@ -524,6 +511,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             # Need to record the cursor here if we got any entries at all
             if entry:
                 offset = entry['__CURSOR']
+            else:
+                debug("Processed no new entries")
 
         # Not using the journal....
         else:
@@ -656,6 +645,27 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             else: extra = "%i" % i
             self.__failed_entry_regex_map[i] = self.get_regex('FAILED_ENTRY_REGEX%s' % extra,
                                                               FAILED_ENTRY_REGEX_MAP[i])
+
+    def read_cursor(self):
+        try:
+            fp = open(self.__cursor_file, "r")
+            self.__cursor = fp.readline().rstrip("\r\n")
+        except IOError:
+            pass
+
+    def save_cursor(self, cursor):
+        if not cursor:
+            return
+
+        debug("Updating cursor file to {}".format(cursor))
+        self.__cursor = cursor
+        try:
+            fp = open(self.__cursor_file, "w")
+            fp.write(str(cursor))
+            fp.write("\n")
+            fp.close()
+        except IOError:
+            error("Could not save cursor to %s" % self.__cursor_file)
 
 
 ##        self.__failed_entry_regex = self.get_regex('FAILED_ENTRY_REGEX', FAILED_ENTRY_REGEX)
