@@ -5,6 +5,7 @@ import sys
 #################################################################################
 
 SECURE_LOG_OFFSET = "offset"
+SECURE_LOG_CURSOR = "journald-cursor"
 DENIED_TIMESTAMPS = "denied-timestamps"
 
 ABUSIVE_HOSTS_INVALID = "hosts"

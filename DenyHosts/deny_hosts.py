@@ -1,6 +1,7 @@
 import logging
 import gzip
 import os
+import os.path
 import signal
 from stat import ST_SIZE, ST_INO
 import time
@@ -23,6 +24,11 @@ from restricted import Restricted
 from sync import Sync
 from util import die, is_true, parse_host, send_email
 from version import VERSION
+
+try:
+    from systemd import journal
+except ImportError:
+    pass
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
@@ -47,38 +53,72 @@ class DenyHosts(object):
         self.__blockport = prefs.get("BLOCKPORT")
         self.__pfctl = prefs.get("PFCTL_PATH")
         self.__pftable = prefs.get("PF_TABLE")
+        self.__use_journal = prefs.get("USE_JOURNAL")
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
         info("restricted: %s", self.__restricted)
         self.init_regex()
 
-        try:
-            self.file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
-                                            logfile)
-        except Exception, e:
-            self.__lock_file.remove()
-            die("Can't read: %s" % logfile, e)
-
         self.__allowed_hosts = AllowedHosts(self.__prefs)
 
-        if ignore_offset:
-            last_offset = 0
-        else:
-            last_offset = self.file_tracker.get_offset()
+        if self.__use_journal:
+            # If cursor exists, seek to it.  Otherwise read all entries.
+            self.__cursor_file = os.path.join(self.__prefs.get('WORK_DIR'), SECURE_LOG_CURSOR)
+            self.__cursor = ""
+            self.__journal = journal.Reader()
 
+            try:
+                fp = open(self.__cursor_file, "r")
+                self.__cursor = fp.readline()
+            except IOError:
+                pass
 
-        if last_offset is not None:
+            if len(self.__cursor):
+                try:
+                    self.__journal.seek_cursor(self.__cursor)
+                except ValueError:
+                    error("Bad cursor value; reading from beginning of journal")
+
+            # Now the journal is queued up to the proper entry and ready for reading
             self.get_denied_hosts()
-            info("Processing log file (%s) from offset (%ld)",
-                 logfile,
-                 last_offset)
-            offset = self.process_log(logfile, last_offset)
-            if offset != last_offset:
-                self.file_tracker.save_offset(offset)
-                last_offset = offset
-        elif not daemon:
-            info("Log file size has not changed.  Nothing to do.")
+            info("Processing journal from cursor (%s)", self.__cursor)
+            cursor = self.process_log(None, None)
+
+            # Have processed all pending journal entries; save off the cursor
+            try:
+                fp = open(self.__cursor_file, "w")
+                fp.write(cursor)
+                fp.write("\n")
+                fp.close()
+            except IOError:
+                error("Could not save cursor to %s" % self.__cursor_file)
+
+        # Otherwise, not using the journal....
+        else:
+            try:
+                self.file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
+                                            logfile)
+            except Exception, e:
+                self.__lock_file.remove()
+                die("Can't read: %s" % logfile, e)
+
+            if ignore_offset:
+                last_offset = 0
+            else:
+                last_offset = self.file_tracker.get_offset()
+
+
+            if last_offset is not None:
+                self.get_denied_hosts()
+                info("Processing log file (%s) from offset (%ld)",
+                     logfile, last_offset)
+                offset = self.process_log(logfile, last_offset)
+                if offset != last_offset:
+                    self.file_tracker.save_offset(offset)
+                    last_offset = offset
+            elif not daemon:
+                info("Log file size has not changed.  Nothing to do.")
 
         if daemon and not foreground:
             info("launching DenyHosts daemon (version %s)..." % VERSION)
@@ -133,7 +173,10 @@ class DenyHosts(object):
         info("  eg.  kill -TERM %s", os.getpid())
         self.__lock_file.create()
 
-        info("monitoring log: %s", logfile)
+        if self.__use_journal:
+            info("monitoring journal")
+        else:
+            info("monitoring log: %s", logfile)
         daemon_sleep = self.__prefs.get('DAEMON_SLEEP')
         purge_time = self.__prefs.get('PURGE_DENY')
         sync_time = self.__prefs.get('SYNC_INTERVAL')
@@ -179,50 +222,65 @@ class DenyHosts(object):
 
         while 1:
 
-            try:
-                curr_inode = os.stat(logfile)[ST_INO]
-            except OSError:
-                info("%s has been deleted", logfile)
-                self.sleepAndPurge(daemon_sleep,
-                                   purge_time,
-                                   purge_sleep_ratio)
-                continue
+            # If using the journal, we can always just iterate over any new entries
+            if self.__use_journal:
+                cursor = self.process_log(None, None)
 
-            if curr_inode != inode:
-                info("%s has been rotated", logfile)
-                inode = curr_inode
+                # Have processed all pending journal entries; save off the cursor
                 try:
+                    fp = open(self.__cursor_file, "w")
+                    fp.write(cursor)
+                    fp.write("\n")
                     fp.close()
                 except IOError:
-                    pass
+                    error("Could not save cursor to %s" % self.__cursor_file)
 
-                fp = open(logfile, "r")
-                # this ultimately forces offset (if not 0) to be < last_offset
-                last_offset = sys.maxint
+            # If not using the journal....
+            else:
+                try:
+                    curr_inode = os.stat(logfile)[ST_INO]
+                except OSError:
+                    info("%s has been deleted", logfile)
+                    self.sleepAndPurge(daemon_sleep,
+                                       purge_time,
+                                       purge_sleep_ratio)
+                    continue
+
+                if curr_inode != inode:
+                    info("%s has been rotated", logfile)
+                    inode = curr_inode
+                    try:
+                        fp.close()
+                    except IOError:
+                        pass
+
+                    fp = open(logfile, "r")
+                    # this ultimately forces offset (if not 0) to be < last_offset
+                    last_offset = sys.maxint
 
 
-            offset = os.fstat(fp.fileno())[ST_SIZE]
-            if last_offset is None:
-                last_offset = offset
+                offset = os.fstat(fp.fileno())[ST_SIZE]
+                if last_offset is None:
+                    last_offset = offset
 
-            if offset > last_offset:
-                # new data added to logfile
-                debug("%s has additional data", logfile)
+                if offset > last_offset:
+                    # new data added to logfile
+                    debug("%s has additional data", logfile)
 
-                self.get_denied_hosts()
-                last_offset = self.process_log(logfile, last_offset)
+                    self.get_denied_hosts()
+                    last_offset = self.process_log(logfile, last_offset)
 
-                self.file_tracker.save_offset(last_offset)
-            elif offset == 0:
-                # log file rotated, nothing to do yet...
-                # since there is no first_line
-                debug("%s is empty.  File was rotated", logfile)
-            elif offset < last_offset:
-                # file was rotated or replaced and now has data
-                debug("%s most likely rotated and now has data", logfile)
-                last_offset = 0
-                self.file_tracker.update_first_line()
-                continue
+                    self.file_tracker.save_offset(last_offset)
+                elif offset == 0:
+                    # log file rotated, nothing to do yet...
+                    # since there is no first_line
+                    debug("%s is empty.  File was rotated", logfile)
+                elif offset < last_offset:
+                    # file was rotated or replaced and now has data
+                    debug("%s most likely rotated and now has data", logfile)
+                    last_offset = 0
+                    self.file_tracker.update_first_line()
+                    continue
 
             self.sleepAndPurge(daemon_sleep, purge_time,
                                purge_sleep_ratio, sync_sleep_ratio)
@@ -381,23 +439,25 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         return invalid
 
     def process_log(self, logfile, offset):
-        try:
-            if logfile.endswith(".gz"):
-                fp = gzip.open(logfile)
-            elif logfile.endswith(".bz2"):
-                if HAS_BZ2: fp = bz2.BZ2File(logfile, "r")
-                else:       raise Exception, "Can not open bzip2 file (missing bz2 module)"
-            else:
-                fp = open(logfile, "r")
-        except Exception, e:
-            print "Could not open log file: %s" % logfile
-            print e
-            return -1
+        # If using the journal, we already have self.__journal queued up and ready
+        if not self.__use_journal:
+            try:
+                if logfile.endswith(".gz"):
+                    fp = gzip.open(logfile)
+                elif logfile.endswith(".bz2"):
+                    if HAS_BZ2: fp = bz2.BZ2File(logfile, "r")
+                    else:       raise Exception, "Can not open bzip2 file (missing bz2 module)"
+                else:
+                    fp = open(logfile, "r")
+            except Exception, e:
+                print "Could not open log file: %s" % logfile
+                print e
+                return -1
 
-        try:
-            fp.seek(offset)
-        except IOError:
-            pass
+            try:
+                fp.seek(offset)
+            except IOError:
+                pass
 
         suspicious_always = is_true(self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS'))
 
@@ -408,60 +468,117 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                                      1, # fetch all
                                      self.__restricted)
 
-        for line in fp:
-            success = invalid = 0
-            m = None
-            sshd_m = self.__sshd_format_regex.match(line)
-            if sshd_m:
-                message = sshd_m.group('message')
-
+        if self.__use_journal:
+            entry = None
+            for entry in self.__journal:
+                success = invalid = 0
+                m = None
                 # did this line match any of the fixed failed regexes?
                 for i in FAILED_ENTRY_REGEX_RANGE:
                     rx = self.__failed_entry_regex_map.get(i)
                     if rx is None:
                         continue
-                    m = rx.search(message)
+                    m = rx.search(entry['MESSAGE'])
                     if m:
                         invalid = self.is_valid(m)
                         break
                 else: # didn't match any of the failed regex'es, was it succesful?
-                    m = self.__successful_entry_regex.match(message)
+                    m = self.__successful_entry_regex.match(entry['MESSAGE'])
                     if m:
                         success = 1
 
-            # otherwise, did the line match one of the userdef regexes?
-            if not m:
-                for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
-                    m = rx.search(line)
-                    if m:
-                        #info("matched: %s" % rx.pattern)
-                        invalid = self.is_valid(m)
-                        break
+                # otherwise, did the line match one of the userdef regexes?
+                if not m:
+                    for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
+                        m = rx.search(entry['MESSAGE'])
+                        if m:
+                            #info("matched: %s" % rx.pattern)
+                            invalid = self.is_valid(m)
+                            break
 
-            if not m:
-                # line isn't important
-                continue
+                if not m:
+                    # line isn't important
+                    continue
 
-            try:
-                user = m.group("user")
-            except Exception:
-                user = ""
-            try:
-                host = m.group("host")
-            except Exception:
-                error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
-                continue
+                try:
+                    user = m.group("user")
+                except Exception:
+                    user = ""
+                try:
+                    host = m.group("host")
+                except Exception:
+                    error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
+                    continue
 
-            debug ("user: %s - host: %s - success: %d - invalid: %d",
-                   user,
-                   host,
-                   success,
-                   invalid)
-            login_attempt.add(user, host, success, invalid)
+                debug ("user: %s - host: %s - success: %d - invalid: %d",
+                        user,
+                        host,
+                        success,
+                        invalid)
+                login_attempt.add(user, host, success, invalid)
 
-        offset = fp.tell()
-        fp.close()
 
+            # Need to record the cursor here if we got any entries at all
+            if entry:
+                offset = entry['__CURSOR']
+
+        # Not using the journal....
+        else:
+            for line in fp:
+                success = invalid = 0
+                m = None
+                sshd_m = self.__sshd_format_regex.match(line)
+                if sshd_m:
+                    message = sshd_m.group('message')
+
+                    # did this line match any of the fixed failed regexes?
+                    for i in FAILED_ENTRY_REGEX_RANGE:
+                        rx = self.__failed_entry_regex_map.get(i)
+                        if rx is None:
+                            continue
+                        m = rx.search(message)
+                        if m:
+                            invalid = self.is_valid(m)
+                            break
+                    else: # didn't match any of the failed regex'es, was it succesful?
+                        m = self.__successful_entry_regex.match(message)
+                        if m:
+                            success = 1
+
+                # otherwise, did the line match one of the userdef regexes?
+                if not m:
+                    for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
+                        m = rx.search(line)
+                        if m:
+                            #info("matched: %s" % rx.pattern)
+                            invalid = self.is_valid(m)
+                            break
+
+                if not m:
+                    # line isn't important
+                    continue
+
+                try:
+                    user = m.group("user")
+                except Exception:
+                    user = ""
+                try:
+                    host = m.group("host")
+                except Exception:
+                    error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
+                    continue
+
+                debug ("user: %s - host: %s - success: %d - invalid: %d",
+                        user,
+                        host,
+                        success,
+                        invalid)
+                login_attempt.add(user, host, success, invalid)
+
+                offset = fp.tell()
+                fp.close()
+
+        # Have looped over all log/journal entries
         login_attempt.save_all_stats()
         deny_hosts = login_attempt.get_deny_hosts()
 

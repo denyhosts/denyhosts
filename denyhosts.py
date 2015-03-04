@@ -9,6 +9,7 @@ import DenyHosts.python_version
 import getopt
 from getopt import GetoptError
 import traceback
+import logging
 
 from DenyHosts.util import die, setup_logging, is_true
 from DenyHosts.lockfile import LockFile

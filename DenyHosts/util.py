@@ -22,7 +22,7 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
         daemon_log = prefs.get('DAEMON_LOG')
         journal_log = is_true(prefs.get('LOG_TO_JOURNAL'))
         if journal_log:
-            logging.root.addHandler(journal.JournalHandler())
+            logging.root.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER='denyhosts'))
             logging.root.propagate = False
         elif daemon_log:
             # define a Handler which writes INFO messages or higher to the sys.stderr
