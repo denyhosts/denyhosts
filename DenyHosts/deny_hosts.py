@@ -68,7 +68,12 @@ class DenyHosts(object):
             self.__cursor_file = os.path.join(self.__prefs.get('WORK_DIR'), SECURE_LOG_CURSOR)
             self.__cursor = ""
             self.__journal = journal.Reader()
-            self.__journal.add_match('SYSLOG_IDENTIFIER=sshd')
+
+            # Add each of the specified match strings, with logical OR between them
+            for match in prefs.get("JOURNAL_MATCHES").split():
+                self.__journal.add_match(match)
+                self.__journal.add_disjunction()
+
             self.__journal.get_next()
 
             self.read_cursor()
