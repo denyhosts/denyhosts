@@ -165,9 +165,9 @@ class DenyHosts(object):
         self.__lock_file.create()
 
         if self.__use_journal:
-            info("monitoring journal")
+            info("Monitoring journal")
         else:
-            info("monitoring log: %s", logfile)
+            info("Monitoring log: {0}".format(logfile))
         daemon_sleep = self.__prefs.get('DAEMON_SLEEP')
         purge_time = self.__prefs.get('PURGE_DENY')
         sync_time = self.__prefs.get('SYNC_INTERVAL')
@@ -436,7 +436,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         except Exception, e:
             print "Could not open log file: %s" % logfile
             print e
-            return -1
+            return None
 
         try:
             fp.seek(offset)
@@ -524,6 +524,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         else:
             self.get_denied_hosts()
             fp = self.open_log_and_seek(logfile, offset)
+            # If the log couldn't be opened, return a negative offset
+            # so the main loop will keep trying.
+            if fp == None:
+                return -1
             for line in fp:
                 success = invalid = 0
                 m = None
@@ -565,7 +569,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 try:
                     host = m.group("host")
                 except Exception:
-                    error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
+                    error("Regex pattern ( {0} ) is missing 'host' group".format(m.re.pattern))
                     continue
 
                 debug("user: {0} - host: {1} - success: {2} - invalid: {3}".format(user, host, success, invalid))
@@ -584,9 +588,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             new_denied_hosts, status = self.update_hosts_deny(deny_hosts)
             if new_denied_hosts:
                 if not status:
-                    msg = "WARNING: Could not add the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
+                    msg = "WARNING: Could not add the following hosts to {0}".format(self.__prefs.get('HOSTS_DENY'))
                 else:
-                    msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
+                    msg = "Added the following hosts to {0}".format(self.__prefs.get('HOSTS_DENY'))
                 self.__report.add_section(msg, new_denied_hosts)
                 if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
                 plugin_deny = self.__prefs.get('PLUGIN_DENY')
@@ -657,13 +661,13 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             fp = open(self.__cursor_file, "r")
             self.__cursor = fp.readline().rstrip("\r\n")
         except IOError:
-            pass
+            self.__cursor = ""
 
     def save_cursor(self, cursor):
         if not cursor:
             return
 
-        debug("Updating cursor file to {}".format(cursor))
+        debug("Updating cursor file to {0}".format(cursor))
         self.__cursor = cursor
         try:
             fp = open(self.__cursor_file, "w")
@@ -671,7 +675,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             fp.write("\n")
             fp.close()
         except IOError:
-            error("Could not save cursor to %s" % self.__cursor_file)
+            error("Could not save cursor to {0}".format(self.__cursor_file))
 
 
 ##        self.__failed_entry_regex = self.get_regex('FAILED_ENTRY_REGEX', FAILED_ENTRY_REGEX)
