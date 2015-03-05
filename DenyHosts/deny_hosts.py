@@ -213,7 +213,6 @@ class DenyHosts(object):
             inode = os.fstat(fp.fileno())[ST_INO]
 
         while 1:
-
             # If using the journal, we can always just iterate over any new entries
             if self.__use_journal:
                 cursor = self.process_log(None, None)
@@ -251,7 +250,7 @@ class DenyHosts(object):
 
                 if offset > last_offset:
                     # new data added to logfile
-                    debug("%s has additional data", logfile)
+                    debug("{0} has additional data".format(logfile))
 
                     last_offset = self.process_log(logfile, last_offset)
 
@@ -259,10 +258,10 @@ class DenyHosts(object):
                 elif offset == 0:
                     # log file rotated, nothing to do yet...
                     # since there is no first_line
-                    debug("%s is empty.  File was rotated", logfile)
+                    debug("{0} is empty.  File was rotated".format(logfile))
                 elif offset < last_offset:
                     # file was rotated or replaced and now has data
-                    debug("%s most likely rotated and now has data", logfile)
+                    debug("{0} most likely rotated and now has data".format(logfile))
                     last_offset = 0
                     self.file_tracker.update_first_line()
                     continue
@@ -310,7 +309,7 @@ class DenyHosts(object):
 
 
     def get_denied_hosts(self):
-        debug("Re-loading denied hosts")
+        debug("Reloading denied hosts")
         self.__denied_hosts = {}
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
             if line[0] not in ('#', '\n'):
@@ -347,7 +346,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                      if not self.__denied_hosts.has_key(host)
                      and host not in self.__allowed_hosts]
 
-        debug("New denied hosts: {0}".format(str(new_hosts)))
+        #debug("New denied hosts: {0}".format(str(new_hosts)))
 
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
@@ -425,29 +424,30 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             invalid = 1
         return invalid
 
+    def open_log_and_seek(self, logfile, offset):
+        try:
+            if logfile.endswith(".gz"):
+                fp = gzip.open(logfile)
+            elif logfile.endswith(".bz2"):
+                if HAS_BZ2: fp = bz2.BZ2File(logfile, "r")
+                else:       raise Exception, "Can not open bzip2 file (missing bz2 module)"
+            else:
+                fp = open(logfile, "r")
+        except Exception, e:
+            print "Could not open log file: %s" % logfile
+            print e
+            return -1
+
+        try:
+            fp.seek(offset)
+        except IOError:
+            pass
+
+        return fp
+
     def process_log(self, logfile, offset):
-        # If using the journal, we already have self.__journal queued up and ready
-        if not self.__use_journal:
-            try:
-                if logfile.endswith(".gz"):
-                    fp = gzip.open(logfile)
-                elif logfile.endswith(".bz2"):
-                    if HAS_BZ2: fp = bz2.BZ2File(logfile, "r")
-                    else:       raise Exception, "Can not open bzip2 file (missing bz2 module)"
-                else:
-                    fp = open(logfile, "r")
-            except Exception, e:
-                print "Could not open log file: %s" % logfile
-                print e
-                return -1
-
-            try:
-                fp.seek(offset)
-            except IOError:
-                pass
-
+        new_attempt = False
         suspicious_always = is_true(self.__prefs.get('SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS'))
-
         login_attempt = LoginAttempt(self.__prefs,
                                      self.__allowed_hosts,
                                      suspicious_always,
@@ -459,6 +459,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             entry = None
             count = 0
             for entry in self.__journal:
+                success = invalid = 0
+                m = None
+
                 # This is unpleasant.  We need to call get_denied_hosts once before
                 # processing new entries.  The non-journal code does this whenever
                 # this function gets called, because that doesn't happen unless the
@@ -469,8 +472,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 count += 1
                 if count % 1000 == 0:
                     info("Processed {0} entries....".format(count))
-                success = invalid = 0
-                m = None
+
                 # did this line match any of the fixed failed regexes?
                 for i in FAILED_ENTRY_REGEX_RANGE:
                     rx = self.__failed_entry_regex_map.get(i)
@@ -510,7 +512,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
                 debug("user: {0} - host: {1} - success: {2} - invalid: {3}".format(user, host, success, invalid))
                 login_attempt.add(user, host, success, invalid)
-
+                new_attempt = True
 
             # Need to record the cursor here if we got any entries at all
             if entry:
@@ -521,6 +523,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         # Not using the journal....
         else:
             self.get_denied_hosts()
+            fp = self.open_log_and_seek(logfile, offset)
             for line in fp:
                 success = invalid = 0
                 m = None
@@ -567,50 +570,52 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
                 debug("user: {0} - host: {1} - success: {2} - invalid: {3}".format(user, host, success, invalid))
                 login_attempt.add(user, host, success, invalid)
+                new_attempt = True
 
             offset = fp.tell()
             fp.close()
 
         # Have looped over all log/journal entries
-        login_attempt.save_all_stats()
-        deny_hosts = login_attempt.get_deny_hosts()
+        if new_attempt:
+            login_attempt.save_all_stats()
+            deny_hosts = login_attempt.get_deny_hosts()
 
-        #print deny_hosts
-        new_denied_hosts, status = self.update_hosts_deny(deny_hosts)
-        if new_denied_hosts:
-            if not status:
-                msg = "WARNING: Could not add the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
+            #print deny_hosts
+            new_denied_hosts, status = self.update_hosts_deny(deny_hosts)
+            if new_denied_hosts:
+                if not status:
+                    msg = "WARNING: Could not add the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
+                else:
+                    msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
+                self.__report.add_section(msg, new_denied_hosts)
+                if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
+                plugin_deny = self.__prefs.get('PLUGIN_DENY')
+
+                if plugin_deny: plugin.execute(plugin_deny, new_denied_hosts)
+
+            new_suspicious_logins = login_attempt.get_new_suspicious_logins()
+            if new_suspicious_logins:
+                msg = "Observed the following suspicious login activity"
+                self.__report.add_section(msg, new_suspicious_logins.keys())
+
+            if new_denied_hosts:
+                info("New denied hosts: {0}".format(str(new_denied_hosts)))
             else:
-                msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
-            self.__report.add_section(msg, new_denied_hosts)
-            if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
-            plugin_deny = self.__prefs.get('PLUGIN_DENY')
+                debug("No new denied hosts")
 
-            if plugin_deny: plugin.execute(plugin_deny, new_denied_hosts)
+            if new_suspicious_logins:
+                info("New suspicious logins: {0}".format(str(new_suspicious_logins.keys())))
+            else:
+                debug("No new suspicious logins")
 
-        new_suspicious_logins = login_attempt.get_new_suspicious_logins()
-        if new_suspicious_logins:
-            msg = "Observed the following suspicious login activity"
-            self.__report.add_section(msg, new_suspicious_logins.keys())
-
-        if new_denied_hosts:
-            info("new denied hosts: %s", str(new_denied_hosts))
-        else:
-            debug("no new denied hosts")
-
-        if new_suspicious_logins:
-            info("new suspicious logins: %s", str(new_suspicious_logins.keys()))
-        else:
-            debug("no new suspicious logins")
-
-        if not self.__report.empty():
-            if not self.__noemail:
-                # send the report via email if configured
-                send_email(self.__prefs, self.__report.get_report())
-            elif not self.__daemon:
-                # otherwise, if not in daemon mode, log the report to the console
-                info(self.__report.get_report())
-            self.__report.clear()
+            if not self.__report.empty():
+                if not self.__noemail:
+                    # send the report via email if configured
+                    send_email(self.__prefs, self.__report.get_report())
+                elif not self.__daemon:
+                    # otherwise, if not in daemon mode, log the report to the console
+                    info(self.__report.get_report())
+                self.__report.clear()
 
         return offset
 
