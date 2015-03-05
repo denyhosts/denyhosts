@@ -216,8 +216,6 @@ class DenyHosts(object):
             # If using the journal, we can always just iterate over any new entries
             if self.__use_journal:
                 cursor = self.process_log(None, None)
-                if cursor:
-                    debug("Cursor: {0}".format(cursor))
                 self.save_cursor(cursor)
 
             # If not using the journal....
@@ -517,8 +515,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             # Need to record the cursor here if we got any entries at all
             if entry:
                 offset = entry['__CURSOR']
-            else:
-                debug("Processed no new entries")
+            #else:
+                #debug("Processed no new entries")
 
         # Not using the journal....
         else:
