@@ -53,7 +53,7 @@ class DenyHosts(object):
         self.__blockport = prefs.get("BLOCKPORT")
         self.__pfctl = prefs.get("PFCTL_PATH")
         self.__pftable = prefs.get("PF_TABLE")
-        self.__use_journal = prefs.get("USE_JOURNAL")
+        self.__use_journal = is_true(prefs.get("USE_JOURNAL"))
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -80,9 +80,8 @@ class DenyHosts(object):
 
             # Now the journal is queued up to the proper entry and ready for reading
             self.get_denied_hosts()
-            info("Processing journal from cursor (%s)", self.__cursor)
+            info("Processing journal from cursor ({0})".format(self.__cursor))
             cursor = self.process_log(None, None)
-            debug(cursor)
 
             # Have processed all pending journal entries; save off the cursor:
             self.save_cursor(cursor)
@@ -104,8 +103,7 @@ class DenyHosts(object):
 
             if last_offset is not None:
                 self.get_denied_hosts()
-                info("Processing log file (%s) from offset (%ld)",
-                     logfile, last_offset)
+                info("Processing log file ({0}) from offset ({1})".format(logfile, last_offset))
                 offset = self.process_log(logfile, last_offset)
                 if offset != last_offset:
                     self.file_tracker.save_offset(offset)
@@ -210,15 +208,17 @@ class DenyHosts(object):
     def daemonLoop(self, logfile, last_offset, daemon_sleep,
                    purge_time, purge_sleep_ratio, sync_sleep_ratio):
 
-        fp = open(logfile, "r")
-        inode = os.fstat(fp.fileno())[ST_INO]
+        if not self.__use_journal:
+            fp = open(logfile, "r")
+            inode = os.fstat(fp.fileno())[ST_INO]
 
         while 1:
 
             # If using the journal, we can always just iterate over any new entries
             if self.__use_journal:
                 cursor = self.process_log(None, None)
-                debug(cursor)
+                if cursor:
+                    debug("Cursor: {0}".format(cursor))
                 self.save_cursor(cursor)
 
             # If not using the journal....
@@ -253,7 +253,6 @@ class DenyHosts(object):
                     # new data added to logfile
                     debug("%s has additional data", logfile)
 
-                    self.get_denied_hosts()
                     last_offset = self.process_log(logfile, last_offset)
 
                     self.file_tracker.save_offset(last_offset)
@@ -311,6 +310,7 @@ class DenyHosts(object):
 
 
     def get_denied_hosts(self):
+        debug("Re-loading denied hosts")
         self.__denied_hosts = {}
         for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
             if line[0] not in ('#', '\n'):
@@ -339,14 +339,15 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
 
     def update_hosts_deny(self, deny_hosts):
-        if not deny_hosts: return None, None
+        if not deny_hosts:
+            return None, None
 
-        #info("keys: %s", str( self.__denied_hosts.keys()))
+        debug("Existing denied hosts: {0}".format(str( self.__denied_hosts.keys())))
         new_hosts = [host for host in deny_hosts
                      if not self.__denied_hosts.has_key(host)
                      and host not in self.__allowed_hosts]
 
-        debug("new hosts: %s", str(new_hosts))
+        debug("New denied hosts: {0}".format(str(new_hosts)))
 
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
@@ -458,9 +459,16 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             entry = None
             count = 0
             for entry in self.__journal:
+                # This is unpleasant.  We need to call get_denied_hosts once before
+                # processing new entries.  The non-journal code does this whenever
+                # this function gets called, because that doesn't happen unless the
+                # log file changes.
+                if count == 0:
+                    self.get_denied_hosts()
+
                 count += 1
                 if count % 1000 == 0:
-                    info("Processed {} entries....".format(count))
+                    info("Processed {0} entries....".format(count))
                 success = invalid = 0
                 m = None
                 # did this line match any of the fixed failed regexes?
@@ -482,7 +490,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                     for rx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
                         m = rx.search(entry['MESSAGE'])
                         if m:
-                            #info("matched: %s" % rx.pattern)
+                            debug("matched: {0}".format(rx.pattern))
                             invalid = self.is_valid(m)
                             break
 
@@ -500,11 +508,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                     error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
                     continue
 
-                debug ("user: %s - host: %s - success: %d - invalid: %d",
-                        user,
-                        host,
-                        success,
-                        invalid)
+                debug("user: {0} - host: {1} - success: {2} - invalid: {3}".format(user, host, success, invalid))
                 login_attempt.add(user, host, success, invalid)
 
 
@@ -516,6 +520,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         # Not using the journal....
         else:
+            self.get_denied_hosts()
             for line in fp:
                 success = invalid = 0
                 m = None
@@ -560,15 +565,11 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                     error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
                     continue
 
-                debug ("user: %s - host: %s - success: %d - invalid: %d",
-                        user,
-                        host,
-                        success,
-                        invalid)
+                debug("user: {0} - host: {1} - success: {2} - invalid: {3}".format(user, host, success, invalid))
                 login_attempt.add(user, host, success, invalid)
 
-                offset = fp.tell()
-                fp.close()
+            offset = fp.tell()
+            fp.close()
 
         # Have looped over all log/journal entries
         login_attempt.save_all_stats()
