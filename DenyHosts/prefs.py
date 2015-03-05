@@ -61,6 +61,9 @@ class Prefs(dict):
                        'SYNC_DOWNLOAD_RESILIENCY': '5h',
                        'PURGE_THRESHOLD': 0,
                        'ALLOWED_HOSTS_HOSTNAME_LOOKUP': 'no',
+                       'USE_JOURNAL': 'no',
+                       'JOURNAL_MATCHES': 'SYSLOG_IDENTIFIER=sshd',
+                       'LOG_TO_JOURNAL': 'no',
                        'ETC_DIR': '/etc'}
 
         # reqd[0]: required field name
@@ -79,7 +82,10 @@ class Prefs(dict):
                      ('IPTABLES', False),
                      ('BLOCKPORT', False),
                      ('PFCTL_PATH', False),
-                     ('PF_TABLE', False))
+                     ('PF_TABLE', False),
+                     ('USE_JOURNAL', False),
+                     ('JOURNAL_MATCHES', False),
+                     ('LOG_TO_JOURNAL', False))
 
         # the paths for these keys will be converted to
         # absolute pathnames (in the event they are relative)
