@@ -2,7 +2,6 @@
 import os
 import platform
 import sys
-import logging
 sys.path.insert(0, '/usr/share/denyhosts')
 
 import DenyHosts.python_version
@@ -10,6 +9,7 @@ import DenyHosts.python_version
 import getopt
 from getopt import GetoptError
 import traceback
+import logging
 
 from DenyHosts.util import die, setup_logging, is_true
 from DenyHosts.lockfile import LockFile

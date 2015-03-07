@@ -51,6 +51,7 @@ class LoginAttempt(object):
 
 
     def add(self, user, host, success, invalid):
+        debug("Add: {0}, {1}".format(user, host))
         user_host_key = "%s - %s" % (user, host)
 
         if host:

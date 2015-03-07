@@ -8,6 +8,11 @@ from textwrap import dedent
 import time
 from types import IntType
 
+try:
+    from systemd import journal
+except ImportError:
+    pass
+
 from constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from regex import TIME_SPEC_REGEX
 
@@ -15,7 +20,11 @@ debug = logging.getLogger("util").debug
 
 def setup_logging(prefs, enable_debug, verbose, daemon):
         daemon_log = prefs.get('DAEMON_LOG')
-        if daemon_log:
+        journal_log = is_true(prefs.get('LOG_TO_JOURNAL'))
+        if journal_log:
+            logging.root.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER='denyhosts'))
+            logging.root.propagate = False
+        elif daemon_log:
             # define a Handler which writes INFO messages or higher to the sys.stderr
             # fh = logging.FileHandler(daemon_log, 'a')
             fh = logging.handlers.RotatingFileHandler(daemon_log, 'a', 1024*1024, 7)
@@ -25,10 +34,10 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             fh.setFormatter(formatter)
             # add the handler to the root logger
             logging.getLogger().addHandler(fh)
+        if journal_log or daemon_log:
             if enable_debug:
                 # if --debug was enabled provide gory activity details
                 logging.getLogger().setLevel(logging.DEBUG)
-                #prefs.dump_to_logger()
             else:
                 # in daemon mode we always log some activity
                 logging.getLogger().setLevel(logging.INFO)
