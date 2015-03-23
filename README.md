@@ -48,7 +48,7 @@ then edited as such:
 
     # <edit> /etc/denyhosts.conf
 
-(where <edit> is your preferred text editor such as emacs, vi, etc)
+(where \<edit\> is your preferred text editor such as emacs, vi, etc)
 
 The sample configuration file contains informational comments that
 should help you quickly configure DenyHosts.  After you have
