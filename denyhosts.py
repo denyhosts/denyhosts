@@ -143,6 +143,17 @@ if __name__ == '__main__':
             print e
             sys.exit(1)
 
+    # On some operating systems the file /etc/hosts.deny (or
+    # whatever HOSTS_DENY is set to, may not exist. We should
+    # "touch" the file to make sure it is there to avoid errors later.
+    try:
+        host_filename = prefs.get("HOSTS_DENY")
+        if (host_filename): 
+            fp = open( prefs.get("HOSTS_DENY"), "a" )
+            fp.close();
+    except Exception, e:
+        print "Unable to create file specified by HOSTS_DENY variable."
+
     setup_logging(prefs, enable_debug, verbose, daemon)
 
     if not logfiles or daemon:

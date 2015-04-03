@@ -5,15 +5,13 @@ we are not blocking the remote host when multiple attempts are
 made to access the local service. We should try to
 detect bad connections to key-only systems.
 
-
 In cases where DenyHosts cannot write to disk, it should not crash.
-Likewise, if /etc/hosts.deny does not exist, that should not make
-DenyHost panic or crash.
-
-Add new option to write list of banned IP addresses to a location
-such as /etc/blacklist
 
 Consider support for IPv6
 
 Create new sync server.
+
+Update code to be compatible with Python version 3. Hopefully
+we can maintain compatibility with Python version 2.7 and perhaps
+other older verisons.
 

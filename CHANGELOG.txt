@@ -10,6 +10,18 @@ insure info logging stream is active.
 Added "import logging" to denyhosts.py to avoid errors
 when setting up logging. (See above change.)
 
+Added option PF_TABLE_FILE to the configuration file.
+When this option is enabled it causes DenyHosts to write
+blocked IP addresses to a text file. The default location
+is /etc/blacklist. This text file should correspond to a
+PF firewall table.
+
+At start-up, try to create the file specified by
+HOSTS_DENY. That way we avoid errors later if the
+file does not exists. Can be a problem on operating systems
+where /etc/hosts.deny does not exist in the default
+configuration.
+
 
 
 2.10

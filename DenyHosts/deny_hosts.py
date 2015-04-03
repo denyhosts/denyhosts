@@ -47,6 +47,7 @@ class DenyHosts(object):
         self.__blockport = prefs.get("BLOCKPORT")
         self.__pfctl = prefs.get("PFCTL_PATH")
         self.__pftable = prefs.get("PF_TABLE")
+        self.__pftablefile = prefs.get("PF_TABLE_FILE")
 
         r = Restricted(prefs)
         self.__restricted = r.get_restricted()
@@ -358,12 +359,24 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                    debug("Running PF update rule: %s", new_rule)
                    info("Creating new PF rule %s", new_rule)
                    os.system(new_rule);
-
+                   
              except Exception, e:
                 print e
                 print "Unable to write new PF rule."
                 debug("Unable to create PF rule. %s", e)
-
+          if self.__pftablefile:
+              debug("Trying to write host to PF table file %s", self.__pftablefile)
+              try:
+                 pf_file = open(self.__pftablefile, "a")
+                 for host in new_hosts:
+                    my_host = str(host)
+                    pf_file.write("%s\n" % my_host)
+                    info("Wrote new host %s to table file %s", my_host, self.__pftablefile)
+                 pf_file.close()
+               except Exception, e:
+                  print e
+                  print "Unable to write new host to PF table file."
+                  debug("Unable to write new host to PF table file %s", self.__pftablefile)
 
         if fp != sys.stdout:
             fp.close()
