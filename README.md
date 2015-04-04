@@ -46,9 +46,10 @@ then edited as such:
 
     # cp denyhosts.conf /etc
 
-    # <edit> /etc/denyhosts.conf
+    # nano /etc/denyhosts.conf
 
-(where <edit> is your preferred text editor such as emacs, vi, etc)
+(nano is a simple text editor. Feel free to use your own favourite
+text editor such as emacs, vi, etc)
 
 The sample configuration file contains informational comments that
 should help you quickly configure DenyHosts.  After you have
