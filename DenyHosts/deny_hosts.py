@@ -364,7 +364,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 print e
                 print "Unable to write new PF rule."
                 debug("Unable to create PF rule. %s", e)
-          if self.__pftablefile:
+        if self.__pftablefile:
               debug("Trying to write host to PF table file %s", self.__pftablefile)
               try:
                  pf_file = open(self.__pftablefile, "a")
@@ -373,7 +373,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                     pf_file.write("%s\n" % my_host)
                     info("Wrote new host %s to table file %s", my_host, self.__pftablefile)
                  pf_file.close()
-               except Exception, e:
+              except Exception, e:
                   print e
                   print "Unable to write new host to PF table file."
                   debug("Unable to write new host to PF table file %s", self.__pftablefile)
