@@ -50,7 +50,7 @@ class Prefs(dict):
                        'FAILED_ENTRY_REGEX6': None,
                        'FAILED_ENTRY_REGEX7': None,
                        'FAILED_ENTRY_REGEX8': None,
-#                       'FAILED_ENTRY_REGEX9': None,
+                       'FAILED_ENTRY_REGEX9': None,
 #                       'FAILED_ENTRY_REGEX10': None,
                        'USERDEF_FAILED_ENTRY_REGEX': [],
                        'SUCCESSFUL_ENTRY_REGEX': None,

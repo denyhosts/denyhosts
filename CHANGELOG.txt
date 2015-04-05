@@ -22,6 +22,13 @@ file does not exists. Can be a problem on operating systems
 where /etc/hosts.deny does not exist in the default
 configuration.
 
+Added regex pattern to detect invalid user accounts. This blocks
+connections from remote hosts who are attempting to login
+with accounts not found on the local system.
+While these connections to non-existent accountsare relatively harmless, 
+they are usually used as part of a brute force attack and filtering them
+before they reach OpenSSH is a good idea.
+
 
 
 2.10

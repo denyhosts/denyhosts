@@ -24,11 +24,13 @@ FAILED_ENTRY_REGEX6 = re.compile(r"""Did not receive identification string .*fro
 FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) not allowed because not listed in AllowUsers""")
 
 FAILED_ENTRY_REGEX8 = re.compile(r"""authentication error for (?P<user>.*) .*from (?P<host>.*)""")
+FAILED_ENTRY_REGEX9 = re.compile(r"""Invalid user (?P<user>.*) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+
 # these are reserved for future versions
-FAILED_ENTRY_REGEX9 = None
 FAILED_ENTRY_REGEX10 = None
 
-FAILED_ENTRY_REGEX_NUM = 9 # this should match the highest num failed_entry_regex + 1
+# this should match the highest num failed_entry_regex + 1
+FAILED_ENTRY_REGEX_NUM = 10 
 
 FAILED_ENTRY_REGEX_RANGE = range(1, FAILED_ENTRY_REGEX_NUM)
 FAILED_ENTRY_REGEX_MAP = {}
