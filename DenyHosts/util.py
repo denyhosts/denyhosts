@@ -6,10 +6,9 @@ from smtplib import SMTPHeloError
 import sys
 from textwrap import dedent
 import time
-from types import IntType
 
-from constants import BSD_STYLE, TIME_SPEC_LOOKUP
-from regex import TIME_SPEC_REGEX
+from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
+from .regex import TIME_SPEC_REGEX
 
 debug = logging.getLogger("util").debug
 
@@ -39,9 +38,9 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             prefs.dump_to_logger()
 
 def die(msg, ex=None):
-    print msg
+    print(msg)
     if ex:
-        print ex
+        print(ex)
     sys.exit(1)
 
 def is_true(s):
@@ -53,7 +52,7 @@ def is_false(s):
 def calculate_seconds(timestr, zero_ok=False):
     # return the number of seconds in a given timestr such as 1d (1 day),
     # 13w (13 weeks), 5s (5seconds), etc...
-    if type(timestr) is IntType: return timestr
+    if type(timestr) is int: return timestr
 
     m = TIME_SPEC_REGEX.search(timestr)
     if not m:
@@ -155,11 +154,11 @@ def send_email(prefs, report_str):
                       recipients,
                       msg)
         debug("sent email to: %s" % prefs.get("ADMIN_EMAIL"))
-    except Exception, e:
-        print "Error sending email"
-        print e
-        print "Email message follows:"
-        print msg
+    except Exception as e:
+        print("Error sending email")
+        print(e)
+        print("Email message follows:")
+        print(msg)
 
     try:
         smtp.quit()

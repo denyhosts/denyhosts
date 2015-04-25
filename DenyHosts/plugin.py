@@ -11,5 +11,5 @@ def execute(executable, hosts):
         try:
             res = os.system("%s %s" % (executable, host))
             if res: info("plugin returned %d", res)
-        except Exception, e:
+        except Exception as e:
             error("plugin error: %s", e)

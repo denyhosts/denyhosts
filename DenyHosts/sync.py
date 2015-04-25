@@ -1,9 +1,9 @@
 import logging
 import os
 import time
-from xmlrpclib import ServerProxy
+from xmlrpc.client import ServerProxy
 
-from constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS
+from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS
 
 logger = logging.getLogger("sync")
 debug, info, error, exception = logger.debug, logger.info, logger.error, logger.exception
@@ -25,7 +25,7 @@ class Sync(object):
         try:
             self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
             self.__connected = True
-        except Exception, e:
+        except Exception as e:
             error(str(e))
             self.__connected = False
         return self.__connected
@@ -44,18 +44,18 @@ class Sync(object):
             fp = open(os.path.join(self.__work_dir,
                                    SYNC_TIMESTAMP))
             timestamp = fp.readline()
-            timestamp = long(timestamp.strip())
+            timestamp = int(timestamp.strip())
             return timestamp
-        except Exception, e:
+        except Exception as e:
             error(str(e))
-            return 0l
+            return 0
 
     def set_sync_timestamp(self, timestamp):
         try:
             fp = open(os.path.join(self.__work_dir,
                                    SYNC_TIMESTAMP), "w")
             fp.write(timestamp)
-        except Exception, e:
+        except Exception as e:
             error(e)
 
     def send_new_hosts(self):
@@ -96,7 +96,7 @@ class Sync(object):
 
         try:
             self.__server.add_hosts(hosts)
-        except Exception, e:
+        except Exception as e:
             exception(e)
 
     def receive_new_hosts(self):
@@ -118,14 +118,14 @@ class Sync(object):
             info("received %d new host%s", len(hosts), get_plural(hosts))
             self.__save_received_hosts(hosts, timestamp)
             return hosts
-        except Exception, e:
+        except Exception as e:
             exception(e)
             return None
 
     def __save_received_hosts(self, hosts, timestamp):
         try:
             fp = open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a")
-        except IOError, e:
+        except IOError as e:
             error(e)
             return
 

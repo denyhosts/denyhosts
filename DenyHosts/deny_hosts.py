@@ -10,19 +10,19 @@ try:
 except ImportError:
     HAS_BZ2 = False
 
-from allowedhosts import AllowedHosts
-from constants import *
-from daemon import createDaemon
-from denyfileutil import Purge
-from filetracker import FileTracker
-from loginattempt import LoginAttempt
-import plugin
-from regex import *
-from report import Report
-from restricted import Restricted
-from sync import Sync
-from util import die, is_true, parse_host, send_email
-from version import VERSION
+from .allowedhosts import AllowedHosts
+from .constants import *
+from .daemon import createDaemon
+from .denyfileutil import Purge
+from .filetracker import FileTracker
+from .loginattempt import LoginAttempt
+from . import plugin
+from .regex import *
+from .report import Report
+from .restricted import Restricted
+from .sync import Sync
+from .util import die, is_true, parse_host, send_email
+from .version import VERSION
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
@@ -57,7 +57,7 @@ class DenyHosts(object):
         try:
             self.file_tracker = FileTracker(self.__prefs.get('WORK_DIR'),
                                             logfile)
-        except Exception, e:
+        except Exception as e:
             self.__lock_file.remove()
             die("Can't read: %s" % logfile, e)
 
@@ -199,7 +199,7 @@ class DenyHosts(object):
 
                 fp = open(logfile, "r")
                 # this ultimately forces offset (if not 0) to be < last_offset
-                last_offset = sys.maxint
+                last_offset = sys.maxsize
 
 
             offset = os.fstat(fp.fileno())[ST_SIZE]
@@ -239,7 +239,7 @@ class DenyHosts(object):
                 try:
                     purge = Purge(self.__prefs,
                                   purge_time)
-                except Exception, e:
+                except Exception as e:
                     logging.getLogger().exception(e)
                     raise
                 self.purge_counter = 0
@@ -261,7 +261,7 @@ class DenyHosts(object):
                             self.get_denied_hosts()
                             self.update_hosts_deny(new_hosts)
                     sync.xmlrpc_disconnect()
-                except Exception, e:
+                except Exception as e:
                     logging.getLogger().exception(e)
                     raise
                 self.sync_counter = 0
@@ -300,7 +300,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         #info("keys: %s", str( self.__denied_hosts.keys()))
         new_hosts = [host for host in deny_hosts
-                     if not self.__denied_hosts.has_key(host)
+                     if host not in self.__denied_hosts
                      and host not in self.__allowed_hosts]
 
         debug("new hosts: %s", str(new_hosts))
@@ -308,10 +308,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
             status = 1
-        except Exception, e:
-            print e
-            print "These hosts should be manually added to",
-            print self.__prefs.get('HOSTS_DENY')
+        except Exception as e:
+            print(e)
+            print("These hosts should be manually added to: %s", self.__prefs.get('HOSTS_DENY'))
+            # print(self.__prefs.get('HOSTS_DENY'))
             fp = sys.stdout
             status = 0
 
@@ -346,9 +346,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                   info("Creating new firewall rule %s", new_rule)
                   os.system(new_rule);
 
-           except Exception, e:
-               print e
-               print "Unable to write new firewall rule."
+           except Exception as e:
+               print(e)
+               print("Unable to write new firewall rule.")
 
         if self.__pfctl and self.__pftable:
              debug("Trying to update PF table.")
@@ -360,9 +360,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                    info("Creating new PF rule %s", new_rule)
                    os.system(new_rule);
                    
-             except Exception, e:
-                print e
-                print "Unable to write new PF rule."
+             except Exception as e:
+                print(e)
+                print("Unable to write new PF rule.")
                 debug("Unable to create PF rule. %s", e)
         if self.__pftablefile:
               debug("Trying to write host to PF table file %s", self.__pftablefile)
@@ -373,9 +373,9 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                     pf_file.write("%s\n" % my_host)
                     info("Wrote new host %s to table file %s", my_host, self.__pftablefile)
                  pf_file.close()
-              except Exception, e:
-                  print e
-                  print "Unable to write new host to PF table file."
+              except Exception as e:
+                  print(e)
+                  print("Unable to write new host to PF table file.")
                   debug("Unable to write new host to PF table file %s", self.__pftablefile)
 
         if fp != sys.stdout:
@@ -399,12 +399,12 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 fp = gzip.open(logfile)
             elif logfile.endswith(".bz2"):
                 if HAS_BZ2: fp = bz2.BZ2File(logfile, "r")
-                else:       raise Exception, "Can not open bzip2 file (missing bz2 module)"
+                else:       raise Exception("Can not open bzip2 file (missing bz2 module)")
             else:
                 fp = open(logfile, "r")
-        except Exception, e:
-            print "Could not open log file: %s" % logfile
-            print e
+        except Exception as e:
+            print("Could not open log file: %s" % logfile)
+            print(e)
             return -1
 
         try:
@@ -494,7 +494,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
             msg = "Observed the following suspicious login activity"
-            self.__report.add_section(msg, new_suspicious_logins.keys())
+            self.__report.add_section(msg, list(new_suspicious_logins.keys()))
 
         if new_denied_hosts:
             info("new denied hosts: %s", str(new_denied_hosts))
@@ -502,7 +502,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             debug("no new denied hosts")
 
         if new_suspicious_logins:
-            info("new suspicious logins: %s", str(new_suspicious_logins.keys()))
+            info("new suspicious logins: %s", str(list(new_suspicious_logins.keys())))
         else:
             debug("no new suspicious logins")
 
@@ -525,8 +525,8 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
             for host in hosts:
                 fp.write("%s\n" % host)
             fp.close()
-            os.chmod(filename, 0644)
-        except Exception, e:
+            os.chmod(filename, 0o644)
+        except Exception as e:
             error(str(e))
 
     def get_regex(self, name, default):

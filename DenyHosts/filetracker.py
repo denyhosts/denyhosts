@@ -1,6 +1,6 @@
 import os
 import logging
-from constants import SECURE_LOG_OFFSET
+from .constants import SECURE_LOG_OFFSET
 
 debug = logging.getLogger("filetracker").debug
 
@@ -14,11 +14,11 @@ class FileTracker(object):
         path = os.path.join(self.work_dir,
                             SECURE_LOG_OFFSET)
         first_line = ""
-        offset = 0L
+        offset = 0
         try:
             fp = open(path, "r")
             first_line = fp.readline()[:-1]
-            offset = long(fp.readline())
+            offset = int(fp.readline())
         except IOError:
             pass
 
@@ -30,13 +30,13 @@ class FileTracker(object):
 
     def __get_current_offset(self):
         first_line = ""
-        offset = 0L
+        offset = 0
         try:
             fp = open(self.logfile, "r")
             first_line = fp.readline()[:-1]
             fp.seek(0, 2)
             offset = fp.tell()
-        except IOError, e:
+        except IOError as e:
             raise e
 
         debug("__get_current_offset():")
@@ -50,7 +50,7 @@ class FileTracker(object):
         try:
             fp = open(self.logfile, "r")
             first_line = fp.readline()[:-1]
-        except IOError, e:
+        except IOError as e:
             raise e
 
         self.__first_line = first_line
@@ -60,7 +60,7 @@ class FileTracker(object):
 
         if last_line != self.__first_line:
             # log file was rotated, start from beginning
-            offset = 0L
+            offset = 0
         elif self.__offset > last_offset:
             # new lines exist in log file
             offset = last_offset
@@ -82,4 +82,4 @@ class FileTracker(object):
             fp.write("%ld\n" % offset)
             fp.close()
         except IOError:
-            print "Could not save logfile offset to: %s" % path
+            print("Could not save logfile offset to: %s" % path)

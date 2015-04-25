@@ -2,8 +2,8 @@ import logging
 import os
 import re
 
-from regex import PREFS_REGEX
-from util import die, calculate_seconds
+from .regex import PREFS_REGEX
+from .util import die, calculate_seconds
 
 debug = logging.getLogger("prefs").debug
 info = logging.getLogger("prefs").info
@@ -132,7 +132,7 @@ class Prefs(dict):
     def load_settings(self, path):
         try:
             fp = open(path, "r")
-        except Exception, e :
+        except Exception as e :
             die("Error reading file: %s" % path, e)
 
         for line in fp:
@@ -155,7 +155,7 @@ class Prefs(dict):
                         self.__data['USERDEF_FAILED_ENTRY_REGEX'].append(re.compile(value))
                     else:
                         self.__data[name] = value
-            except Exception, e:
+            except Exception as e:
                 fp.close()
                 die("Error processing configuration parameter %s: %s" % (name, e))
         fp.close()
@@ -173,26 +173,26 @@ class Prefs(dict):
     def check_required(self, path):
         ok = 1
         for name_reqd, val_reqd in self.reqd:
-            if not self.__data.has_key(name_reqd):
-                print "Missing configuration parameter: %s" % name_reqd
+            if name_reqd not in self.__data:
+                print("Missing configuration parameter: %s" % name_reqd)
                 if name_reqd == 'DENY_THRESHOLD_INVALID':
-                    print "\nNote: The configuration parameter DENY_THRESHOLD has been renamed"
-                    print "      DENY_THRESHOLD_INVALID.  Please update your DenyHosts configuration"
-                    print "      file to reflect this change."
+                    print("\nNote: The configuration parameter DENY_THRESHOLD has been renamed")
+                    print("      DENY_THRESHOLD_INVALID.  Please update your DenyHosts configuration")
+                    print("      file to reflect this change.")
 
-                    if self.__data.has_key('DENY_THRESHOLD'):
-                        print "\n*** Using deprecated DENY_THRESHOLD value for DENY_THRESHOLD_INVALID ***"
+                    if 'DENY_THRESHOLD' in self.__data:
+                        print("\n*** Using deprecated DENY_THRESHOLD value for DENY_THRESHOLD_INVALID ***")
                         self.__data['DENY_THRESHOLD_INVALID'] = self.__data['DENY_THRESHOLD']
                     else:
                         ok = 0
                 elif name_reqd == 'DENY_THRESHOLD_RESTRICTED':
-                    print "\nNote: DENY_THRESHOLD_RESTRICTED has not been defined. Setting this"
-                    print "value to DENY_THRESHOLD_ROOT"
+                    print("\nNote: DENY_THRESHOLD_RESTRICTED has not been defined. Setting this")
+                    print("value to DENY_THRESHOLD_ROOT")
                     self.__data['DENY_THRESHOLD_RESTRICTED'] = self.__data['DENY_THRESHOLD_ROOT']
                 else:
                     ok = 0
             elif val_reqd and not self.__data[name_reqd]:
-                print "Missing configuration value for: %s" % name_reqd
+                print("Missing configuration value for: %s" % name_reqd)
                 ok = 0
 
         if not ok:
@@ -215,18 +215,18 @@ class Prefs(dict):
 
 
     def dump(self):
-        print "Preferences:"
-        keys = self.__data.keys()
+        print("Preferences:")
+        keys = list(self.__data.keys())
         for key in keys:
             if key == 'USERDEF_FAILED_ENTRY_REGEX':
                 for rx in self.__data[key]:
-                    print "   %s: [%s]" % (key, rx.pattern)
+                    print("   %s: [%s]" % (key, rx.pattern))
             else:
-                print "   %s: [%s]" % (key, self.__data[key])
+                print("   %s: [%s]" % (key, self.__data[key]))
 
 
     def dump_to_logger(self):
-        keys = self.__data.keys()
+        keys = list(self.__data.keys())
         keys.sort()
         info("DenyHosts configuration settings:")
         for key in keys:

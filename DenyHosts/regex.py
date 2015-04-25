@@ -32,7 +32,7 @@ FAILED_ENTRY_REGEX10 = None
 # this should match the highest num failed_entry_regex + 1
 FAILED_ENTRY_REGEX_NUM = 10 
 
-FAILED_ENTRY_REGEX_RANGE = range(1, FAILED_ENTRY_REGEX_NUM)
+FAILED_ENTRY_REGEX_RANGE = list(range(1, FAILED_ENTRY_REGEX_NUM))
 FAILED_ENTRY_REGEX_MAP = {}
 
 # create a hash of the failed entry regex'es indexed from 1 .. FAILED_ENTRY_REGEX_NUM

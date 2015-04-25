@@ -24,32 +24,31 @@ info = logging.getLogger("denyhosts").info
 #################################################################################
 
 def usage():
-    print "Usage:"
-    print "%s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip=ip] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0]
-    print
-    print
-    print " --config: The pathname of the configuration file"
-    print " --file:   The name of log file to parse"
-    print " --ignore: Ignore last processed offset (start processing from beginning)"
-    print " --noemail: Do not send an email report"
-    print " --unlock: if lockfile exists, remove it and run as normal"
-    print " --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge"
-    print " --purge: expire entries older than your PURGE_DENY setting"
-    print " --purge-all: expire all entries"
-    print " --purgeip: expire designated IP entry immediately"
-    print " --daemon: run DenyHosts in daemon mode"
-    print " --foreground: run DenyHosts in foreground mode"
-    print " --sync: run DenyHosts synchronization mode"
-    print " --version: Prints the version of DenyHosts and exits"
+    print("Usage:")
+    print("%s [-f logfile | --file=logfile] [ -c configfile | --config=configfile] [-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip=ip] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0])
+    print("\n\n")
+    print(" --config: The pathname of the configuration file")
+    print(" --file:   The name of log file to parse")
+    print(" --ignore: Ignore last processed offset (start processing from beginning)")
+    print(" --noemail: Do not send an email report")
+    print(" --unlock: if lockfile exists, remove it and run as normal")
+    print(" --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge")
+    print(" --purge: expire entries older than your PURGE_DENY setting")
+    print(" --purge-all: expire all entries")
+    print(" --purgeip: expire designated IP entry immediately")
+    print(" --daemon: run DenyHosts in daemon mode")
+    print(" --foreground: run DenyHosts in foreground mode")
+    print(" --sync: run DenyHosts synchronization mode")
+    print(" --version: Prints the version of DenyHosts and exits")
 
-    print
-    print "Note: multiple --file args can be processed. ",
-    print "If multiple files are provided, --ignore is implied"
-    print
-    print "Note: multiple --purgeip arguments can be processed. "
-    print
-    print "When run in --daemon mode the following flags are ignored:"
-    print "     --file, --purge, --purge-all, --purgeip, --migrate, --sync, --verbose"
+    print("\n")
+    print("Note: multiple --file args can be processed. ")
+    print("If multiple files are provided, --ignore is implied")
+    print("\n")
+    print("Note: multiple --purgeip arguments can be processed. ")
+    print("\n")
+    print("When run in --daemon mode the following flags are ignored:")
+    print("     --file, --purge, --purge-all, --purgeip, --migrate, --sync, --verbose")
 
 
 #################################################################################
@@ -85,7 +84,7 @@ if __name__ == '__main__':
                                          "migrate", "purge", "purge-all", "purgeip", "daemon", "foreground",
                                          "unlock", "sync", "upgrade099"])
     except GetoptError:
-        print "\nInvalid command line option detected."
+        print("\nInvalid command line option detected.")
         usage()
         sys.exit(1)
 
@@ -125,7 +124,7 @@ if __name__ == '__main__':
         if opt == '--upgrade099':
             upgrade099 = 1
         if opt == '--version':
-            print "DenyHosts version:", VERSION
+            print("DenyHosts version:", VERSION)
             sys.exit(0)
 
     # This is generally expected to be in the environment, but there's no
@@ -138,9 +137,9 @@ if __name__ == '__main__':
     try:
         os.makedirs(prefs.get('WORK_DIR'))
         first_time = 1
-    except Exception, e:
+    except Exception as e:
         if e[0] != 17:
-            print e
+            print(e)
             sys.exit(1)
 
     # On some operating systems the file /etc/hosts.deny (or
@@ -151,8 +150,8 @@ if __name__ == '__main__':
         if (host_filename): 
             fp = open( prefs.get("HOSTS_DENY"), "a" )
             fp.close();
-    except Exception, e:
-        print "Unable to create file specified by HOSTS_DENY variable."
+    except Exception as e:
+        print("Unable to create file specified by HOSTS_DENY variable.")
 
     setup_logging(prefs, enable_debug, verbose, daemon)
 
@@ -195,7 +194,7 @@ if __name__ == '__main__':
                 p = PurgeIP(prefs,
                           purgeip_list)
 
-            except Exception, e:
+            except Exception as e:
                 lock_file.remove()
                 die(str(e))
 
@@ -205,7 +204,7 @@ if __name__ == '__main__':
          purge_time = 1
          try:
             p = Purge(prefs, purge_time)
-         except Exception, e:
+         except Exception as e:
             lock_file.remove()
             die(str(e))
 
@@ -219,7 +218,7 @@ if __name__ == '__main__':
                 p = Purge(prefs,
                           purge_time)
 
-            except Exception, e:
+            except Exception as e:
                 lock_file.remove()
                 die(str(e))
 
@@ -229,11 +228,11 @@ if __name__ == '__main__':
                            first_time, noemail, daemon, foreground)
     except KeyboardInterrupt:
         pass
-    except SystemExit, e:
+    except SystemExit as e:
         pass
-    except Exception, e:
+    except Exception as e:
         traceback.print_exc(file=sys.stdout)
-        print "\nDenyHosts exited abnormally"
+        print("\nDenyHosts exited abnormally")
 
 
     if sync_mode and not (daemon or foreground):
@@ -259,7 +258,7 @@ if __name__ == '__main__':
                     dh.get_denied_hosts()
                     dh.update_hosts_deny(new_hosts)
             sync.xmlrpc_disconnect()
-        except Exception, e:
+        except Exception as e:
             lock_file.remove()
             die("Error synchronizing data", e)
 

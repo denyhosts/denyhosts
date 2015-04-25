@@ -1,8 +1,8 @@
 import logging
 import os
 
-import constants
-from counter import Counter, CounterRecord
+from . import constants
+from .counter import Counter, CounterRecord
 
 error = logging.getLogger("purgecounter").error
 info = logging.getLogger("purgecounter").info
@@ -58,13 +58,13 @@ class PurgeCounter(object):
     def write_data(self, data):
         try:
             fp = open(self.filename, "w")
-            keys = data.keys()
+            keys = list(data.keys())
             keys.sort()
 
             for key in keys:
                 fp.write("%s:%s\n" % (key, data[key]))
             fp.close()
-        except Exception, e:
+        except Exception as e:
             error("error saving %s: %s", self.filename, str(e))
 
     def increment(self, purged_hosts):

@@ -1,10 +1,10 @@
 import os
 import logging
 import errno
-from util import is_true
+from .util import is_true
 
-from counter import Counter, CounterRecord
-from constants import *
+from .counter import Counter, CounterRecord
+from .constants import *
 
 debug = logging.getLogger("loginattempt").debug
 info = logging.getLogger("loginattempt").info
@@ -165,14 +165,14 @@ class LoginAttempt(object):
 
                     stats[name] = CounterRecord(int(count), date)
                     #debug("stats[%s] = %s", name, stats[name])
-                except Exception, e:
+                except Exception as e:
                     ##debug(e)
                     pass
-        except IOError, e:
+        except IOError as e:
             if e.errno == errno.ENOENT: debug("%s does not exist", fname)
-            else: print e
-        except Exception, e:
-            if not self.__first_time: print e
+            else: print(e)
+        except Exception as e:
+            if not self.__first_time: print(e)
 
         return stats
 
@@ -220,16 +220,16 @@ class LoginAttempt(object):
         self.__save_stats(SUSPICIOUS_LOGINS, self.__suspicious_logins)
 
     def get_deny_hosts(self):
-        invalid_hosts = [host for host,count_rec in self.__abusive_hosts_invalid.items()
+        invalid_hosts = [host for host,count_rec in list(self.__abusive_hosts_invalid.items())
                          if count_rec.get_count() > self.__deny_threshold_invalid]
 
-        root_hosts = [host for host,count_rec in self.__abusive_hosts_root.items()
+        root_hosts = [host for host,count_rec in list(self.__abusive_hosts_root.items())
                       if count_rec.get_count() > self.__deny_threshold_root]
 
-        restricted_hosts = [host for host,count_rec in self.__abusive_hosts_restricted.items()
+        restricted_hosts = [host for host,count_rec in list(self.__abusive_hosts_restricted.items())
                             if count_rec.get_count() > self.__deny_threshold_restricted]
 
-        valid_hosts = [host for host,count_rec in self.__abusive_hosts_valid.items()
+        valid_hosts = [host for host,count_rec in list(self.__abusive_hosts_valid.items())
                        if count_rec.get_count() > self.__deny_threshold_valid]
 
         deny_set = set(invalid_hosts + valid_hosts + root_hosts + restricted_hosts)
@@ -244,8 +244,8 @@ class LoginAttempt(object):
 
         try:
             fp = open(path, "w")
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             return
 
         if not stats:
@@ -253,7 +253,7 @@ class LoginAttempt(object):
             fp.close()
             return
 
-        keys = stats.keys()
+        keys = list(stats.keys())
         keys.sort()
 
         for key in keys:

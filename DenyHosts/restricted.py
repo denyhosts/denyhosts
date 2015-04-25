@@ -1,6 +1,6 @@
 import os
 
-from constants import RESTRICTED_USERNAMES
+from .constants import RESTRICTED_USERNAMES
 
 class Restricted:
     def __init__(self, prefs):

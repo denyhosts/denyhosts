@@ -1,8 +1,9 @@
 import logging
 import re
 import socket
-from types import ListType, TupleType
-from util import is_true
+# Removing this as it causes runtime errors on Python3.4
+# from types import ListType, TupleType
+from .util import is_true
 try:
     import syslog
     HAS_SYSLOG = True

@@ -2,9 +2,9 @@ import logging
 import os
 from socket import getfqdn, gethostbyname
 
-from constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
-from regex import ALLOWED_REGEX
-from util import is_true
+from .constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
+from .regex import ALLOWED_REGEX
+from .util import is_true
 
 logger = logging.getLogger("AllowedHosts")
 debug, warn = logger.debug, logger.warn
@@ -24,18 +24,18 @@ class AllowedHosts(object):
         debug("done initializing AllowedHosts")
 
     def __contains__(self, ip_addr):
-        if self.allowed_hosts.has_key(ip_addr): return 1
+        if ip_addr in self.allowed_hosts: return 1
         else: return 0
 
     def dump(self):
-        print "Dumping AllowedHosts"
-        print self.allowed_hosts.keys()
+        print("Dumping AllowedHosts")
+        print(list(self.allowed_hosts.keys()))
 
 
     def load_hosts(self):
         try:
             fp = open(self.allowed_path, "r")
-        except Exception, e:
+        except Exception as e:
             debug("Could not open %s - %s", self.allowed_path, str(e))
             return
 
@@ -75,7 +75,7 @@ class AllowedHosts(object):
                     pass
 
         fp.close()
-        debug("allowed_hosts: %s", self.allowed_hosts.keys())
+        debug("allowed_hosts: %s", list(self.allowed_hosts.keys()))
 
 
     def add_hostname(self, ip_addr):
@@ -116,8 +116,8 @@ class AllowedHosts(object):
             for host in self.new_warned_hosts:
                 fp.write("%s\n" % host)
             fp.close()
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
 
     def clear_warned_hosts(self):

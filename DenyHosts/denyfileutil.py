@@ -3,11 +3,11 @@ import shutil
 import time
 import logging
 
-from constants import DENY_DELIMITER, ENTRY_DELIMITER
-from loginattempt import AbusiveHosts
-from util import parse_host
-import plugin
-from purgecounter import PurgeCounter
+from .constants import DENY_DELIMITER, ENTRY_DELIMITER
+from .loginattempt import AbusiveHosts
+from .util import parse_host
+from . import plugin
+from .purgecounter import PurgeCounter
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
@@ -22,15 +22,15 @@ class DenyFileUtilBase(object):
     def backup(self):
         try:
             shutil.copy(self.deny_file, self.backup_file)
-        except Exception, e:
+        except Exception as e:
             warn(str(e))
 
     def replace(self):
         # overwrites deny_file with contents of temp_file
         try:
             os.rename(self.temp_file, self.deny_file)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
     def remove_temp(self):
         try:
@@ -39,7 +39,7 @@ class DenyFileUtilBase(object):
             pass
 
     def create_temp(self, data_list):
-        raise Exception, "Not Imlemented"
+        raise Exception("Not Imlemented")
 
 
     def get_data(self):
@@ -56,29 +56,29 @@ class DenyFileUtilBase(object):
 
 class Migrate(DenyFileUtilBase):
     def __init__(self, deny_file):
-        print ""
-        print "**** WARNING ****"
-        print "migrate switch will migrate ALL your entries in your HOSTS_DENY file"
-        print "and this can be potentially dangerous, if you have some entry that "
-        print "you won't purge"
-        print ""
-        print "If you don't understand, please type 'No' and"
-        print "read /usr/share/doc/denyhosts/README.Debian"
-        print "for more info"
-        print ""
-        response = raw_input("Are you sure that you want do this? (Yes/No)")
+        print("")
+        print("**** WARNING ****")
+        print("migrate switch will migrate ALL your entries in your HOSTS_DENY file")
+        print("and this can be potentially dangerous, if you have some entry that ")
+        print("you won't purge")
+        print("")
+        print("If you don't understand, please type 'No' and")
+        print("read /usr/share/doc/denyhosts/README.Debian")
+        print("for more info")
+        print("")
+        response = input("Are you sure that you want do this? (Yes/No)")
         if response == "Yes":
             DenyFileUtilBase.__init__(self, deny_file, "migrate")
             self.backup()
             self.create_temp(self.get_data())
             self.replace()
         else:
-            print "nothing done"
+            print("nothing done")
 
     def create_temp(self, data):
         try:
             fp = open(self.temp_file, "w")
-            os.chmod(self.temp_file, 0644)
+            os.chmod(self.temp_file, 0o644)
             for line in data:
                 if line.find("#") != -1:
                     fp.write(line)
@@ -96,7 +96,7 @@ class Migrate(DenyFileUtilBase):
                 fp.write("%s\n" % line)
 
             fp.close()
-        except Exception, e:
+        except Exception as e:
             raise e
 
 
@@ -135,7 +135,7 @@ class UpgradeTo099(DenyFileUtilBase):
                                        entry))
                 fp.write("%s\n" % entry)
             fp.close()
-        except Exception, e:
+        except Exception as e:
             raise e
 
 #################################################################################
@@ -148,7 +148,7 @@ class Purge(DenyFileUtilBase):
         self.purge_threshold = prefs['PURGE_THRESHOLD']
         self.purge_counter = PurgeCounter(prefs)
 
-        self.cutoff = long(time.time()) - cutoff
+        self.cutoff = int(time.time()) - cutoff
         debug("relative cutoff: %ld (seconds)", cutoff)
         debug("absolute cutoff: %ld (epoch)", self.cutoff)
         info("purging entries older than: %s",
@@ -179,7 +179,7 @@ class Purge(DenyFileUtilBase):
 
         try:
             fp = open(self.temp_file, "w")
-            os.chmod(self.temp_file, 0644)
+            os.chmod(self.temp_file, 0o644)
             offset = 0
             num_lines = len(data)
             while offset < num_lines:
@@ -199,14 +199,14 @@ class Purge(DenyFileUtilBase):
                         rest = line.lstrip(DENY_DELIMITER)
                         timestamp, host_verify = rest.split(ENTRY_DELIMITER)
                         tm = time.strptime(timestamp)
-                    except Exception, e:
+                    except Exception as e:
                         warn("Parse error -- Ignorning timestamp: %s for: %s", timestamp, line)
                         warn("exception: %s", str(e))
                         # ignoring bad time string
                         fp.write(line)
                         continue
 
-                    epoch = long(time.mktime(tm))
+                    epoch = int(time.mktime(tm))
                     #print entry, epoch, self.cutoff
 
                     if self.cutoff > epoch:
@@ -233,7 +233,7 @@ class Purge(DenyFileUtilBase):
                         continue
 
             fp.close()
-        except Exception, e:
+        except Exception as e:
             raise e
         return purged_hosts
 

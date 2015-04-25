@@ -1,5 +1,5 @@
 import os
-from util import die
+from .util import die
 
 class LockFile(object):
     def __init__(self, lockpath):
@@ -26,9 +26,9 @@ class LockFile(object):
                               os.O_TRUNC |  # truncate it, if it exists
                               os.O_WRONLY | # write-only
                               os.O_EXCL,    # exclusive access
-                              0644)         # file mode
+                              0o644)         # file mode
 
-        except Exception, e:
+        except Exception as e:
             pid = self.get_pid()
             die("DenyHosts could not obtain lock (pid: %s)" % pid, e)
 
@@ -45,6 +45,6 @@ class LockFile(object):
         self.fd = None
         try:
             os.unlink(self.lockpath)
-        except Exception, e:
+        except Exception as e:
             if die_:
                 die("Error deleting DenyHosts lock file: %s" % self.lockpath, e)

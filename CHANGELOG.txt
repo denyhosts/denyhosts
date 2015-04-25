@@ -1,5 +1,11 @@
 DENYHOSTS CHANGELOG
 
+3.0
+======================
+
+Initial translation of code from Python 2 to Python 3.
+
+
 2.11?
 ======================
 
