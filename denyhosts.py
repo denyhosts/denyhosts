@@ -135,8 +135,9 @@ if __name__ == '__main__':
 
     first_time = 0
     try:
-        os.makedirs(prefs.get('WORK_DIR'))
-        first_time = 1
+        if not os.path.exists( prefs.get('WORK_DIR') ):
+             os.makedirs(prefs.get('WORK_DIR'))
+             first_time = 1
     except Exception as e:
         if e[0] != 17:
             print(e)

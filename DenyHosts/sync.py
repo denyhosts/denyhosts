@@ -1,7 +1,12 @@
 import logging
 import os
 import time
-from xmlrpc.client import ServerProxy
+import sys
+
+if sys.version_info < (3, 0): 
+   import xmlrpclib
+else:
+   from xmlrpc.client import ServerProxy
 
 from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS
 

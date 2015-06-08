@@ -1,4 +1,5 @@
 import os
+import sys
 from .util import die
 
 class LockFile(object):
@@ -32,7 +33,11 @@ class LockFile(object):
             pid = self.get_pid()
             die("DenyHosts could not obtain lock (pid: %s)" % pid, e)
 
-        os.write(self.fd, "%s\n" % os.getpid())
+        s = "%s\n" % os.getpid()
+        if sys.version_info < (3, 0):
+             os.write(self.fd, s)
+        else:
+             os.write(self.fd, bytes(s, 'UTF-8'))
         os.fsync(self.fd)
 
     def remove(self, die_=True):
