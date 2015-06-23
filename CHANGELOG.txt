@@ -4,10 +4,8 @@ DENYHOSTS CHANGELOG
 ======================
 
 Initial translation of code from Python 2 to Python 3.
-
-
-2.11?
-======================
+DenyHosts can now be run as either a Python 2 or a Python 3
+program.
 
 Added patch from Fedora to fix initial sync issue and
 insure info logging stream is active.
@@ -31,7 +29,7 @@ configuration.
 Added regex pattern to detect invalid user accounts. This blocks
 connections from remote hosts who are attempting to login
 with accounts not found on the local system.
-While these connections to non-existent accountsare relatively harmless, 
+While these connections to non-existent accounts are relatively harmless, 
 they are usually used as part of a brute force attack and filtering them
 before they reach OpenSSH is a good idea.
 

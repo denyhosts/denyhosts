@@ -17,7 +17,7 @@ Source Distribution
 If you downloaded the source distribution file (DenyHosts-#.#-tar.gz)
 then:
 
-    $ tar zxvf DenyHosts-2.10.tar.gz       (Where #.#.# is the version)
+    $ tar zxvf DenyHosts-3.0.tar.gz 
 
     $ cd denyhosts
 
@@ -99,6 +99,16 @@ http://www.denyhosts.net/faq.html
 
 If you wish to run DenyHosts from cron rather than as a
 daemon, please refer to the FAQ.
+
+Another way to start DenyHosts manually is to run it from the command
+line, usually supply a few common parameters. Usually, when running
+DenyHosts from the command line (or from the /etc/rc.local script) we
+can launch the program by running
+
+     # python /usr/local/bin/denyhosts --config /etc/denyhosts.conf --daemon
+
+The above command launches DenyHosts and runs it in the background. DenyHosts
+will use the /etc/denyhosts.conf configuration file to dictate its behavour.
 
 
 Starting DenyHosts Automatically
