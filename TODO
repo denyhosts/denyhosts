@@ -9,9 +9,9 @@ In cases where DenyHosts cannot write to disk, it should not crash.
 
 Consider support for IPv6
 
-Create new sync server.
+Set up new sync server.
 
-Update code to be compatible with Python version 3. Hopefully
-we can maintain compatibility with Python version 2.7 and perhaps
-other older verisons.
+Add support for IPFW on FreeBSD.
+
+Add persistent IPTABLES rules.
 
