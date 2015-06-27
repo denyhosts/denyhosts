@@ -3,6 +3,7 @@ import re
 import socket
 # Removing this as it causes runtime errors on Python3.4
 # from types import ListType, TupleType
+import types
 from .util import is_true
 try:
     import syslog
@@ -38,7 +39,8 @@ class Report:
     def add_section(self, message, iterable):
         self.report += "%s:\n\n" % message
         for i in iterable:
-            if type(i) in (TupleType, ListType):
+            # if type(i) in (TupleType, ListType):
+            if (type(i) is types.ListType) or (type(i) is types.TupleType):
                 extra = ": %d\n" % i[1]
                 i = i[0]
             else:
