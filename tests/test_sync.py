@@ -3,10 +3,15 @@ from __future__ import print_function, unicode_literals
 from os.path import dirname, join as ospj
 from random import randint
 import unittest
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+import sys
+if sys.version_info < (3, 0): 
+    from SimpleXMLRPCServer import SimpleXMLRPCServer
+    from xmlrpclib import ServerProxy
+else:
+    from xmlrpc.server import SimpleXMLRPCServer
+    from xmlrpc.client import ServerProxy
 from tempfile import mkdtemp
 from threading import Lock, Thread, local as thread_local
-import xmlrpclib
 
 from DenyHosts.constants import SYNC_HOSTS, SYNC_RECEIVED_HOSTS, SYNC_TIMESTAMP
 from DenyHosts.prefs import Prefs
@@ -77,7 +82,7 @@ class SyncServerTest(unittest.TestCase):
         self.server_thread = Thread(target=self.sync_server)
         self.server_thread.start()
         self.lock.acquire()
-        self.remote_sync_server = xmlrpclib.ServerProxy(LOCAL_SYNC_SERVER_URL, allow_none=True)
+        self.remote_sync_server = ServerProxy(LOCAL_SYNC_SERVER_URL, allow_none=True)
         self.lock.release()
 
     def tearDown(self):
