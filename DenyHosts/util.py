@@ -80,8 +80,6 @@ def parse_host(line):
 
     # convert form 3 & 4 to 1 & 2
     try:
-        line = line.strip(BSD_STYLE)
-
         vals = line.split(":")
 
         # we're only concerned about the ip_address
