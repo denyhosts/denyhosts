@@ -6,6 +6,7 @@ from smtplib import SMTPHeloError
 import sys
 from textwrap import dedent
 import time
+import ipaddr
 
 from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from .regex import TIME_SPEC_REGEX
@@ -165,3 +166,14 @@ def send_email(prefs, report_str):
 
 def normalize_whitespace(string):
     return ' '.join(string.split())
+
+def is_valid_ip_address(ip_address):
+    try:
+        ip = ipaddr.IPAddress(ip_address)
+    except:
+        return False
+    if (ip.is_reserved or ip.is_private or ip.is_loopback or
+        ip.is_unspecified or ip.is_multicast or
+        ip.is_link_local):
+        return False
+    return True

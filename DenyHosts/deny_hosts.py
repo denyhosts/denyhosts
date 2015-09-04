@@ -21,12 +21,13 @@ from .regex import *
 from .report import Report
 from .restricted import Restricted
 from .sync import Sync
-from .util import die, is_true, parse_host, send_email
+from .util import die, is_true, parse_host, send_email, is_valid_ip_address
 from .version import VERSION
 
 debug = logging.getLogger("denyhosts").debug
 info = logging.getLogger("denyhosts").info
 error = logging.getLogger("denyhosts").error
+warning = logging.getLogger("denyhosts").warning
 
 class DenyHosts(object):
     def __init__(self, logfile, prefs, lock_file,
@@ -463,6 +464,10 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 host = m.group("host")
             except Exception:
                 error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
+                continue
+
+            if not is_valid_ip_address(host):
+                warning("got invalid host (%s), ignoring" % host)
                 continue
 
             debug ("user: %s - host: %s - success: %d - invalid: %d",
