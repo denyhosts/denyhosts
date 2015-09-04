@@ -26,6 +26,7 @@ setup(
     scripts=['denyhosts.py', 'daemon-control-dist'],
     package_dir={'DenyHosts': 'DenyHosts'},
     packages=["DenyHosts"],
+    requires=["ipaddr"],
     data_files=[
         (etcpath, glob("denyhosts.conf")),
         (manpath, glob("denyhosts.8")),
