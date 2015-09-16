@@ -6,6 +6,14 @@ DENYHOSTS CHANGELOG
 Fixed a type check in DenyHosts/report.py which was causing
 problems when moving between Python2 and Python3.
 
+Added checks to see if an IP address is valid. This
+pulls in the requirement for the ipaddr Python module.
+
+Added check to see if there is a break-in attempt against
+the Dovecot imap service. This is an option which can be
+enabled/disabled in the configuration file. It is turned off
+by default.
+
 
 
 3.0

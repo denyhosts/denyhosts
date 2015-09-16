@@ -15,3 +15,6 @@ Add support for IPFW on FreeBSD.
 
 Add persistent IPTABLES rules.
 
+Filter out bad IP addresses. Do not allow host names or other invalid IP
+addresses.
+

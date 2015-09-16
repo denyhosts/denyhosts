@@ -11,6 +11,15 @@ Please refer to https://github.com/denyhosts/denyhosts for more information.
 Installation
 ============
 
+
+Requirements
+------------
+
+The DenyHosts software depends on the "ipaddr" Python module,
+which is available in most Linux and BSD repositories.
+
+
+
 Source Distribution
 -------------------
 
