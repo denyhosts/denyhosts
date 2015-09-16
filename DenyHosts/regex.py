@@ -51,4 +51,4 @@ ALLOWED_REGEX = re.compile(r"""(?P<first_3bits>\d{1,3}\.\d{1,3}\.\d{1,3}\.)((?P<
 
 PREFS_REGEX = re.compile(r"""(?P<name>.*?)\s*[:=]\s*(?P<value>.*)""")
 
-
+FAILED_DOVECOT_ENTRY_REGEX = re.compile(r"""dovecot.*authentication failure.*ruser=(?P<user>\S+).*rhost=(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}).*""")
