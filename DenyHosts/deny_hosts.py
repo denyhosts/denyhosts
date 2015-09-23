@@ -460,15 +460,15 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
         #info("keys: %s", str( self.__denied_hosts.keys()))
 
         #Perform firewall host blocking
-        #Temporarily we do not implement this logic for PF
-        #if self.__iptables or (self.__pfctl and self.__pftable) or (self.__pftablefile):
-        if self.__iptables:
+        if self.__iptables or (self.__pfctl and self.__pftable) or (self.__pftablefile):
             if not self.__fw_initialized:
                 self.firewall_init()
+            # Remove this limitation when firewall checking for pftable has been implemented
+            firewall_check_enabled = (self.__iptables is not None)
             fw_hosts = [host for host in deny_hosts
                         if host not in self.__allowed_hosts
                         and host not in self.__fw_blocked_hosts
-                        and not self.firewall_check(host)]
+                        and not (firewall_check_enabled and self.firewall_check(host))]
             if fw_hosts:
                 self.firewall_block(fw_hosts)
 
@@ -478,10 +478,6 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
 
         if not new_hosts: return None, None
         debug("new hosts: %s", str(new_hosts))
-
-        #When firewall_check is implemented for PF, remove this special logic
-        if self.__pfctl and self.__pftable:
-            self.firewall_block(new_hosts)
 
         try:
             fp = open(self.__prefs.get('HOSTS_DENY'), "a")
