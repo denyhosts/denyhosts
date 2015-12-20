@@ -26,7 +26,7 @@ Source Distribution
 If you downloaded the source distribution file (DenyHosts-#.#-tar.gz)
 then:
 
-    $ tar zxvf DenyHosts-3.0.tar.gz 
+    $ tar zxvf DenyHosts-3.1.tar.gz 
 
     $ cd denyhosts
 
