@@ -340,7 +340,7 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
               for host in new_hosts:
                   my_host = str(host)
                   if ',' in self.__blockport:
-                      new_rule = self.__iptables + " -I INPUT -p tcp --dports " + self.__blockport + " -s " + my_host + " -j DROP"
+                      new_rule = self.__iptables + " -I INPUT -p tcp -m multiport --dports " + self.__blockport + " -s " + my_host + " -j DROP"
                   elif self.__blockport:
                      new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + my_host + " -j DROP"
                   else:
