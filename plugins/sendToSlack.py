@@ -5,6 +5,7 @@
 # To enable the plugin edit /etc/denyhosts.conf
 # Uncomment PLUGIN_DENY and point it to the location of this file
 # Edit lines 16 and 18 to your slack web hook url and channel
+# chmod +x this file so that it's executable, or the logs will show plugin returned 32256
 # Tested on Python 2.7.9
 #
 import sys
