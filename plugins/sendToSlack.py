@@ -31,9 +31,6 @@ else:
         # Set the Message that's sent
         message="%s ip blocked on %s (%s)" % ( sys.argv[1], serverName, serverIp )
 
-
-message="%s ip blocked on %s (%s / %s)" % ( sys.argv[1], serverName, externalServerIp, internalServerIp )
-
 #if channel is set use the channel defined, otherwise post to the channel the webhook was made for
 if channel != "":
         data='payload={"text":"' + message + '","channel":"' + channel + '"}'
