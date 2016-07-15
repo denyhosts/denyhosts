@@ -18,9 +18,19 @@ slackWebHook=''
 channel=''
 
 # Get Server Info
+# Get Server Info
 serverName=socket.gethostbyname_ex(socket.gethostname())[0]
-externalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][1]
-internalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
+serverIps=socket.gethostbyname_ex(socket.gethostname())[2]
+if len(serverIps) > 1:
+        externalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][1]
+        internalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
+        # Set the Message that's sent
+        message="%s ip blocked on %s (%s / %s)" % ( sys.argv[1], serverName, externalServerIp, internalServerIp )
+else:
+        serverIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
+        # Set the Message that's sent
+        message="%s ip blocked on %s (%s)" % ( sys.argv[1], serverName, serverIp )
+
 
 message="%s ip blocked on %s (%s / %s)" % ( sys.argv[1], serverName, externalServerIp, internalServerIp )
 
