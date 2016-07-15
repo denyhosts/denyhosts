@@ -42,7 +42,7 @@ else:
 
 if slackWebHook != "":
         request = urllib2.Request(slackWebHook, data)
-        call = urllib2.urlopen(req)
+        call = urllib2.urlopen(request)
         call.close()
 
 sys.exit(0)
