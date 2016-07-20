@@ -12,6 +12,9 @@ import sys
 import urllib2
 import socket
 
+# Enable/Disable the option to include/exclude ips in slack messages
+enableIps=False
+
 # set the slack options
 #Slack Web Hook ex: https://hooks.slack.com/services/xxxxxxx/xxxxxxxxx/xxxxxxxxxxxxxxxxxxxx
 slackWebHook=''
@@ -19,18 +22,22 @@ slackWebHook=''
 channel=''
 
 # Get Server Info
-# Get Server Info
 serverName=socket.gethostbyname_ex(socket.gethostname())[0]
-serverIps=socket.gethostbyname_ex(socket.gethostname())[2]
-if len(serverIps) > 1:
-        externalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][1]
-        internalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
-        # Set the Message that's sent
-        message="%s ip blocked on %s (%s / %s)" % ( sys.argv[1], serverName, externalServerIp, internalServerIp )
+
+if enableIps:
+        serverIps=socket.gethostbyname_ex(socket.gethostname())[2]
+        if len(serverIps) > 1:
+                externalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][1]
+                internalServerIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
+                # Set the Message that's sent
+                message="%s ip blocked on %s (%s / %s)" % ( sys.argv[1], serverName, externalServerIp, internalServerIp )
+        else:
+                serverIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
+                # Set the Message that's sent
+                message="%s ip blocked on %s (%s)" % ( sys.argv[1], serverName, serverIp )
 else:
-        serverIp=socket.gethostbyname_ex(socket.gethostname())[2][0]
-        # Set the Message that's sent
-        message="%s ip blocked on %s (%s)" % ( sys.argv[1], serverName, serverIp )
+        message="%s ip blocked on %s" % ( sys.argv[1], serverName )
+        
 
 #if channel is set use the channel defined, otherwise post to the channel the webhook was made for
 if channel != "":
