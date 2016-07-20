@@ -331,18 +331,6 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                                           ENTRY_DELIMITER,
                                           output))
             fp.write("%s\n" % output)
-
-        plugin_deny = self.__prefs.get('PLUGIN_DENY')
-        if plugin_deny:
-            if ',' in plugin_deny:
-                #explode plugins by ,
-                m_plugin_deny=plugin_deny.split(',')
-                #loop through multiple plugins
-                for m_plugin in m_plugin_deny:
-                    if m_plugin:
-                        plugin.execute(m_plugin.strip(), new_hosts)
-            else:
-                plugin.execute(plugin_deny, new_hosts)
         
         if self.__iptables:
            debug("Trying to create iptables rules")
@@ -510,19 +498,23 @@ allowed based on your %s file"""  % (self.__prefs.get("HOSTS_DENY"),
                 msg = "WARNING: Could not add the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
             else:
                 msg = "Added the following hosts to %s" % self.__prefs.get('HOSTS_DENY')
+                #run plugins since the rest has ran correctly
+                plugin_deny = self.__prefs.get('PLUGIN_DENY')
+                #check if PLUGIN_DENY is uncommented and has content
+                if plugin_deny:
+                    #check if there's a , delimiting multiple plugins
+                    if ',' in plugin_deny:
+                        #explode plugins by ,
+                        m_plugin_deny=plugin_deny.split(',')
+                        #loop through multiple plugins
+                        for m_plugin in m_plugin_deny:
+                            if m_plugin:
+                                plugin.execute(m_plugin.strip(), new_denied_hosts)
+                    else:
+                        plugin.execute(plugin_deny, new_denied_hosts)
+                        
             self.__report.add_section(msg, new_denied_hosts)
             if self.__sync_server: self.sync_add_hosts(new_denied_hosts)
-            plugin_deny = self.__prefs.get('PLUGIN_DENY')
-            if plugin_deny:
-                if ',' in plugin_deny:
-                    #explode plugins by ,
-                    m_plugin_deny=plugin_deny.split(',')
-                    #loop through multiple plugins
-                    for m_plugin in m_plugin_deny:
-                        if m_plugin:
-                            plugin.execute(m_plugin.strip(), new_denied_hosts)
-                else:
-                    plugin.execute(plugin_deny, new_denied_hosts)
 
         new_suspicious_logins = login_attempt.get_new_suspicious_logins()
         if new_suspicious_logins:
