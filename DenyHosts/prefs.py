@@ -51,7 +51,7 @@ class Prefs(dict):
                        'FAILED_ENTRY_REGEX7': None,
                        'FAILED_ENTRY_REGEX8': None,
                        'FAILED_ENTRY_REGEX9': None,
-#                       'FAILED_ENTRY_REGEX10': None,
+                       'FAILED_ENTRY_REGEX10': None,
                        'FAILED_DOVECOT_ENTRY_REGEX': None,
                        'DETECT_DOVECOT_LOGIN_ATTEMPTS': "no",
                        'USERDEF_FAILED_ENTRY_REGEX': [],
