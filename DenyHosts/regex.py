@@ -26,11 +26,14 @@ FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) .*from (::ffff:)?(?P<host
 FAILED_ENTRY_REGEX8 = re.compile(r"""authentication error for (?P<user>.*) .*from (?P<host>.*)""")
 FAILED_ENTRY_REGEX9 = re.compile(r"""Invalid user (?P<user>.*) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
+
+FAILED_ENTRY_REGEX10 = re.compile(r"""Connection closed by (?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \[preauth\]""")
+
 # these are reserved for future versions
-FAILED_ENTRY_REGEX10 = None
+FAILED_ENTRY_REGEX11 = None
 
 # this should match the highest num failed_entry_regex + 1
-FAILED_ENTRY_REGEX_NUM = 10 
+FAILED_ENTRY_REGEX_NUM = 11
 
 FAILED_ENTRY_REGEX_RANGE = list(range(1, FAILED_ENTRY_REGEX_NUM))
 FAILED_ENTRY_REGEX_MAP = {}
