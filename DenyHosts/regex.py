@@ -24,7 +24,6 @@ FAILED_ENTRY_REGEX6 = re.compile(r"""Did not receive identification string .*fro
 FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) not allowed because not listed in AllowUsers""")
 
 FAILED_ENTRY_REGEX8 = re.compile(r"""authentication error for (?P<user>.*) .*from (?P<host>.*)""")
-FAILED_ENTRY_REGEX9 = re.compile(r"""Invalid user (?P<user>.*) .*from (::ffff:)?(?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
 
 FAILED_ENTRY_REGEX10 = re.compile(r"""Connection closed by (?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \[preauth\]""")
