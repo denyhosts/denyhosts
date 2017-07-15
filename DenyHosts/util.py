@@ -6,7 +6,10 @@ from smtplib import SMTPHeloError
 import sys
 from textwrap import dedent
 import time
-import ipaddr
+try:
+    from ipaddress import IPAddress
+except ImportError:
+    from ipaddr import IPAddress
 
 from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from .regex import TIME_SPEC_REGEX
@@ -169,7 +172,7 @@ def normalize_whitespace(string):
 
 def is_valid_ip_address(ip_address):
     try:
-        ip = ipaddr.IPAddress(ip_address)
+        ip = IPAddress(ip_address)
     except:
         return False
     if (ip.is_reserved or ip.is_private or ip.is_loopback or
