@@ -66,8 +66,7 @@ class CVEsTestCase(unittest.TestCase):
         user = None
         host = None
         # There's no harm in iterating over all three lines even though
-        # the first contains what we want. The second and third lines
-        # don't match any of the 'failed entry' regexes.
+        # the first contains what we want. 
         for line in CVE_2013_6890_LINES:
             sshd_m = SSHD_FORMAT_REGEX.match(line)
             if sshd_m:
@@ -76,7 +75,10 @@ class CVEsTestCase(unittest.TestCase):
                 for rx in FAILED_ENTRY_REGEX_MAP.values():
                     m = rx.search(message)
                     if m:
-                        user = m.group('user')
-                        host = m.group('host')
-        self.assertEqual(user, CVE_2013_6890_USER)
-        self.assertEqual(host, CVE_2013_6890_HOST)
+                        try:
+                            user = m.group('user')
+                            host = m.group('host')
+                        except IndexError:
+                            continue
+                        self.assertEqual(user, CVE_2013_6890_USER)
+                        self.assertEqual(host, CVE_2013_6890_HOST)
