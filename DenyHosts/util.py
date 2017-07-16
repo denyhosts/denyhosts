@@ -172,7 +172,7 @@ def normalize_whitespace(string):
 
 def is_valid_ip_address(ip_address):
     try:
-        ip = IPAddress(ip_address)
+        ip = IPv4Address(ip_address)
     except:
         return False
     if (ip.is_reserved or ip.is_private or ip.is_loopback or
