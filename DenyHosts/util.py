@@ -7,9 +7,9 @@ import sys
 from textwrap import dedent
 import time
 try:
-    from ipaddress import IPAddress
+    from ipaddress import IPv4Address
 except ImportError:
-    from ipaddr import IPAddress
+    from ipaddr import IPAddress as IPv4Address
 
 from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from .regex import TIME_SPEC_REGEX
