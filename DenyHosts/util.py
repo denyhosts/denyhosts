@@ -13,6 +13,7 @@ from .regex import TIME_SPEC_REGEX
 
 debug = logging.getLogger("util").debug
 
+
 def setup_logging(prefs, enable_debug, verbose, daemon):
         daemon_log = prefs.get('DAEMON_LOG')
         if daemon_log:
@@ -38,17 +39,21 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             info("   %s", ' '.join(sys.argv))
             prefs.dump_to_logger()
 
+
 def die(msg, ex=None):
     print(msg)
     if ex:
         print(ex)
     sys.exit(1)
 
+
 def is_true(s):
     return s.lower() in ('1', 't', 'true', 'y', 'yes')
 
+
 def is_false(s):
     return not is_true(s)
+
 
 def calculate_seconds(timestr, zero_ok=False):
     # return the number of seconds in a given timestr such as 1d (1 day),
@@ -68,6 +73,7 @@ def calculate_seconds(timestr, zero_ok=False):
     seconds = units * TIME_SPEC_LOOKUP[period]
     #info("converted %s to %ld seconds: ", timestr, seconds)
     return seconds
+
 
 def parse_host(line):
     # parses a line from /etc/hosts.deny
@@ -93,6 +99,7 @@ def parse_host(line):
     except Exception:
         host = ""
     return host
+
 
 def send_email(prefs, report_str):
     recipients = prefs['ADMIN_EMAIL'].split(',')
@@ -164,8 +171,10 @@ def send_email(prefs, report_str):
     except Exception:
         pass
 
+
 def normalize_whitespace(string):
     return ' '.join(string.split())
+
 
 def is_valid_ip_address(ip_address):
     try:
@@ -177,3 +186,11 @@ def is_valid_ip_address(ip_address):
         ip.is_link_local):
         return False
     return True
+
+
+def get_user_input(prompt):
+    try:
+        response = raw_input(prompt)
+    except NameError:
+        response = input(prompt)
+    return response
