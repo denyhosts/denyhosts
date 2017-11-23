@@ -1,7 +1,10 @@
 from __future__ import print_function, unicode_literals
 
+import os
+import sys
 import unittest
 
+from DenyHosts.mail_command import send_mail_by_command
 from DenyHosts.util import is_false, is_true, parse_host
 
 # List of 2-tuples: line to parse, expected host
@@ -33,3 +36,13 @@ class UtilsTest(unittest.TestCase):
     def test_parse_host(self):
         for line, expected in HOST_TEST_DATA:
             self.assertEqual(parse_host(line), expected)
+
+    def test_main_command(self):
+        executable = str(sys.executable).replace(os.sep, '/')  # To support windows
+        self.assertEqual(0, send_mail_by_command(executable, ["--version"], "", print))
+        self.assertNotEquals(0, send_mail_by_command(executable, ["--option-that-doesnot-exist"], "", print))
+        self.assertEquals(42, send_mail_by_command(executable + ' -c "import sys; c = sys.stdin.read(); exit(int(c))"',
+                                                   [], '42', print))
+        self.assertEquals(3, send_mail_by_command(executable + ' -c "import sys; c = sys.argv[3]; exit(int(c))"',
+                                                   ["1", "2", "3"],
+                                                   "spam", print))

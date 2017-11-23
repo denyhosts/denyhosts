@@ -18,6 +18,7 @@ class Prefs(dict):
         super(Prefs, self).__init__(**kwargs)
         # default values for some of the configurable items
         self.__data = {'ADMIN_EMAIL': None,
+                       'MAIL_COMMAND': None,
                        'SUSPICIOUS_LOGIN_REPORT_ALLOWED_HOSTS': 'yes',
                        'HOSTNAME_LOOKUP': 'yes',
                        'SYSLOG_REPORT': 'no',
