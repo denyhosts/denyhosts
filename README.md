@@ -147,3 +147,19 @@ Add an entry into the /etc/rc.local file:
 
     /usr/share/denyhosts/daemon-control start
 
+
+Method 3 (systemd unit)
+--------
+    $ cat /etc/systemd/system/denyhosts.service
+    [Unit]
+    Description=DenyHosts
+    Before=sshd.service
+
+    [Service]
+    Type=forking
+    ExecStartPre=/bin/rm -f /var/run/denyhosts.pid
+    ExecStart=/usr/bin/denyhosts.py --daemon --config=/etc/denyhosts.conf
+    PIDFile=/var/run/denyhosts.pid
+
+    [Install]
+    WantedBy=multi-user.target
