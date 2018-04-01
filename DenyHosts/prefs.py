@@ -39,8 +39,6 @@ class Prefs(dict):
                        'PF_TABLE': None,
                        'PF_TABLE_FILE': None,
                        'EMAIL_METHOD': 'SMTP',
-                       'SMTP_HOST': None,
-                       'SMTP_PORT': None,
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
                        'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
