@@ -38,6 +38,7 @@ class Prefs(dict):
                        'PFCTL_PATH': None,
                        'PF_TABLE': None,
                        'PF_TABLE_FILE': None,
+                       'EMAIL_METHOD': 'SMTP',
                        'SMTP_HOST': None,
                        'SMTP_PORT': None,
                        'SMTP_USERNAME': None,
