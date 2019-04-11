@@ -1,6 +1,6 @@
 import logging
 import logging.handlers
-from smtplib import SMTP
+from smtplib import SMTP, SMTP_SSL
 from smtplib import SMTPResponseException
 from smtplib import SMTPHeloError
 import sys
@@ -113,7 +113,10 @@ def send_email(prefs, report_str):
 
     msg += report_str
     try:
-        smtp = SMTP()
+        if is_true(prefs.get('SMTP_SSL')):
+            smtp = SMTP_SSL()
+        else:
+            smtp = SMTP()
 
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             smtp.set_debuglevel(1)
