@@ -42,8 +42,7 @@ if 'default' in config:
     if 'url' in config['default'] and re.match(r'([\w\:\/\.]+)', config['default']['url'], re.IGNORECASE):
         SLACKURL = re.findall(r'([\w\:\/\.]+)', config['default']['url'], re.IGNORECASE)[0]
     if 'webhooktoken' in config['default'] and re.match(r'([\w\d\-/]+)', config['default']['webhooktoken'], re.IGNORECASE):
-        SLACKTOKEN = re.findall(r'([\w\-]+)', config['default']['webhooktoken'], re.IGNORECASE)[0]
-
+        SLACKTOKEN = re.findall(r'([\w\d\-/]+)', config['default']['webhooktoken'], re.IGNORECASE)[0]
     # channel to post in slack, include the # in front of the channel ex: #systems
     if 'channel' in config['default'] and re.match(r'(^(@|#)[\w\d\-_/.]+)', config['default']['channel'],re.IGNORECASE):
         SLACKCHANNEL = re.findall(r'((@|#)[\w\d\-_/.]+)', config['default']['channel'], re.IGNORECASE)[0][0]
