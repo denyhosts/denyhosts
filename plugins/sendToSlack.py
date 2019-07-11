@@ -5,10 +5,10 @@
 # To enable the plugin edit /etc/denyhosts.conf
 # Uncomment PLUGIN_DENY and point it to the location of this file
 # create slack.conf in the plugins directory and set the slack url, webhooktoken, channel
-#   or run denyhosts with the plugin enabled, and allow the plugin to create the file on it's own
-#   then stop denyhosts and edit the create slack.conf file to match the settings you need
+#   or cd to your plugins directory and run python sendToSlack.py. This allows the plugin to create the file on it's own
+#   then edit the created slack.conf file to match the settings you need.
 # chmod +x this file so that it's executable, or the logs will show plugin returned 32256
-# Tested on Python 2.7.9
+# Tested on Python 2.7.13
 #
 
 import sys
@@ -19,10 +19,10 @@ import re
 from configparser import ConfigParser
 
 # Enable/Disable the option to include/exclude ips in slack messages
-enableIps=False
-SLACKTOKEN=''
-SLACKURL=''
-SLACKCHANNEL=''
+enableIps = False
+SLACKTOKEN = ''
+SLACKURL = ''
+SLACKCHANNEL = ''
 
 # set the slack options
 slackConfig = 'slack.conf'
@@ -44,16 +44,16 @@ if 'default' in config:
 
     # channel to post in slack, include the # in front of the channel ex: #systems
     if 'channel' in config['default'] and re.match(r'(^(@|#)[\w\d\-_/.]+)', config['default']['channel'],re.IGNORECASE):
-        SLACKCHANNEL = re.findall(r'([\w\-]+)', config['default']['webhooktoken'], re.IGNORECASE)[0]
+        SLACKCHANNEL = re.findall(r'((@|#)[\w\d\-_/.]+)', config['default']['channel'], re.IGNORECASE)[0][0]
 
-#Slack Web Hook ex: https://hooks.slack.com/services/xxxxxxx/xxxxxxxxx/xxxxxxxxxxxxxxxxxxxx
+# Slack Web Hook ex: https://hooks.slack.com/services/xxxxxxx/xxxxxxxxx/xxxxxxxxxxxxxxxxxxxx
 slackWebHook = SLACKURL + SLACKTOKEN
 
 # Get Server Info
 serverName = socket.gethostbyname_ex(socket.gethostname())[0]
 
 if enableIps:
-    serverIps=socket.gethostbyname_ex(socket.gethostname())[2]
+    serverIps = socket.gethostbyname_ex(socket.gethostname())[2]
     if len(serverIps) > 1:
         externalServerIp = socket.gethostbyname_ex(socket.gethostname())[2][1]
         internalServerIp = socket.gethostbyname_ex(socket.gethostname())[2][0]
@@ -67,7 +67,7 @@ else:
     message = '{} ip blocked on {}'.format(sys.argv[1], serverName)
         
 
-#if channel is set use the channel defined, otherwise post to the channel the webhook was made for
+# if channel is set use the channel defined, otherwise post to the channel the webhook was made for
 if SLACKCHANNEL != "":
     data = 'payload={"text":"{}","channel":"{}"}'.format(message, SLACKCHANNEL)
 else:
