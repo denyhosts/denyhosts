@@ -13,9 +13,11 @@
 
 import sys
 import os
-import urllib2
+#import urllib2
 import socket
 import re
+import json
+import requests
 from configparser import ConfigParser
 
 # Enable/Disable the option to include/exclude ips in slack messages
@@ -68,14 +70,16 @@ else:
         
 
 # if channel is set use the channel defined, otherwise post to the channel the webhook was made for
+dataObject = {
+    'text': '{}'.format(message)
+}
+
 if SLACKCHANNEL != "":
-    data = 'payload={"text":"{}","channel":"{}"}'.format(message, SLACKCHANNEL)
-else:
-    data = 'payload={"text":"{}"}'.format(message)
+    dataObject['channel'] = SLACKCHANNEL
+
+data = '{}'.format(json.dumps(dataObject))
 
 if slackWebHook != "":
-    request = urllib2.Request(slackWebHook, data)
-    call = urllib2.urlopen(request)
-    call.close()
+    request = requests.post(slackWebHook, data)
 
 sys.exit(0)
