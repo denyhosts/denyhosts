@@ -27,7 +27,7 @@ SLACKURL = ''
 SLACKCHANNEL = ''
 
 # set the slack options
-slackConfig = os.path.dirname(os.path.realpath(__file__)) + 'slack.conf'
+slackConfig = os.path.dirname(os.path.realpath(__file__)) + '/slack.conf'
 config = ConfigParser()
 if os.path.exists(slackConfig) is False:
     config.add_section('default')
