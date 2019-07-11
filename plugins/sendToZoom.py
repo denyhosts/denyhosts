@@ -44,11 +44,11 @@ if 'default' in config:
     if 'webhooktoken' in config['default'] and re.match(r'([\w\d]+)', config['default']['webhooktoken'], re.IGNORECASE):
         ZOOMTOKEN = re.findall(r'([\w\d]+)', config['default']['webhooktoken'], re.IGNORECASE)[0]
     # channel to post in slack, include the # in front of the channel ex: #systems
-    if 'path' in config['default'] and re.match(r'(^(@|#)[\w\d]+)', config['default']['path'], re.IGNORECASE):
-        ZOOMPATH = re.findall(r'([\w\d]+)', config['default']['path'], re.IGNORECASE)[0][0]
+    if 'path' in config['default'] and re.match(r'([\w\d]+)', config['default']['path'], re.IGNORECASE):
+        ZOOMPATH = re.findall(r'([\w\d]+)', config['default']['path'], re.IGNORECASE)[0]
 
 # Zoom Web Hook ex: https://inbots.zoom.us/incoming/hook/xxxxxxxxxxxxxxxxxxxx
-zoomWebHook = ZOOMURL + ZOOMTOKEN + '?format=full'
+zoomWebHook = ZOOMURL + ZOOMPATH + '?format=full'
 
 # Get Server Info
 serverName = socket.gethostbyname_ex(socket.gethostname())[0]
