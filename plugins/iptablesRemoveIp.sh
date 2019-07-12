@@ -65,7 +65,7 @@ then
 else
   #loop through the returned ip rules
   #start at the highest rule and go to the lowest to prevent other rules from being deleted on accident.
-  while [[ $ruleCount -ge 0 ]]
+  while [[ $ruleCount -gt 0 ]]
   do
     #decrement ruleCount down 1 since arrays start at 0 and not one, 
     #and keep reducing util we have 0 elements left
