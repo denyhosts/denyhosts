@@ -13,7 +13,6 @@
 
 import sys
 import os
-#import urllib2
 import socket
 import re
 import json
