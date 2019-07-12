@@ -4,6 +4,7 @@ from .constants import SECURE_LOG_OFFSET
 
 debug = logging.getLogger("filetracker").debug
 
+
 class FileTracker(object):
     def __init__(self, work_dir, logfile):
         self.work_dir = work_dir
@@ -29,8 +30,6 @@ class FileTracker(object):
         return first_line, offset
 
     def __get_current_offset(self):
-        first_line = ""
-        offset = 0
         try:
             fp = open(self.logfile, "r")
             first_line = fp.readline()[:-1]
@@ -46,7 +45,6 @@ class FileTracker(object):
         return first_line, offset
 
     def update_first_line(self):
-        first_line = ""
         try:
             fp = open(self.logfile, "r")
             first_line = fp.readline()[:-1]

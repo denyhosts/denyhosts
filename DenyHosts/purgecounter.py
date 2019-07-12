@@ -7,12 +7,12 @@ from .counter import Counter, CounterRecord
 error = logging.getLogger("purgecounter").error
 info = logging.getLogger("purgecounter").info
 
+
 class PurgeCounter(object):
     def __init__(self, prefs):
         self.filename = os.path.join(prefs['WORK_DIR'],
                                      constants.PURGE_HISTORY)
         self.purge_threshold = prefs['PURGE_THRESHOLD']
-
 
     def get_banned_for_life(self):
         banned = set()
@@ -36,7 +36,6 @@ class PurgeCounter(object):
         fp.close()
         return banned
 
-
     def get_data(self):
         counter = Counter()
         try:
@@ -53,7 +52,6 @@ class PurgeCounter(object):
 
         fp.close()
         return counter
-
 
     def write_data(self, data):
         try:

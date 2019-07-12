@@ -2,6 +2,7 @@ import os
 
 from .constants import RESTRICTED_USERNAMES
 
+
 class Restricted:
     def __init__(self, prefs):
         self.filename = os.path.join(prefs['ETC_DIR'], RESTRICTED_USERNAMES)

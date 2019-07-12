@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-import os, sys
+import os
+import sys
+
 
 def usage():
     print "%s WORK_DIR [num_results]" % sys.argv[0]
     sys.exit(1)
+
 
 try:
     work_dir = sys.argv[1]
@@ -35,9 +38,9 @@ for line in fp:
     except Exception:
         continue
 
-    l = d.get(attempts, [])
-    l.append(username)
-    d[attempts] = l
+    ip_attempts = d.get(attempts, [])
+    ip_attempts.append(username)
+    d[attempts] = ip_attempts
 
 fp.close()
 
@@ -47,9 +50,11 @@ keys.reverse()
 
 i = 0
 for key in keys:
-    l = d.get(key)
-    for username in l:
+    usernames = d.get(key)
+    for username in usernames:
         i += 1
         print username
-        if i >= num: break
-    if i >= num: break
+        if i >= num:
+            break
+    if i >= num:
+        break
