@@ -1,13 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Jose' Vargas <https://github.com/josev814>
 # This plugin allows deny host to send a blocked ip to slack as a notification
 # To enable the plugin edit /etc/denyhosts.conf
 # Uncomment PLUGIN_DENY and point it to the location of this file
-# create slack.conf in the plugins directory and set the slack url, webhooktoken, channel
-#   or cd to your plugins directory and run python sendToSlack.py. This allows the plugin to create the file on it's own
-#   then edit the created slack.conf file to match the settings you need.
-# chmod +x this file so that it's executable, or the logs will show plugin returned 32256
+# create zoom.conf in the plugins directory and set the zoom url, path and webhooktoken
+#   or cd to your plugins directory and run python sendToZoom.py. This allows the plugin to create the file on it's own
+#   then edit the created zoom.conf file to match the settings you need.
+# if the denyhosts log shows plugin returned 32256, chmod +x this file so that it's executable
 # Tested on Python 2.7.13
 #
 
