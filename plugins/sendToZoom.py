@@ -8,7 +8,7 @@
 #   or cd to your plugins directory and run python sendToZoom.py. This allows the plugin to create the file on it's own
 #   then edit the created zoom.conf file to match the settings you need.
 # if the denyhosts log shows plugin returned 32256, chmod +x this file so that it's executable
-# Tested on Python 2.7.13
+# Tested on Python 2.6, 2.7.13
 #
 
 import sys
@@ -59,13 +59,13 @@ if enableIps:
         externalServerIp = socket.gethostbyname_ex(socket.gethostname())[2][1]
         internalServerIp = socket.gethostbyname_ex(socket.gethostname())[2][0]
         # Set the Message that's sent
-        message = '{} ip blocked on {} ({} / {})'.format(sys.argv[1], serverName, externalServerIp, internalServerIp)
+        message = '{0} ip blocked on {1} ({2} / {3})'.format(sys.argv[1], serverName, externalServerIp, internalServerIp)
     else:
         serverIp = socket.gethostbyname_ex(socket.gethostname())[2][0]
         # Set the Message that's sent
-        message = '{} ip blocked on {} ({})'.format(sys.argv[1], serverName, serverIp)
+        message = '{0} ip blocked on {1} ({2})'.format(sys.argv[1], serverName, serverIp)
 else:
-    message = '{} ip blocked on {}'.format(sys.argv[1], serverName)
+    message = '{0} ip blocked on {1}'.format(sys.argv[1], serverName)
         
 
 # if channel is set use the channel defined, otherwise post to the channel the webhook was made for
@@ -84,7 +84,7 @@ dataObject = {
     ]
 }
 
-data = '{}'.format(json.dumps(dataObject))
+data = '{0}'.format(json.dumps(dataObject))
 
 if zoomWebHook != "":
     request = requests.post(zoomWebHook, data, headers={'Content-Type': 'application/json', 'Authorization': ZOOMTOKEN})
