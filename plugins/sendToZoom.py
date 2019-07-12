@@ -79,7 +79,7 @@ dataObject = {
     'body': [
         {
             'type': 'message',
-            'text': '{}'.format(message)
+            'text': '{0}'.format(message)
         }
     ]
 }
