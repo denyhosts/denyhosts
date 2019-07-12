@@ -87,6 +87,19 @@ dataObject = {
 data = '{0}'.format(json.dumps(dataObject))
 
 if zoomWebHook != "":
-    request = requests.post(zoomWebHook, data, headers={'Content-Type': 'application/json', 'Authorization': ZOOMTOKEN})
+    try:
+        request = requests.post(
+            zoomWebHook,
+            data,
+            headers={'Content-Type': 'application/json', 'Authorization': ZOOMTOKEN}
+        )
+    except requests.exceptions.SSLError:
+        #this is needed in python 2.6.x on CentOS
+        request = requests.post(
+            zoomWebHook,
+            data,
+            headers={'Content-Type': 'application/json', 'Authorization': ZOOMTOKEN},
+            verify=False
+        )
 
 sys.exit(0)
