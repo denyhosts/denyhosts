@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Jose' Vargas <https://github.com/josev814>
 # This plugin allows deny host to send a blocked ip to slack as a notification
