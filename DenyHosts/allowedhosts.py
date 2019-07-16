@@ -7,7 +7,7 @@ from .regex import ALLOWED_REGEX
 from .util import is_true
 
 logger = logging.getLogger("AllowedHosts")
-debug, warn = logger.debug, logger.warn
+debug, warn = logger.debug, logger.warning
 
 
 class AllowedHosts(object):

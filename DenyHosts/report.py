@@ -10,7 +10,7 @@ except ImportError:
     syslog = None
 
 debug = logging.getLogger("report").debug
-warn = logging.getLogger("report").warn
+warn = logging.getLogger("report").warning
 
 IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
 
