@@ -25,9 +25,9 @@ info = logging.getLogger("denyhosts").info
 
 def usage():
     print("Usage:")
-    print("%s [-f logfile | --file=logfile] [ -c configfile | --config configfile] " +
-          "[-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip ip] " +
-          "[--migrate] [--daemon] [--sync] [--version]" % sys.argv[0])
+    print('{0} [-f logfile | --file=logfile] [ -c configfile | --config configfile] '
+          '[-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip ip] '
+          '[--migrate] [--daemon] [--sync] [--version]'.format(sys.argv[0]))
     print("\n\n")
     print(" --config: The pathname of the configuration file")
     print(" --file:   The name of log file to parse")
