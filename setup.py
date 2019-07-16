@@ -4,6 +4,7 @@
 
 from glob import glob
 from os.path import join as ospj
+from os.path import exists as fcheck
 
 from distutils.core import setup
 
@@ -15,6 +16,19 @@ manpath = "/usr/share/man/man8"
 libpath = "/usr/share/denyhosts"
 scriptspath = ospj("scripts", libpath)
 pluginspath = ospj("plugins", libpath)
+
+
+if fcheck((etcpath, glob('denyhosts.conf'))):
+    backup = ['Y','y','yes','YES','Yes','']
+    backup_file = input("We have detected that you have an existing config file, would you like to back it up? [Y|N]")
+    if backup_file in backup:
+        from distutils.file_util import copy_file
+        from time import time
+        copy_file(
+            (etcpath, glob('denyhosts.conf')),
+            (etcpath, glob('denyhosts.conf.{0}'.format(int(time()))))
+        )
+
 
 setup(
     name="DenyHosts",
