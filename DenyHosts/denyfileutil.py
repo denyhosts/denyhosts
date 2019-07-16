@@ -11,7 +11,7 @@ from .purgecounter import PurgeCounter
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
-warn = logging.getLogger("denyfileutil").warn
+warn = logging.getLogger("denyfileutil").warning
 
 
 class DenyFileUtilBase(object):
