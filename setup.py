@@ -18,15 +18,15 @@ scriptspath = ospj("scripts", libpath)
 pluginspath = ospj("plugins", libpath)
 
 
-if fcheck((etcpath, glob('denyhosts.conf'))):
+if fcheck(etcpath + '/' + 'denyhosts.conf'):
     backup = ['Y','y','yes','YES','Yes','']
     backup_file = input("We have detected that you have an existing config file, would you like to back it up? [Y|N]")
     if backup_file in backup:
         from distutils.file_util import copy_file
         from time import time
         copy_file(
-            (etcpath, glob('denyhosts.conf')),
-            (etcpath, glob('denyhosts.conf.{0}'.format(int(time()))))
+            (etcpath + '/' + 'denyhosts.conf'),
+            (etcpath + '/' + 'denyhosts.conf.{0}'.format(int(time())))
         )
 
 
