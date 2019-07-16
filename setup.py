@@ -17,18 +17,22 @@ libpath = "/usr/share/denyhosts"
 scriptspath = ospj("scripts", libpath)
 pluginspath = ospj("plugins", libpath)
 
-
 if fcheck(etcpath + '/' + 'denyhosts.conf'):
-    backup = ['Y','y','yes','YES','Yes','']
-    backup_file = input("We have detected that you have an existing config file, would you like to back it up? [Y|N]")
+    backup = ['Y', 'y', 'yes', 'YES', 'Yes', '']
+    backup_question = 'We have detected that you have an existing config file, would you like to back it up? [Y|N]: '
+    try:  # python 2.x
+        backup_file = raw_input(backup_question)
+    except NameError:  # python 3
+        backup_file = input(backup_question)
+
     if backup_file in backup:
         from distutils.file_util import copy_file
         from time import time
+
         copy_file(
             (etcpath + '/' + 'denyhosts.conf'),
             (etcpath + '/' + 'denyhosts.conf.{0}'.format(int(time())))
         )
-
 
 setup(
     name="DenyHosts",
