@@ -11,7 +11,8 @@ from .purgecounter import PurgeCounter
 
 debug = logging.getLogger("denyfileutil").debug
 info = logging.getLogger("denyfileutil").info
-warn = logging.getLogger("denyfileutil").warn
+warn = logging.getLogger("denyfileutil").warning
+
 
 class DenyFileUtilBase(object):
     def __init__(self, deny_file, extra_file_id=""):
@@ -41,7 +42,6 @@ class DenyFileUtilBase(object):
     def create_temp(self, data_list):
         raise Exception("Not Imlemented")
 
-
     def get_data(self):
         data = []
         try:
@@ -53,6 +53,7 @@ class DenyFileUtilBase(object):
         return data
 
 #################################################################################
+
 
 class Migrate(DenyFileUtilBase):
     def __init__(self, deny_file):
@@ -99,9 +100,8 @@ class Migrate(DenyFileUtilBase):
         except Exception as e:
             raise e
 
-
-
 #################################################################################
+
 
 class UpgradeTo099(DenyFileUtilBase):
     def __init__(self, deny_file):
@@ -140,11 +140,12 @@ class UpgradeTo099(DenyFileUtilBase):
 
 #################################################################################
 
+
 class Purge(DenyFileUtilBase):
     def __init__(self, prefs, cutoff):
         deny_file = prefs.get('HOSTS_DENY')
         DenyFileUtilBase.__init__(self, deny_file, "purge")
-        work_dir = prefs.get('WORK_DIR')
+        self.work_dir = prefs.get('WORK_DIR')
         self.purge_threshold = prefs['PURGE_THRESHOLD']
         self.purge_counter = PurgeCounter(prefs)
 
@@ -171,7 +172,6 @@ class Purge(DenyFileUtilBase):
         plugin_purge = prefs.get('PLUGIN_PURGE')
         if plugin_purge:
             plugin.execute(plugin_purge, purged_hosts)
-
 
     def create_temp(self, data):
         purged_hosts = []
@@ -207,7 +207,7 @@ class Purge(DenyFileUtilBase):
                         continue
 
                     epoch = int(time.mktime(tm))
-                    #print entry, epoch, self.cutoff
+                    # print entry, epoch, self.cutoff
 
                     if self.cutoff > epoch:
                         # this entry should be purged
@@ -239,11 +239,12 @@ class Purge(DenyFileUtilBase):
 
 #################################################################################
 
+
 class PurgeIP(DenyFileUtilBase):
     def __init__(self, prefs, purgeip_list):
         deny_file = prefs.get('HOSTS_DENY')
         DenyFileUtilBase.__init__(self, deny_file, "purgeip")
-        work_dir = prefs.get('WORK_DIR')
+        self.work_dir = prefs.get('WORK_DIR')
         self.purge_counter = PurgeCounter(prefs)
 
         info("purging listed IP addresses.",)

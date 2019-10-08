@@ -39,8 +39,8 @@ if os.path.exists(zoomConfig) is False:
 
 config.read(zoomConfig)
 if 'default' in config:
-    if 'url' in config['default'] and re.match(r'([\w\:\/\.]+)', config['default']['url'], re.IGNORECASE):
-        ZOOMURL = re.findall(r'([\w\:\/\.]+)', config['default']['url'], re.IGNORECASE)[0]
+    if 'url' in config['default'] and re.match(r'([\w:/.]+)', config['default']['url'], re.IGNORECASE):
+        ZOOMURL = re.findall(r'([\w:/.]+)', config['default']['url'], re.IGNORECASE)[0]
     if 'webhooktoken' in config['default'] and re.match(r'([\w\d]+)', config['default']['webhooktoken'], re.IGNORECASE):
         ZOOMTOKEN = re.findall(r'([\w\d]+)', config['default']['webhooktoken'], re.IGNORECASE)[0]
     # channel to post in slack, include the # in front of the channel ex: #systems
