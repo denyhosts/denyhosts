@@ -3,6 +3,7 @@
 # Copyright 2014 (C) Jesse Smith <jessefrgsmith@yahoo.ca>
 
 from glob import glob
+import sys
 from os.path import join as ospj
 from os.path import exists as fcheck
 
@@ -16,6 +17,10 @@ manpath = "/usr/share/man/man8"
 libpath = "/usr/share/denyhosts"
 scriptspath = ospj("scripts", libpath)
 pluginspath = ospj("plugins", libpath)
+denyhostsman = 'denyhosts.8'
+
+if 'rpm' in sys.argv[1]:
+    denyhostsman += '.gz'
 
 if fcheck(etcpath + '/' + 'denyhosts.conf'):
     backup = ['Y', 'y', 'yes', 'YES', 'Yes', '']
@@ -47,7 +52,7 @@ setup(
     requires=["ipaddr"],
     data_files=[
         (etcpath, glob("denyhosts.conf")),
-        (manpath, glob("denyhosts.8")),
+        (manpath, glob(denyhostsman)),
     ],
     license="GPL v2",
     long_description=normalize_whitespace(
