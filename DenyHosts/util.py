@@ -8,10 +8,10 @@ from textwrap import dedent
 import time
 
 py_version = sys.version_info
-if py_version.major == 2:
+if py_version[0] == 2:
     # python 2
     from ipaddr import IPAddress
-elif py_version.major == 3:
+elif py_version[0] == 3:
     # python 3
     from ipaddress import ip_address
 
@@ -191,10 +191,10 @@ def normalize_whitespace(string):
 
 def is_valid_ip_address(process_ip):
     ip = None
-    if py_version.major == 2:
+    if py_version[0] == 2:
         # python 2
         ip = IPAddress(process_ip)
-    elif py_version.major == 3:
+    elif py_version[0] == 3:
         # python 3
         ip = ip_address(process_ip)
 
