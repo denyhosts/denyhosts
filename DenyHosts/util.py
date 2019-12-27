@@ -6,10 +6,12 @@ from smtplib import SMTPHeloError
 import sys
 from textwrap import dedent
 import time
-try:
+
+py_version = sys.version_info
+if py_version.major == 2:
     # python 2
     from ipaddr import IPAddress
-except:
+elif py_version.major == 3:
     # python 3
     from ipaddress import ip_address
 
@@ -189,18 +191,14 @@ def normalize_whitespace(string):
 
 def is_valid_ip_address(process_ip):
     ip = None
-    try:
+    if py_version.major == 2:
+        # python 2
         ip = IPAddress(process_ip)
-    except:
-        try:
-            ip = ip_address(process_ip)
-        except:
-            pass
+    elif py_version.major == 3:
+        # python 3
+        ip = ip_address(process_ip)
 
-    if ip is None:
-        return False
-
-    if ip.is_reserved or ip.is_private or \
+    if ip is None or ip.is_reserved or ip.is_private or \
             ip.is_loopback or ip.is_unspecified or \
             ip.is_multicast or ip.is_link_local:
         return False
