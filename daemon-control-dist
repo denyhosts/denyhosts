@@ -156,15 +156,11 @@ if __name__ == '__main__':
 
     try:
         if option in ('start', 'restart', 'condrestart'):
-            # TODO move this do a function
             anystartswith = lambda prefix, xs: any(map(lambda x: x.startswith(prefix), xs))
             if not anystartswith('--config', args) and '-c' not in args:
                 args.append("--config=%s" % DENYHOSTS_CFG)
 
         cmd = cases[option]
-        # TODO replace apply function
-        # it has been deprecated since version 2.3
-        # https://docs.python.org/2/library/functions.html#apply
-        apply(cmd, args)
+        getattr(sys.modules[__name__], 'cmd')(*args)
     except Exception:
         usage()
