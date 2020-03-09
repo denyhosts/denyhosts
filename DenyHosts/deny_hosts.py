@@ -445,17 +445,15 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
                     m = self.__successful_entry_regex.match(message)
                     if m:
                         success = 1
-
             # otherwise, did the line match a failed dovelog login attempt?
-            if is_true(self.__prefs.get("DETECT_DOVECOT_LOGIN_ATTEMPTS")):
+            elif is_true(self.__prefs.get("DETECT_DOVECOT_LOGIN_ATTEMPTS")):
                 rxx = self.__failed_dovecot_entry_regex
                 m = rxx.search(line)
                 if m:
                     # debug("matched (host=%s): %s", m.group("host"), rx.pattern)
                     invalid = self.is_valid(m)
-
             # otherwise, did the line match one of the userdef regexes?
-            if not m:
+            elif not m:
                 for rxx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
                     m = rxx.search(line)
                     if m:
