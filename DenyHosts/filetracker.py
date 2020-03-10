@@ -12,14 +12,13 @@ class FileTracker(object):
         (self.__first_line, self.__offset) = self.__get_current_offset()
 
     def __get_last_offset(self):
-        path = os.path.join(self.work_dir,
-                            SECURE_LOG_OFFSET)
+        path = os.path.join(self.work_dir, SECURE_LOG_OFFSET)
         first_line = ""
         offset = 0
         try:
-            fp = open(path, "r")
-            first_line = fp.readline()[:-1]
-            offset = int(fp.readline())
+            with open(path, 'r') as fp:
+                first_line, offset_str = fp.readlines()
+                offset = int(offset_str)
         except IOError:
             pass
 
@@ -31,18 +30,18 @@ class FileTracker(object):
 
     def __get_current_offset(self):
         try:
-            fp = open(self.logfile, "r")
-            first_line = fp.readline()[:-1]
-            fp.seek(0, 2)
-            offset = fp.tell()
+            with open(self.logfile, 'r') as fp:
+                first_line = fp.readline()[:-1]
+                fp.seek(0, 2)
+                position = fp.tell()
         except IOError as e:
             raise e
 
         debug("__get_current_offset():")
         debug("   first_line: %s", first_line)
-        debug("   offset: %ld", offset)
+        debug("   position: %ld", position)
 
-        return first_line, offset
+        return first_line, position
 
     def update_first_line(self):
         try:
@@ -50,6 +49,8 @@ class FileTracker(object):
             first_line = fp.readline()[:-1]
         except IOError as e:
             raise e
+        finally:
+            fp.close()
 
         self.__first_line = first_line
 
@@ -75,9 +76,10 @@ class FileTracker(object):
         path = os.path.join(self.work_dir,
                             SECURE_LOG_OFFSET)
         try:
-            fp = open(path, "w")
-            fp.write("%s\n" % self.__first_line)
-            fp.write("%ld\n" % offset)
-            fp.close()
+            with open(path, "w") as fp:
+                fp.writelines([
+                    "%s\n" % self.__first_line,
+                    "%ld\n" % offset
+                ])
         except IOError:
             print("Could not save logfile offset to: %s" % path)
