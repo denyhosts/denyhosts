@@ -18,7 +18,11 @@ class FileTracker(object):
         try:
             with open(path, 'r') as fp:
                 first_line = fp.readline()[:-1]
-                offset = int(fp.readline())
+                offset_line = fp.readline()
+                if offset_line is None or offset_line == '':
+                    offset = 0
+                else:
+                    offset = int(offset_line)
         except IOError:
             pass
 

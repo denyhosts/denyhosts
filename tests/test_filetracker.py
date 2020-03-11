@@ -64,3 +64,11 @@ class FileTrackerTest(unittest.TestCase):
         self.assertEqual(ft.get_offset(), new_offset)
         self.lock_file.remove()
 
+    def clear_offset_file(self):
+        with open(ospj(self.WORK_DIR, self.SECURE_LOG_FILE), 'w') as fh:
+            fh.write('')
+
+    def test_05_bug_99(self):
+        self.clear_offset_file()
+        ft = FileTracker(self.WORK_DIR, self.LOG_FILE)
+        self.assertEqual(ft.get_offset(), 0)
