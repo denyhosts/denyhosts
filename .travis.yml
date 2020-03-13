@@ -13,5 +13,5 @@ install:
   - pip install coverage
 script:
   #- nosetests -v --with-coverage
-  - coverage run -m unittest discover
+  - coverage run -m unittest tests/*
   - coverage report -m
