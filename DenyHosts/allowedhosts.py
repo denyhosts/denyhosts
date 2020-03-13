@@ -100,10 +100,9 @@ class AllowedHosts(object):
 
     def load_warned_hosts(self):
         try:
-            fp = open(self.warned_path, "r")
-            for line in fp:
-                self.warned_hosts[line.strip()] = None
-            fp.close()
+            with open(self.warned_path, "r") as fp:
+                for line in fp:
+                    self.warned_hosts[line.strip()] = None
         except IOError:
             warn("Couldn't load warned hosts from %s" % self.warned_path)
 
@@ -111,10 +110,9 @@ class AllowedHosts(object):
         if not self.new_warned_hosts:
             return
         try:
-            fp = open(self.warned_path, "a")
-            for host in self.new_warned_hosts:
-                fp.write("%s\n" % host)
-            fp.close()
+            with open(self.warned_path, "a") as fp:
+                for host in self.new_warned_hosts:
+                    fp.write("%s\n" % host)
         except Exception as e:
             print(e)
 
