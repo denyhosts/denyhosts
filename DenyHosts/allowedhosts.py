@@ -1,6 +1,7 @@
 import logging
 import os
 from socket import getfqdn, gethostbyname
+from __future__ import print_function
 
 from .constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
 from .regex import ALLOWED_REGEX
