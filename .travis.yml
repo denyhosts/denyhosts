@@ -12,4 +12,6 @@ install:
   - pip install -r requirements.txt
   - pip install coverage
 script:
-  - nosetests -v --with-coverage
+  #- nosetests -v --with-coverage
+  - coverage run -m unittest discover
+  - coverage report -m
