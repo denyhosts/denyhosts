@@ -4,8 +4,11 @@ from os.path import abspath, dirname, join as ospj
 from tempfile import mkdtemp
 import unittest
 import sys
-from io import StringIO
 import ast
+if sys.version_info < (3, 0):
+    from io import BytesIO as StringIO
+else:
+    from io import StringIO
 
 from DenyHosts.allowedhosts import AllowedHosts
 from DenyHosts.constants import ALLOWED_WARNED_HOSTS
