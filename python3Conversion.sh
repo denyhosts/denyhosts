@@ -3,7 +3,7 @@
 if [ -d DenyHosts ]
 then
     py3loc=$(whereis python3 | awk '{ print $2 }')
-    if [ "${pyloc}" != '' ]
+    if [ "${py3loc}" != '' ]
     then
         py3loc=`echo "${py3loc}" | sed 's/\//\\\\\//g'`
         #using sed -i.bak to make it gnu and bsd compatible
