@@ -115,10 +115,12 @@ class Sync(object):
         timestamp = self.get_sync_timestamp()
 
         try:
-            data = self.__server.get_new_hosts(timestamp,
-                                               self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
-                                               self.__hosts_added,
-                                               self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY"))
+            data = self.__server.get_new_hosts(
+                timestamp,
+                self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
+                self.__hosts_added,
+                self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY")
+            )
             timestamp = data['timestamp']
             self.set_sync_timestamp(timestamp)
             hosts = data['hosts']
@@ -131,12 +133,12 @@ class Sync(object):
 
     def __save_received_hosts(self, hosts, timestamp):
         try:
-            fp = open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a")
+            timestr = time.ctime(float(timestamp))
+            with open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a") as fp:
+                for host in hosts:
+                    fp.write("%s:%s\n" % (host, timestr))
         except IOError as e:
             error(e)
             return
-
-        timestr = time.ctime(float(timestamp))
-        for host in hosts:
-            fp.write("%s:%s\n" % (host, timestr))
-        fp.close()
+        finally:
+            fp.close()
