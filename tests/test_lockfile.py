@@ -3,6 +3,8 @@ from __future__ import print_function, unicode_literals
 import unittest
 from os.path import dirname, join as ospj
 from os import close
+import sys
+import re
 
 from DenyHosts.lockfile import LockFile
 
@@ -28,7 +30,13 @@ class LockFileTest(unittest.TestCase):
 
     def test_04_check_pid(self):
         lf = LockFile(self.LOCKPATH)
-        self.assertRegex(lf.get_pid(), r'^[0-9]+$')
+        pid = lf.get_pid()
+        if sys.version_info <= (3, 0):
+            # py2.x coverage
+            regex_match = re.match(r'[0-9]+$', pid)
+            self.assertIsNotNone(regex_match)
+        else:
+            self.assertRegex(pid, r'^[0-9]+$')
 
     def test_05_check_lockfile_create_exists(self):
         lf = LockFile(self.LOCKPATH)
