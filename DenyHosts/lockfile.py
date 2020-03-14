@@ -14,9 +14,8 @@ class LockFile(object):
     def get_pid(self):
         pid = ""
         try:
-            fp = open(self.lockpath, "r")
-            pid = fp.read().strip()
-            fp.close()
+            with open(self.lockpath, "r") as fp:
+                pid = fp.read().strip()
         except IOError:
             pass
         return pid
