@@ -85,7 +85,7 @@ class UtilsTest(unittest.TestCase):
         self.assertIsNone(util.send_email(self.prefs, 'testing report'))
 
     def test_send_email_error(self):
-        self.prefs._Prefs__data['SMTP_PORT'] = 2500
+        self.prefs._Prefs__data['SMTP_PORT'] = 25
         self.assertIsNone(util.send_email(self.prefs, 'testing report'))
 
     def test_whitespace(self):
