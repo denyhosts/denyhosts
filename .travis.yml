@@ -8,10 +8,21 @@ python:
   - 3.7
   - 3.8
 
+before_install:
+  - sudo apt-get install -y -qq postfix
+
 install:
   - pip install -r requirements.txt
   - pip install coverage
+
+before_script:
+  - sudo service postfix stop
+  - smtp-sink -d "%d.%H.%M.%S" -c localhost:2500 1000 &
+
 script:
   #- nosetests -v --with-coverage
   - coverage run -m unittest discover
   - coverage report -m
+
+notifications:
+  email: false
