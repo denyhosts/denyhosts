@@ -96,6 +96,14 @@ class CounterRecordTest(unittest.TestCase):
         c.age_count(0)
         self.assertEqual(c.get_count(), 0)
 
+    def test_counter_repr(self):
+        one_hour_ago = datetime.now() - timedelta(hours=1)
+        date_str = time.asctime(one_hour_ago.timetuple())
+        count = object()
+        c = CounterRecord(count=count, date=date_str)
+        c.age_count(0)
+        self.assertEqual(c.__repr__(), 'CountRecord <{} - {}>'.format(0, date_str))
+
 class CounterTest(unittest.TestCase):
     def test_init(self):
         c = Counter()

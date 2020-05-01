@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os  # do not edit
 import sys  # do not edit
+import platform # do not edit
 import signal  # do not edit
 import time  # do not edit
 # denyhosts     Bring up/down the DenyHosts daemon
@@ -20,6 +21,17 @@ DENYHOSTS_LOCK = "/run/denyhosts.pid"
 DENYHOSTS_CFG = "/etc/denyhosts.conf"
 
 PYTHON_BIN = "/usr/bin/env python"
+
+distro = platform.uname()[3]
+distro2 = platform.uname()[2]
+if distro.find('Debian') >= 0:
+    DENYHOSTS_BIN = "/usr/local/bin/denyhosts"
+elif distro.find('FreeBSD') >= 0:
+    DENYHOSTS_BIN = "/usr/local/bin"
+else:
+    #centos
+    if distro2.find('el6') >= 0 or distro2.find('el7') >= 0:
+        DENYHOSTS_BIN = "/usr/bin/denyhosts"
 
 ###############################################
 ###############################################
