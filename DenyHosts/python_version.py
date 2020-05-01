@@ -3,6 +3,7 @@ from textwrap import dedent
 
 MINIMUM_VERSION = (2, 4)
 
+
 def check_version():
     if sys.version_info < MINIMUM_VERSION:
         min_version_str = '.'.join(str(x) for x in MINIMUM_VERSION)
@@ -26,5 +27,6 @@ def check_version():
 
             """) % ' '.join(sys.argv))
         sys.exit(1)
+
 
 check_version()
