@@ -206,3 +206,11 @@ def is_valid_ip_address(process_ip):
             ip.is_multicast or ip.is_link_local:
         return False
     return True
+
+
+def get_user_input(prompt):
+    try:
+        response = raw_input(prompt)
+    except NameError:
+        response = input(prompt)
+    return response
