@@ -6,7 +6,6 @@ from smtplib import SMTPHeloError
 import sys
 from textwrap import dedent
 import time
-
 py_version = sys.version_info
 if py_version[0] == 2:
     # python 2
@@ -190,7 +189,6 @@ def send_email(prefs, report_str):
 
 def normalize_whitespace(string):
     return ' '.join(string.split())
-
 
 def is_valid_ip_address(process_ip):
     ip = None
