@@ -25,7 +25,9 @@ info = logging.getLogger("denyhosts").info
 
 def usage():
     print("Usage:")
-    print("%s [-f logfile | --file=logfile] [ -c configfile | --config configfile] [-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip ip] [--migrate] [--daemon] [--sync] [--version]" % sys.argv[0])
+    print('{0} [-f logfile | --file=logfile] [ -c configfile | --config configfile] '
+          '[-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip ip] '
+          '[--migrate] [--daemon] [--sync] [--version]'.format(sys.argv[0]))
     print("\n\n")
     print(" --config: The pathname of the configuration file")
     print(" --file:   The name of log file to parse")
@@ -53,10 +55,6 @@ def usage():
 
 
 #################################################################################
-
-
-
-
 #################################################################################
 
 
@@ -139,9 +137,9 @@ if __name__ == '__main__':
 
     first_time = 0
     try:
-        if not os.path.exists( prefs.get('WORK_DIR') ):
-             os.makedirs(prefs.get('WORK_DIR'))
-             first_time = 1
+        if not os.path.exists(prefs.get('WORK_DIR')):
+            os.makedirs(prefs.get('WORK_DIR'))
+            first_time = 1
     except Exception as e:
         if e[0] != 17:
             print(e)
@@ -152,9 +150,9 @@ if __name__ == '__main__':
     # "touch" the file to make sure it is there to avoid errors later.
     try:
         host_filename = prefs.get("HOSTS_DENY")
-        if (host_filename): 
-            fp = open( prefs.get("HOSTS_DENY"), "a" )
-            fp.close();
+        if host_filename:
+            fp = open(prefs.get("HOSTS_DENY"), "a")
+            fp.close()
     except Exception as e:
         print("Unable to create file specified by HOSTS_DENY variable.")
 
@@ -165,20 +163,24 @@ if __name__ == '__main__':
     elif len(logfiles) > 1:
         ignore_offset = 1
 
-    if not prefs.get('ADMIN_EMAIL'): noemail = 1
+    if not prefs.get('ADMIN_EMAIL'):
+        noemail = 1
 
     lock_file = LockFile(prefs.get('LOCK_FILE'))
 
     if unlock:
-        if os.path.isfile( prefs.get('LOCK_FILE') ):
-           lock_file.remove()
+        if os.path.isfile(prefs.get('LOCK_FILE')):
+            lock_file.remove()
 
     lock_file.create()
 
     if upgrade099 and not (daemon or foreground):
         if not prefs.get('PURGE_DENY'):
             lock_file.remove()
-            die("You have supplied the --upgrade099 flag, however you have not set PURGE_DENY in your configuration file")
+            die(
+                "You have supplied the --upgrade099 flag," +
+                " however you have not set PURGE_DENY in your configuration file"
+            )
         else:
             u = UpgradeTo099(prefs.get("HOSTS_DENY"))
 
@@ -196,20 +198,21 @@ if __name__ == '__main__':
             die("You have provided the --purgeip flag however you have not listed any IP addresses to purge.")
         else:
             try:
-                p = PurgeIP(prefs,
-                          purgeip_list)
+                p = PurgeIP(
+                    prefs,
+                    purgeip_list
+                )
 
             except Exception as e:
                 lock_file.remove()
                 die(str(e))
 
-
     # Try to purge old records without any delay
     if purge_all and not daemon:
-         purge_time = 1
-         try:
+        purge_time = 1
+        try:
             p = Purge(prefs, purge_time)
-         except Exception as e:
+        except Exception as e:
             lock_file.remove()
             die(str(e))
 
@@ -239,7 +242,6 @@ if __name__ == '__main__':
         traceback.print_exc(file=sys.stdout)
         print("\nDenyHosts exited abnormally")
 
-
     if sync_mode and not (daemon or foreground):
         if not prefs.get('SYNC_SERVER'):
             lock_file.remove()
@@ -247,8 +249,11 @@ if __name__ == '__main__':
         sync_upload = is_true(prefs.get("SYNC_UPLOAD"))
         sync_download = is_true(prefs.get("SYNC_DOWNLOAD"))
         if not sync_upload and not sync_download:
-           lock_file.remove()
-           die("You have provided the --sync flag however your configuration file has SYNC_UPLOAD and SYNC_DOWNLOAD set to false.")
+            lock_file.remove()
+            die(
+                "You have provided the --sync flag"
+                " however your configuration file has SYNC_UPLOAD and SYNC_DOWNLOAD set to false."
+            )
         try:
             sync = Sync(prefs)
             if sync_upload:
@@ -258,8 +263,10 @@ if __name__ == '__main__':
                 if new_hosts:
                     # MMR: What is 'info' here?
                     info("received new hosts: %s", str(new_hosts))
+                    # TODO sync method's don't exist what should these be doing?
                     sync.get_denied_hosts()
                     sync.update_hosts_deny(new_hosts)
+
                     dh.get_denied_hosts()
                     dh.update_hosts_deny(new_hosts)
             sync.xmlrpc_disconnect()

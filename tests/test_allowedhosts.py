@@ -3,6 +3,12 @@ from __future__ import print_function, unicode_literals
 from os.path import abspath, dirname, join as ospj
 from tempfile import mkdtemp
 import unittest
+import sys
+import ast
+if sys.version_info < (3, 0):
+    from io import BytesIO as StringIO
+else:
+    from io import StringIO
 
 from DenyHosts.allowedhosts import AllowedHosts
 from DenyHosts.constants import ALLOWED_WARNED_HOSTS
@@ -54,6 +60,31 @@ class AllowedHostsHostnameTest(AllowedHostsBase):
     def test_negatives(self):
         self.assertFalse('another_hostname' in self.allowed_hosts)
 
+    def test_add_hostname_fqdn(self):
+        hostname_lookup = self.allowed_hosts.hostname_lookup
+        self.allowed_hosts.hostname_lookup = True
+        self.assertIsNone(self.allowed_hosts.add_hostname('google.com'))
+        self.allowed_hosts.hostname_lookup = hostname_lookup
+
+    def test_add_hostname_nonfqdn(self):
+        hostname_lookup = self.allowed_hosts.hostname_lookup
+        self.allowed_hosts.hostname_lookup = True
+        self.assertIsNone(self.allowed_hosts.add_hostname('8.8.8.8'))
+        self.assertEqual(self.allowed_hosts.allowed_hosts['dns.google'], 1)
+        self.allowed_hosts.hostname_lookup = hostname_lookup
+
+    def test_dump_hosts(self):
+        with Capturing() as dumped_hosts:
+            self.allowed_hosts.dump()
+        self.assertEqual(len(dumped_hosts), 2)
+        self.assertEqual(dumped_hosts[0], 'Dumping AllowedHosts')
+        hosts = ast.literal_eval(dumped_hosts[1])
+        self.assertEqual(len(hosts), 280)
+        self.assertIn('localhost', hosts)
+        self.assertIn('192.168.1.1', hosts)
+        self.assertIn('127.0.0.1', hosts)
+
+
 class AllowedHostsWarnedHostsTest(unittest.TestCase):
     """
     Not a subclass of AllowedHostsBase since testing the warned
@@ -94,3 +125,26 @@ class AllowedHostsWarnedHostsTest(unittest.TestCase):
 
         with open(self.warned_hosts_filename) as f:
             self.assertEqual(test_string, f.read())
+
+    def test_cleared_warned_hosts(self):
+        warned_hosts = self.allowed_hosts.new_warned_hosts
+        self.allowed_hosts.clear_warned_hosts()
+        self.assertEqual(len(self.allowed_hosts.new_warned_hosts), 0)
+        self.allowed_hosts.new_warned_hosts = warned_hosts
+
+    def test_save_warned_hosts_empty(self):
+        warned_hosts = self.allowed_hosts.new_warned_hosts
+        self.allowed_hosts.clear_warned_hosts()
+        self.assertIsNone(self.allowed_hosts.save_warned_hosts())
+        self.allowed_hosts.new_warned_hosts = warned_hosts
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
