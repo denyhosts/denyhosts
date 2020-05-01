@@ -48,11 +48,13 @@ class Sync(object):
             self.__connected = False
 
     def get_sync_timestamp(self):
+        timestamp = 0
         try:
             with open(os.path.join(self.__work_dir, SYNC_TIMESTAMP)) as fp:
-                timestamp = fp.readline()
-                timestamp = int(timestamp.strip())
-
+                line = fp.readline().strip()
+                if len(line) > 0:
+                    timestamp = int(line)
+                    return timestamp
             return timestamp
         except Exception as e:
             error(str(e))
