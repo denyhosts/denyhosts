@@ -100,9 +100,10 @@ class AllowedHosts(object):
 
     def load_warned_hosts(self):
         try:
-            with open(self.warned_path, "r") as fp:
-                for line in fp:
-                    self.warned_hosts[line.strip()] = None
+            if os.path.isfile(self.warned_path):
+                with open(self.warned_path, "r") as fp:
+                    for line in fp:
+                        self.warned_hosts[line.strip()] = None
         except IOError:
             warn("Couldn't load warned hosts from %s" % self.warned_path)
 
