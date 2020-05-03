@@ -269,19 +269,22 @@ class DenyHosts(object):
 
     def get_denied_hosts(self):
         self.__denied_hosts = {}
-        for line in open(self.__prefs.get('HOSTS_DENY'), "r"):
-            if line[0] not in ('#', '\n'):
+        with open(self.__prefs.get('HOSTS_DENY'), 'r') as fhdh:
+            line = fhdh.readline()
+            while line:
+                if line[0] not in ('#', '\n'):
 
-                idx = line.find('#')
-                if idx != 1:
-                    line = line[:idx]
-                try:
-                    host = parse_host(line)
-                    self.__denied_hosts[host] = 0
-                    if host in self.__allowed_hosts:
-                        self.__allowed_hosts.add_warned_host(host)
-                except Exception:
-                    pass
+                    idx = line.find('#')
+                    if idx != 1:
+                        line = line[:idx]
+                    try:
+                        host = parse_host(line)
+                        self.__denied_hosts[host] = 0
+                        if host in self.__allowed_hosts:
+                            self.__allowed_hosts.add_warned_host(host)
+                    except Exception:
+                        pass
+                line = fhdh.readline()
 
         new_warned_hosts = self.__allowed_hosts.get_new_warned_hosts()
         if new_warned_hosts:
