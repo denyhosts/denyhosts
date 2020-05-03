@@ -4,9 +4,9 @@ Before=sshd.service
 
 [Service]
 Type=forking
-ExecStartPre=/bin/rm -f /var/run/denyhosts.pid
-ExecStart=/usr/bin/denyhosts.py --daemon --config=/etc/denyhosts.conf
-PIDFile=/var/run/denyhosts.pid
+ExecStartPre=/bin/rm -f /run/denyhosts.pid
+ExecStart=/usr/local/bin/denyhosts.py --daemon --config=/etc/denyhosts.conf
+PIDFile=/run/denyhosts.pid
 
 [Install]
 WantedBy=multi-user.target

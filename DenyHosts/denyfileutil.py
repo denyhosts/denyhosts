@@ -5,7 +5,7 @@ import logging
 
 from .constants import DENY_DELIMITER, ENTRY_DELIMITER
 from .loginattempt import AbusiveHosts
-from .util import parse_host
+from .util import parse_host, get_user_input
 from . import plugin
 from .purgecounter import PurgeCounter
 
@@ -64,10 +64,12 @@ class Migrate(DenyFileUtilBase):
         print("you won't purge")
         print("")
         print("If you don't understand, please type 'No' and")
-        print("read /usr/share/doc/denyhosts/README.Debian")
-        print("for more info")
+        print("refer to documentation for more info")
         print("")
-        response = input("Are you sure that you want do this? (Yes/No)")
+
+        prompt = "Are you sure that you want do this? (Yes/No)"
+        response = get_user_input(prompt)
+
         if response == "Yes":
             DenyFileUtilBase.__init__(self, deny_file, "migrate")
             self.backup()
