@@ -48,6 +48,7 @@ class UtilsTest(unittest.TestCase):
         self.prefs._Prefs__data['SMTP_DATE_FORMAT'] = '%Y%m%d'
         self.prefs._Prefs__data['SMTP_HOST'] = 'localhost'
         self.prefs._Prefs__data['SMTP_PORT'] = 2500
+        self.prefs._Prefs__data['SMTP_SSL'] = 'False'
 
     def test_is_true(self):
         for string in self.true_strings:
@@ -91,11 +92,10 @@ class UtilsTest(unittest.TestCase):
             self.assertEqual(cm.exception, 'Error')
 
     def test_send_email_success(self):
-        self.assertIsNone(util.send_email(self.prefs, 'testing report'))
+        self.assertIsNone(util.send_email(self.prefs, 'testing report success'))
 
     def test_send_email_error(self):
-        self.prefs._Prefs__data['SMTP_PORT'] = 25
-        self.assertIsNone(util.send_email(self.prefs, 'testing report'))
+        self.assertIsNone(util.send_email(self.prefs, 'testing report failure'))
 
     def test_whitespace(self):
         self.assertEqual(
