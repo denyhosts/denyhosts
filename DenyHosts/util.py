@@ -1,12 +1,11 @@
 import logging
 import logging.handlers
-from smtplib import SMTP
+from smtplib import SMTP, SMTP_SSL
 from smtplib import SMTPResponseException
 from smtplib import SMTPHeloError
 import sys
 from textwrap import dedent
 import time
-
 py_version = sys.version_info
 if py_version[0] == 2:
     # python 2
@@ -131,7 +130,10 @@ def send_email(prefs, report_str):
 
     msg += report_str
     try:
-        smtp = SMTP()
+        if is_true(prefs.get('SMTP_SSL')):
+            smtp = SMTP_SSL()
+        else:
+            smtp = SMTP()
 
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             smtp.set_debuglevel(1)
@@ -188,7 +190,6 @@ def send_email(prefs, report_str):
 def normalize_whitespace(string):
     return ' '.join(string.split())
 
-
 def is_valid_ip_address(process_ip):
     ip = None
     if py_version[0] == 2:
@@ -203,3 +204,11 @@ def is_valid_ip_address(process_ip):
             ip.is_multicast or ip.is_link_local:
         return False
     return True
+
+
+def get_user_input(prompt):
+    try:
+        response = raw_input(prompt)
+    except NameError:
+        response = input(prompt)
+    return response
