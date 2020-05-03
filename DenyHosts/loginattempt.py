@@ -149,23 +149,26 @@ class LoginAttempt(object):
         stats = Counter()
 
         try:
-            for line in open(path, "r"):
-
-                try:
-                    line = line.strip()
-                    parts = line.split(":")
-                    name = parts[0]
-                    count = parts[1]
+            with open(path, 'r') as fhs:
+                line = fhs.readline()
+                while line:
                     try:
-                        date = ':'.join(parts[2:])
-                    except Exception:
-                        date = None
+                        line = line.strip()
+                        parts = line.split(":")
+                        name = parts[0]
+                        count = parts[1]
+                        try:
+                            date = ':'.join(parts[2:])
+                        except Exception:
+                            date = None
 
-                    stats[name] = CounterRecord(int(count), date)
-                    # debug("stats[%s] = %s", name, stats[name])
-                except Exception as e:
-                    # debug(e)
-                    pass
+                        stats[name] = CounterRecord(int(count), date)
+                        # debug("stats[%s] = %s", name, stats[name])
+                    except Exception as e:
+                        # debug(e)
+                        pass
+                    line = fhs.readline()
+
         except IOError as e:
             if e.errno == errno.ENOENT:
                 debug("%s does not exist", fname)
