@@ -335,25 +335,23 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
             fp.write("%s\n" % output)
 
         if self.__iptables:
-            debug("Trying to create iptables rules")
-            try:
-                for host in new_hosts:
-                    my_host = str(host)
-                    if self.__blockport is not None and ',' in self.__blockport:
-                        new_rule = self.__iptables + " -I INPUT -p tcp -m multiport --dports " + self.__blockport + \
-                                   " -s " + my_host + " -j DROP"
-                    elif self.__blockport:
-                        new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + \
-                                   my_host + " -j DROP"
-                    else:
-                        new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
-                    debug("Running iptabes rule: %s", new_rule)
-                    info("Creating new firewall rule %s", new_rule)
-                    os.system(new_rule)
+           debug("Trying to create iptables rules")
+           try:
+              for host in new_hosts:
+                  my_host = str(host)
+                  if self.__blockport and ',' in self.__blockport:
+                      new_rule = self.__iptables + " -I INPUT -p tcp -m multiport --dports " + self.__blockport + " -s " + my_host + " -j DROP"
+                  elif self.__blockport:
+                     new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + my_host + " -j DROP"
+                  else:
+                     new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
+                  debug("Running iptables rule: %s", new_rule)
+                  info("Creating new firewall rule %s", new_rule)
+                  os.system(new_rule);
 
-            except Exception as e:
-                print(e)
-                print("Unable to write new firewall rule.")
+           except Exception as e:
+               print(e)
+               print("Unable to write new firewall rule.")
 
         if self.__pfctl and self.__pftable:
             debug("Trying to update PF table.")

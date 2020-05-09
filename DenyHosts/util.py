@@ -16,6 +16,7 @@ elif py_version[0] == 3:
 
 from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from .regex import TIME_SPEC_REGEX
+from .mail_command import send_mail_by_command
 
 debug = logging.getLogger("util").debug
 
@@ -112,6 +113,13 @@ def parse_host(line):
 
 def send_email(prefs, report_str):
     recipients = prefs['ADMIN_EMAIL'].split(',')
+
+    mail_command = prefs["MAIL_COMMAND"]
+    if mail_command and recipients:
+        err_code = send_mail_by_command(mail_command, recipients, report_str, debug)
+        if err_code != 0:
+            logging.getLogger("util").warn("Command %s returned code %s " % (" ".join(mail_command), err_code))
+        return
 
     msg = dedent("""
         From: {0}

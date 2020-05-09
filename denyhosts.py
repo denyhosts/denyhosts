@@ -11,7 +11,7 @@ import getopt
 from getopt import GetoptError
 import traceback
 
-from DenyHosts.util import die, setup_logging, is_true
+from DenyHosts.util import die, setup_logging, is_true, send_email
 from DenyHosts.lockfile import LockFile
 from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
@@ -42,6 +42,7 @@ def usage():
     print(" --foreground: run DenyHosts in foreground mode")
     print(" --sync: run DenyHosts synchronization mode")
     print(" --version: Prints the version of DenyHosts and exits")
+    print(" --test-email: Sends test email according to config and exits")
 
     print("\n")
     print("Note: multiple --file args can be processed. ")
@@ -77,7 +78,7 @@ if __name__ == '__main__':
     args = sys.argv[1:]
     try:
         (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
-                                        ["file=", "ignore", "verbose", "debug",
+                                        ["file=", "ignore", "verbose", "debug", "test-email",
                                          "help", "noemail", "config=", "version",
                                          "migrate", "purge", "purge-all", "purgeip", "daemon", "foreground",
                                          "unlock", "sync", "upgrade099"])
@@ -123,6 +124,9 @@ if __name__ == '__main__':
             upgrade099 = 1
         if opt == '--version':
             print("DenyHosts version:", VERSION)
+            sys.exit(0)
+        if opt == '--test-email':
+            send_email(Prefs(config_file), "Testing DenyHosts email")
             sys.exit(0)
 
     # This is generally expected to be in the environment, but there's no
