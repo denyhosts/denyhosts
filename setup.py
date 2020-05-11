@@ -67,9 +67,9 @@ setup(
     ),
 )
 
-myip = MyIp(object)
-public_ips = myip.get_remote_ip()
 prefs = Prefs(ospj(etcpath, 'denyhosts.conf'))
+myip = MyIp(prefs=prefs)
+public_ips = myip.get_remote_ip()
 work_dir = prefs.get('WORK_DIR')
 with ospj(work_dir, ALLOWED_HOSTS, 'a') as fh:
     for public_ip in public_ips:
