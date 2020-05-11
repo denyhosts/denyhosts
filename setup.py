@@ -8,9 +8,11 @@ from os.path import join as ospj
 from os.path import exists as fcheck
 
 from distutils.core import setup
-
+from DenyHosts.my_ip import MyIp
+from DenyHosts.prefs import Prefs
 from DenyHosts.util import normalize_whitespace
 from DenyHosts.version import VERSION
+from DenyHosts.constants import ALLOWED_HOSTS
 
 etcpath = "/etc"
 manpath = "/usr/share/man/man8"
@@ -64,3 +66,25 @@ setup(
         """
     ),
 )
+
+myip = MyIp(object)
+public_ips = myip.get_remote_ip()
+prefs = Prefs(ospj(etcpath, 'denyhosts.conf'))
+work_dir = prefs.get('WORK_DIR')
+with ospj(work_dir, ALLOWED_HOSTS, 'a') as fh:
+    for public_ip in public_ips:
+        fh.write("%s\n" % public_ip)
+        print("Added %s to allowed hosts file\n")
+
+extra_ips_quest = 'Add additional ip addresses here to whitelist (ex: 172.202.43.1,172.203,44.2): '
+try:  # python 2.x
+    extra_ips = raw_input(extra_ips_quest)
+except NameError:  # python 3
+    extra_ips = input(extra_ips_quest)
+
+if extra_ips.strip() == "":
+    extra_ips_list = extra_ips.split(',')
+    with ospj(work_dir, ALLOWED_HOSTS, 'a') as fh:
+        for i in range(0, len(extra_ips_list)):
+            fh.write("%s\n" % extra_ips_list[i].strip())
+            print("Added %s to allowed hosts file\n")
