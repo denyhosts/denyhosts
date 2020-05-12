@@ -89,7 +89,7 @@ if detect_ips in yes:
     for public_ip in public_ips:
         allowed_ips.append(public_ip)
 
-extra_ips_quest = 'Add additional ip addresses here to whitelist (ex: 172.202.43.1,172.203,44.2): '
+extra_ips_quest = 'Add additional ip addresses here to whitelist (ex: 172.202.43.1,172.203.44.2): '
 try:  # python 2.x
     extra_ips = raw_input(extra_ips_quest)
 except NameError:  # python 3
