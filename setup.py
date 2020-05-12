@@ -13,6 +13,7 @@ from DenyHosts.prefs import Prefs
 from DenyHosts.util import normalize_whitespace
 from DenyHosts.version import VERSION
 from DenyHosts.constants import ALLOWED_HOSTS
+from DenyHosts.allowedhosts import AllowedHosts
 
 etcpath = "/etc"
 manpath = "/usr/share/man/man8"
@@ -24,15 +25,15 @@ denyhostsman = 'denyhosts.8'
 if 'rpm' in sys.argv[1]:
     denyhostsman += '.gz'
 
+yes = ['Y', 'y', 'yes', 'YES', 'Yes', '']
 if fcheck(etcpath + '/' + 'denyhosts.conf'):
-    backup = ['Y', 'y', 'yes', 'YES', 'Yes', '']
     backup_question = 'We have detected that you have an existing config file, would you like to back it up? [Y|N]: '
     try:  # python 2.x
         backup_file = raw_input(backup_question)
     except NameError:  # python 3
         backup_file = input(backup_question)
 
-    if backup_file in backup:
+    if backup_file in yes:
         from distutils.file_util import copy_file
         from time import time
 
@@ -67,14 +68,26 @@ setup(
     ),
 )
 
+"""
+    This section adds detected public ips to the allowed_hosts file
+    Also, gives the user the option to add in their own ip addresses to whitelist
+"""
 prefs = Prefs(ospj(etcpath, 'denyhosts.conf'))
-myip = MyIp(prefs=prefs)
-public_ips = myip.get_remote_ip()
 work_dir = prefs.get('WORK_DIR')
-with ospj(work_dir, ALLOWED_HOSTS, 'a') as fh:
+allowed_hosts = AllowedHosts(prefs)
+allowed_ips = list(allowed_hosts.allowed_hosts.keys())
+
+detect_ips_quest = 'Would you like us to attempt to detect your public ip? [Y|N] (default Y) '
+try:  # python 2.x
+    detect_ips = raw_input(detect_ips_quest)
+except NameError:  # python 3
+    detect_ips = input(detect_ips_quest)
+
+if detect_ips in yes:
+    myip = MyIp(prefs=prefs)
+    public_ips = myip.get_remote_ip()
     for public_ip in public_ips:
-        fh.write("%s\n" % public_ip)
-        print("Added %s to allowed hosts file\n")
+        allowed_ips.append(public_ip)
 
 extra_ips_quest = 'Add additional ip addresses here to whitelist (ex: 172.202.43.1,172.203,44.2): '
 try:  # python 2.x
@@ -82,9 +95,12 @@ try:  # python 2.x
 except NameError:  # python 3
     extra_ips = input(extra_ips_quest)
 
-if extra_ips.strip() == "":
+if extra_ips.strip() != "":
     extra_ips_list = extra_ips.split(',')
-    with ospj(work_dir, ALLOWED_HOSTS, 'a') as fh:
-        for i in range(0, len(extra_ips_list)):
-            fh.write("%s\n" % extra_ips_list[i].strip())
-            print("Added %s to allowed hosts file\n")
+    for i in range(0, len(extra_ips_list)):
+        allowed_ips.append(extra_ips_list[i].strip())
+
+print('Adding %s to %s' % (allowed_ips, ospj(work_dir, ALLOWED_HOSTS)))
+if len(allowed_ips) > 0:
+    with open(ospj(work_dir, ALLOWED_HOSTS), 'w') as fh:
+        fh.writelines(allowed_ips)
