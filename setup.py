@@ -87,7 +87,8 @@ if detect_ips in yes:
     myip = MyIp(prefs=prefs)
     public_ips = myip.get_remote_ip()
     for public_ip in public_ips:
-        allowed_ips.append(public_ip)
+        if public_ip not in allowed_ips:
+            allowed_ips.append(public_ip)
 
 extra_ips_quest = 'Add additional ip addresses here to whitelist (ex: 172.202.43.1,172.203.44.2): '
 try:  # python 2.x
@@ -98,7 +99,9 @@ except NameError:  # python 3
 if extra_ips.strip() != "":
     extra_ips_list = extra_ips.split(',')
     for i in range(0, len(extra_ips_list)):
-        allowed_ips.append(extra_ips_list[i].strip())
+        public_ip = extra_ips_list[i].strip()
+        if public_ip not in allowed_ips:
+            allowed_ips.append(public_ip)
 
 print('Adding %s to %s' % (allowed_ips, ospj(work_dir, ALLOWED_HOSTS)))
 if len(allowed_ips) > 0:
