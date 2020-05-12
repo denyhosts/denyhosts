@@ -20,7 +20,6 @@ class MyIp(object):
         ]
         self.__remote_parse = [
             'http://checkip.dyndns.org',
-            'http://whatsmyip.org',
             'https://ipchicken.com'
         ]
 
@@ -28,7 +27,7 @@ class MyIp(object):
         for api in self.__remote_apis:
             ip = self.__ip_regex.search(requests.get(api).text)
             if ip:
-                ip = ip.group()
+                ip = ip.group().strip()
                 if ip in self.__remote_ips.keys():
                     self.__remote_ips[ip] = self.__remote_ips[ip] + 1
                 else:
@@ -37,7 +36,7 @@ class MyIp(object):
             res = requests.get(remote_parse).text
             ip = self.__ip_regex.search(res)
             if ip:
-                ip = ip.group()
+                ip = ip.group().strip()
                 if ip in self.__remote_ips.keys():
                     self.__remote_ips[ip] = self.__remote_ips[ip] + 1
                 else:
