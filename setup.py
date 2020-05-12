@@ -103,4 +103,5 @@ if extra_ips.strip() != "":
 print('Adding %s to %s' % (allowed_ips, ospj(work_dir, ALLOWED_HOSTS)))
 if len(allowed_ips) > 0:
     with open(ospj(work_dir, ALLOWED_HOSTS), 'w') as fh:
-        fh.writelines(allowed_ips)
+        fh.writelines('{}\n'.format(allowed_ip) for allowed_ip in allowed_ips)
+
