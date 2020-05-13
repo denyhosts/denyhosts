@@ -2,7 +2,14 @@
 
 if [ -d DenyHosts ]
 then
-    py3loc=$(whereis python3 | awk '{ print $2 }')
+    for location in $(whereis python3)
+    do
+        if [[ "${location}" =~ .*bin.*python3[\.0-9]+$ ]];
+        then
+            py3loc="${location}"
+            break
+        fi
+    done
     if [ "${py3loc}" != '' ]
     then
         py3loc=`echo "${py3loc}" | sed 's/\//\\\\\//g'`
