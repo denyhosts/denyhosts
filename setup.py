@@ -4,15 +4,15 @@
 
 from glob import glob
 import sys
-from os.path import join as ospj
-from os.path import exists as fcheck
+from os.path import join as ospj, exists as fcheck, isdir as dcheck
+from os import mkdir
 
 from distutils.core import setup
 from DenyHosts.my_ip import MyIp
 from DenyHosts.prefs import Prefs
 from DenyHosts.util import normalize_whitespace
 from DenyHosts.version import VERSION
-from DenyHosts.constants import ALLOWED_HOSTS
+from DenyHosts.constants import ALLOWED_HOSTS, ALLOWED_WARNED_HOSTS
 from DenyHosts.allowedhosts import AllowedHosts
 
 etcpath = "/etc"
@@ -72,8 +72,18 @@ setup(
     This section adds detected public ips to the allowed_hosts file
     Also, gives the user the option to add in their own ip addresses to whitelist
 """
+def touch(fname):
+    if not fcheck(fname):
+        open(fname, 'a').close()
+
 prefs = Prefs(ospj(etcpath, 'denyhosts.conf'))
 work_dir = prefs.get('WORK_DIR')
+if not dcheck(work_dir):
+    mkdir(work_dir)
+
+touch(ospj(work_dir, ALLOWED_WARNED_HOSTS))
+touch(ospj(work_dir, ALLOWED_HOSTS))
+
 allowed_hosts = AllowedHosts(prefs)
 allowed_ips = list(allowed_hosts.allowed_hosts.keys())
 
