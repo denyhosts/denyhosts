@@ -40,7 +40,7 @@ class DenyHosts(object):
         self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
-        self.__hostname_lookup = prefs.get("HOSTNAME_LOOKUP")
+        self.__hostname_lookup = is_true(prefs.get("HOSTNAME_LOOKUP"))
         self.__report = Report(prefs.get("HOSTNAME_LOOKUP"), is_true(prefs['SYSLOG_REPORT']))
         self.__daemon = daemon
         self.__foreground = foreground
