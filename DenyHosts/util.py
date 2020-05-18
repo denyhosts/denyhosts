@@ -14,10 +14,14 @@ elif py_version[0] == 3:
     # python 3
     from ipaddress import ip_address
 
+import re
+from socket import gethostbyname
+
 from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from .regex import TIME_SPEC_REGEX
 
 debug = logging.getLogger("util").debug
+ipv4_regex = re.compile(r'^([0-9]+\.){3}[0-9]+$')
 
 
 def setup_logging(prefs, enable_debug, verbose, daemon):
@@ -189,6 +193,12 @@ def send_email(prefs, report_str):
 
 def normalize_whitespace(string):
     return ' '.join(string.split())
+
+def hostname_lookup(process_host):
+    if re.match(ipv4_regex, process_host):
+        return process_host
+    ip = gethostbyname(process_host)
+    return ip
 
 def is_valid_ip_address(process_ip):
     ip = None
