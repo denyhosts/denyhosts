@@ -116,26 +116,22 @@ class Sync(object):
             error("Could not initiate xmlrpc connection")
             return
 
-        try:
-            self.__server.add_hosts(hosts)
-        except Exception as e:
-            exception(e)
+        for i in range(0, 3):
+            try:
+                self.__server.add_hosts(hosts)
+                break
+            except Exception as e:
+                exception(e)
+            time.sleep(30)
 
     def receive_new_hosts(self):
         debug("receive_new_hosts()")
 
-        if not self.__connected and not self.xmlrpc_connect():
-            error("Could not initiate xmlrpc connection")
-            return
-        timestamp = self.get_sync_timestamp()
+        data = self.__receive_new_hosts()
+        if data is None:
+            return None
 
         try:
-            data = self.__server.get_new_hosts(
-                timestamp,
-                self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD"),
-                self.__hosts_added,
-                self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY")
-            )
             timestamp = data['timestamp']
             self.set_sync_timestamp(timestamp)
             hosts = data['hosts']
@@ -145,6 +141,35 @@ class Sync(object):
         except Exception as e:
             exception(e)
             return None
+
+    def __receive_new_hosts(self):
+        debug("__receive_new_hosts()")
+
+        if not self.__connected and not self.xmlrpc_connect():
+            error("Could not initiate xmlrpc connection")
+            return
+        timestamp = self.get_sync_timestamp()
+
+        sync_dl_threshold = self.__prefs.get("SYNC_DOWNLOAD_THRESHOLD")
+        sync_dl_resiliency = self.__prefs.get("SYNC_DOWNLOAD_RESILIENCY")
+        data = None
+        for i in range(0, 3):
+            try:
+                data = self.__server.get_new_hosts(
+                    timestamp,
+                    sync_dl_threshold,
+                    self.__hosts_added,
+                    sync_dl_resiliency
+                )
+                break
+            except Exception as e:
+                exception(e)
+                pass
+            time.sleep(30)
+
+        if data is None:
+            error('Unable to retrieve data from the sync server')
+        return data
 
     def __save_received_hosts(self, hosts, timestamp):
         debug('__save_received_hosts()')
