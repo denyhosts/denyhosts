@@ -2,13 +2,14 @@ import logging
 import os
 import time
 import sys
+import socket
 
 if sys.version_info < (3, 0): 
     from xmlrpclib import ServerProxy
 else:
     from xmlrpc.client import ServerProxy
 
-from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS
+from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS, SOCKET_TIMEOUT
 
 logger = logging.getLogger("sync")
 debug, info, error, exception = logger.debug, logger.info, logger.error, logger.exception
@@ -28,14 +29,24 @@ class Sync(object):
         self.__connected = False
         self.__hosts_added = []
         self.__server = None
+        self.__default_timeout = socket.getdefaulttimeout()
 
     def xmlrpc_connect(self):
-        try:
-            self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
-            self.__connected = True
-        except Exception as e:
-            error(str(e))
-            self.__connected = False
+        debug("xmlrpc_conect()")
+        socket.setdefaulttimeout(SOCKET_TIMEOUT)  # set global socket timeout
+        for i in range(0, 3):
+            debug("XMLRPC Connection attempt: %d" % i)
+            try:
+                self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
+                self.__connected = True
+                break
+            except Exception as e:
+                error(str(e))
+                self.__connected = False
+            time.sleep(30)
+        if not self.__connected:
+            error('Failed to connect to %s after 3 attempts' % self.__prefs.get('SYNC_SERVER'))
+        socket.setdefaulttimeout(self.__default_timeout)  # set timeout back to the default
         return self.__connected
 
     def xmlrpc_disconnect(self):
@@ -99,6 +110,7 @@ class Sync(object):
         return True
 
     def __send_new_hosts(self, hosts):
+        debug("__send_new_hosts()")
         if not self.__connected and not self.xmlrpc_connect():
             error("Could not initiate xmlrpc connection")
             return
@@ -134,6 +146,7 @@ class Sync(object):
             return None
 
     def __save_received_hosts(self, hosts, timestamp):
+        debug('__save_received_hosts()')
         try:
             timestr = time.ctime(float(timestamp))
             with open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a") as fp:
