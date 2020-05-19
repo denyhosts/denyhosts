@@ -38,6 +38,7 @@ class Sync(object):
             debug("XMLRPC Connection attempt: %d" % i)
             try:
                 self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
+                debug("Connected To SYNC Server")
                 self.__connected = True
                 break
             except Exception as e:
