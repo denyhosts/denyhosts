@@ -109,8 +109,7 @@ class DenyHosts(object):
             self.__lock_file.remove()
             self.rundaemon(logfile, last_offset)
 
-    @staticmethod
-    def killdaemon():
+    def killdaemon(self, signum, frame):
         debug("Received SIGTERM")
         info("DenyHosts daemon is shutting down")
         # signal handler
@@ -120,8 +119,7 @@ class DenyHosts(object):
         # exception handler (SystemExit)
         sys.exit(0)
 
-    @staticmethod
-    def toggledebug():
+    def toggledebug(self, signum, frame):
         level = logging.getLogger().getEffectiveLevel()
         if level == logging.INFO:
             level = logging.DEBUG
