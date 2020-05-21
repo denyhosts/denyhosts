@@ -23,40 +23,41 @@ def get_plural(items):
         return ""
 
 
-class RequestsTransport(Transport):
+if sys.version_info >= (3, 0):
+    class RequestsTransport(Transport):
 
-    def request(self, host, handler, data, verbose=False):
-        # set the headers, including the user-agent
-        headers = {"User-Agent": "my-user-agent",
-                   "Content-Type": "text/xml",
-                   "Accept-Encoding": "gzip"}
-        url = "http://%s%s" % (host, handler)
-        response = None
-        try:
-            response = requests.post(url, data=data, headers=headers, timeout=SOCKET_TIMEOUT)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            if response is None:
-                exception(ProtocolError(url, 500, str(e), ""))
-            else:
-                exception(ProtocolError(
-                    url,
-                    response.status_code,
-                    str(e),
-                    response.headers
-                ))
-        if response is not None:
-            return self.parse_response(response)
-        return response
+        def request(self, host, handler, data, verbose=False):
+            # set the headers, including the user-agent
+            headers = {"User-Agent": "my-user-agent",
+                       "Content-Type": "text/xml",
+                       "Accept-Encoding": "gzip"}
+            url = "http://%s%s" % (host, handler)
+            response = None
+            try:
+                response = requests.post(url, data=data, headers=headers, timeout=SOCKET_TIMEOUT)
+                response.raise_for_status()
+            except requests.RequestException as e:
+                if response is None:
+                    exception(ProtocolError(url, 500, str(e), ""))
+                else:
+                    exception(ProtocolError(
+                        url,
+                        response.status_code,
+                        str(e),
+                        response.headers
+                    ))
+            if response is not None:
+                return self.parse_response(response)
+            return response
 
-    def parse_response(self, resp):
-        """
-        Parse the xmlrpc response.
-        """
-        p, u = self.getparser()
-        p.feed(resp.text)
-        p.close()
-        return u.close()
+        def parse_response(self, resp):
+            """
+            Parse the xmlrpc response.
+            """
+            p, u = self.getparser()
+            p.feed(resp.text)
+            p.close()
+            return u.close()
 
 
 class Sync(object):
