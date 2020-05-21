@@ -117,7 +117,7 @@ if __name__ == '__main__':
         if opt == '--purge-all':
             purge_all = 1
         if opt == '--purgeip':
-            purgeip_list.append(arg)
+            purgeip_list = getopts
             purgeip = 1
         if opt == '--upgrade099':
             upgrade099 = 1
