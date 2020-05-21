@@ -3,11 +3,12 @@ import os
 import time
 import sys
 import socket
+import requests
 
 if sys.version_info < (3, 0): 
     from xmlrpclib import ServerProxy
 else:
-    from xmlrpc.client import ServerProxy
+    from xmlrpc.client import ServerProxy, Transport, ProtocolError
 
 from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS, SOCKET_TIMEOUT
 
@@ -22,6 +23,43 @@ def get_plural(items):
         return ""
 
 
+if sys.version_info >= (3, 0):
+    class RequestsTransport(Transport):
+
+        def request(self, host, handler, data, verbose=False):
+            # set the headers, including the user-agent
+            headers = {"User-Agent": "my-user-agent",
+                       "Content-Type": "text/xml",
+                       "Accept-Encoding": "gzip"}
+            url = "http://%s%s" % (host, handler)
+            response = None
+            try:
+                response = requests.post(url, data=data, headers=headers, timeout=SOCKET_TIMEOUT)
+                response.raise_for_status()
+            except requests.RequestException as e:
+                if response is None:
+                    exception(ProtocolError(url, 500, str(e), ""))
+                else:
+                    exception(ProtocolError(
+                        url,
+                        response.status_code,
+                        str(e),
+                        response.headers
+                    ))
+            if response is not None:
+                return self.parse_response(response)
+            return response
+
+        def parse_response(self, resp):
+            """
+            Parse the xmlrpc response.
+            """
+            p, u = self.getparser()
+            p.feed(resp.text)
+            p.close()
+            return u.close()
+
+
 class Sync(object):
     def __init__(self, prefs):
         self.__prefs = prefs
@@ -30,14 +68,22 @@ class Sync(object):
         self.__hosts_added = []
         self.__server = None
         self.__default_timeout = socket.getdefaulttimeout()
+        self.__pymajor_version = sys.version_info[0]
+        self.__sync_server = self.__prefs.get('SYNC_SERVER')
 
     def xmlrpc_connect(self):
         debug("xmlrpc_conect()")
-        socket.setdefaulttimeout(SOCKET_TIMEOUT)  # set global socket timeout
+        # python 2
+        if self.__pymajor_version == 2:
+            socket.setdefaulttimeout(SOCKET_TIMEOUT)  # set global socket timeout
         for i in range(0, 3):
             debug("XMLRPC Connection attempt: %d" % i)
             try:
-                self.__server = ServerProxy(self.__prefs.get('SYNC_SERVER'))
+                # python 2
+                if self.__pymajor_version == 2:
+                    self.__server = ServerProxy(self.__sync_server)
+                else:
+                    self.__server = ServerProxy(self.__sync_server, transport=RequestsTransport())
                 debug("Connected To SYNC Server")
                 self.__connected = True
                 break
@@ -46,8 +92,10 @@ class Sync(object):
                 self.__connected = False
             time.sleep(30)
         if not self.__connected:
-            error('Failed to connect to %s after 3 attempts' % self.__prefs.get('SYNC_SERVER'))
-        socket.setdefaulttimeout(self.__default_timeout)  # set timeout back to the default
+            error('Failed to connect to %s after 3 attempts' % self.__sync_server)
+        # python 2
+        if self.__pymajor_version == 2:
+            socket.setdefaulttimeout(self.__default_timeout)  # set timeout back to the default
         return self.__connected
 
     def xmlrpc_disconnect(self):
@@ -136,6 +184,7 @@ class Sync(object):
             self.set_sync_timestamp(timestamp)
             hosts = data['hosts']
             info("received %d new host%s", len(hosts), get_plural(hosts))
+            debug("hosts added %s", hosts)
             self.__save_received_hosts(hosts, timestamp)
             return hosts
         except Exception as e:
@@ -183,3 +232,4 @@ class Sync(object):
             return
         finally:
             fp.close()
+
