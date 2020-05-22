@@ -22,7 +22,7 @@ from .regex import *
 from .report import Report
 from .restricted import Restricted
 from .sync import Sync
-from .util import die, is_true, parse_host, send_email, is_valid_ip_address
+from .util import die, is_true, parse_host, send_email, is_valid_ip_address, hostname_lookup
 from .version import VERSION
 
 debug = logging.getLogger("denyhosts").debug
@@ -40,6 +40,7 @@ class DenyHosts(object):
         self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
+        self.__hostname_lookup = is_true(prefs.get("HOSTNAME_LOOKUP"))
         self.__report = Report(prefs.get("HOSTNAME_LOOKUP"), is_true(prefs['SYSLOG_REPORT']))
         self.__daemon = daemon
         self.__foreground = foreground
@@ -109,8 +110,7 @@ class DenyHosts(object):
             self.__lock_file.remove()
             self.rundaemon(logfile, last_offset)
 
-    @staticmethod
-    def killdaemon():
+    def killdaemon(self, signum, frame):
         debug("Received SIGTERM")
         info("DenyHosts daemon is shutting down")
         # signal handler
@@ -120,8 +120,7 @@ class DenyHosts(object):
         # exception handler (SystemExit)
         sys.exit(0)
 
-    @staticmethod
-    def toggledebug():
+    def toggledebug(self, signum, frame):
         level = logging.getLogger().getEffectiveLevel()
         if level == logging.INFO:
             level = logging.DEBUG
@@ -474,6 +473,8 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
                 user = ""
             try:
                 host = m.group("host")
+                if self.__hostname_lookup:
+                    host = hostname_lookup(host)
             except Exception:
                 error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
                 continue
