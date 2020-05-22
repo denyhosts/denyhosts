@@ -96,15 +96,24 @@ DENYHOSTS_BIN = "/usr/sbin/denyhosts.py"
 DENYHOSTS_LOCK = "/var/lock/subsys/denyhosts"
 DENYHOSTS_CFG = "/etc/denyhosts.conf"
 
-# The daemon is added in the /etc/init.d folder, but it would seem more coherent to add the denyhosts.service service directly, from this same location.
-# Continue the configuration steps by copying the following commands :
+# First possibility :
+# The daemon-control is added in the /etc/init.d folder :
 cd /etc/init.d
 sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
+
+# Second possibility :
+# It would be more consistent to add the denyhosts.service service to /etc/systemd/system/denyhosts.service from /usr/share/denyhosts/. (# 156)
+# The service file is created in the format that SystemD can use.
+# In both cases, the execution of denyhosts works correctly.
+# Simply using the service method will prevent errors from occurring by saying that there are no execution levels or lsb problems.
+# The service file must be added to /etc/systemd/system/denyhosts.service rather than adding it to /etc/init.d.
+# Adding to / etc / systemd / system will allow denyhosts services to start working with the systemctl start denyhosts command.
+sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/
+
 cd ~
 sudo mv denyhosts /usr/share/
 cd /usr/share/denyhosts/
 sudo cp denyhosts.py /usr/sbin/
-
 # In the tutorial used initially, denyhosts.py was copied to the /usr/bin directory, but, synchronization seems to work only if I put it in /usr/sbin/.
 # Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths : systemctl daemon-reload
 # Also reload the service : systemctl restart denyhosts
