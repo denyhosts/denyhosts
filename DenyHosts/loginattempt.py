@@ -67,6 +67,8 @@ class LoginAttempt(object):
             self.__abusive_hosts_valid[host].reset_count()
             # ??? maybe:
             self.__abusive_hosts_invalid[host].reset_count()
+            # reset hosts-root count
+            self.__abusive_hosts_root[host].reset_count()
 
         if success and self.__abusive_hosts_invalid[host].get_count() > self.__deny_threshold_invalid:
             # TODO num_failures variable isn't used, possibly remove it
@@ -149,23 +151,26 @@ class LoginAttempt(object):
         stats = Counter()
 
         try:
-            for line in open(path, "r"):
-
-                try:
-                    line = line.strip()
-                    parts = line.split(":")
-                    name = parts[0]
-                    count = parts[1]
+            with open(path, 'r') as fhs:
+                line = fhs.readline()
+                while line:
                     try:
-                        date = ':'.join(parts[2:])
-                    except Exception:
-                        date = None
+                        line = line.strip()
+                        parts = line.split(":")
+                        name = parts[0]
+                        count = parts[1]
+                        try:
+                            date = ':'.join(parts[2:])
+                        except Exception:
+                            date = None
 
-                    stats[name] = CounterRecord(int(count), date)
-                    # debug("stats[%s] = %s", name, stats[name])
-                except Exception as e:
-                    # debug(e)
-                    pass
+                        stats[name] = CounterRecord(int(count), date)
+                        # debug("stats[%s] = %s", name, stats[name])
+                    except Exception as e:
+                        # debug(e)
+                        pass
+                    line = fhs.readline()
+
         except IOError as e:
             if e.errno == errno.ENOENT:
                 debug("%s does not exist", fname)

@@ -53,6 +53,8 @@ TIME_SPEC_LOOKUP = {
 }
 
 SYNC_MIN_INTERVAL = 300  # 5 minutes
+# this is used to set a timeout for xmlrpc
+SOCKET_TIMEOUT = 30  # 10 seconds
 
 plat = sys.platform
 if plat.startswith("freebsd"):

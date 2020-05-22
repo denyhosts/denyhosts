@@ -175,6 +175,10 @@ class Purge(DenyFileUtilBase):
         if plugin_purge:
             plugin.execute(plugin_purge, purged_hosts)
 
+        if num_purged > 0:
+            return purged_hosts
+        return None
+
     def create_temp(self, data):
         purged_hosts = []
         banned = self.purge_counter.get_banned_for_life()
@@ -248,14 +252,22 @@ class PurgeIP(DenyFileUtilBase):
         DenyFileUtilBase.__init__(self, deny_file, "purgeip")
         self.work_dir = prefs.get('WORK_DIR')
         self.purge_counter = PurgeCounter(prefs)
-
+        blocked_services = prefs.get('BLOCK_SERVICE')
         info("purging listed IP addresses.",)
 
         self.backup()
 
-        purged_hosts = purgeip_list
+        # List of ips to purge
+        purged_hosts = []
+        blocked_hosts = self.get_data()
+        for purgeip in purgeip_list:
+            purgeip_format = '{}: {}\n'.format(blocked_services, purgeip)
+            if purgeip_format in blocked_hosts:
+                blocked_hosts.remove(purgeip_format)
+                purged_hosts.append(purgeip)
         num_purged = len(purged_hosts)
         if num_purged > 0:
+            self.create_temp(blocked_hosts)
             self.replace()
             abusive_hosts = AbusiveHosts(prefs)
             abusive_hosts.purge_hosts(purged_hosts)
@@ -268,3 +280,11 @@ class PurgeIP(DenyFileUtilBase):
         plugin_purge = prefs.get('PLUGIN_PURGE')
         if plugin_purge:
             plugin.execute(plugin_purge, purged_hosts)
+
+        if num_purged > 0:
+            return purged_hosts
+        return None
+
+    def create_temp(self, data_list):
+        with open(self.temp_file, 'w') as tfh:
+            tfh.writelines("{}\n".format(line) for line in data_list)

@@ -17,6 +17,7 @@ from DenyHosts.prefs import Prefs
 from DenyHosts.version import VERSION
 from DenyHosts.deny_hosts import DenyHosts
 from DenyHosts.denyfileutil import Purge, PurgeIP, Migrate, UpgradeTo099
+from DenyHosts.firewalls import IpTables
 from DenyHosts.constants import *
 from DenyHosts.sync import Sync
 
@@ -117,7 +118,7 @@ if __name__ == '__main__':
         if opt == '--purge-all':
             purge_all = 1
         if opt == '--purgeip':
-            purgeip_list.append(arg)
+            purgeip_list = getopts
             purgeip = 1
         if opt == '--upgrade099':
             upgrade099 = 1
@@ -130,6 +131,7 @@ if __name__ == '__main__':
     os.environ['HOSTNAME'] = platform.node()
 
     prefs = Prefs(config_file)
+    iptables = prefs.get('IPTABLES')
 
     first_time = 0
     try:
@@ -187,44 +189,44 @@ if __name__ == '__main__':
         else:
             m = Migrate(prefs.get("HOSTS_DENY"))
 
-    # clear out specific IP addresses
-    if purgeip and not daemon:
-        if len(purgeip_list) < 1:
-            lock_file.remove()
-            die("You have provided the --purgeip flag however you have not listed any IP addresses to purge.")
-        else:
-            try:
-                p = PurgeIP(
-                    prefs,
-                    purgeip_list
-                )
+    if purgeip or purge or purge_all:
+        removed_hosts = None
+        # clear out specific IP addresses
+        if purgeip and not daemon:
+            if len(purgeip_list) < 1:
+                lock_file.remove()
+                die("You have provided the --purgeip flag however you have not listed any IP addresses to purge.")
+            else:
+                try:
+                    removed_hosts = PurgeIP(prefs, purgeip_list)
+                except Exception as e:
+                    lock_file.remove()
+                    die(str(e))
 
+        # Try to purge old records without any delay
+        if purge_all and not daemon:
+            purge_time = 1
+            try:
+                removed_hosts = Purge(prefs, purge_time)
             except Exception as e:
                 lock_file.remove()
                 die(str(e))
 
-    # Try to purge old records without any delay
-    if purge_all and not daemon:
-        purge_time = 1
-        try:
-            p = Purge(prefs, purge_time)
-        except Exception as e:
-            lock_file.remove()
-            die(str(e))
-
-    if purge and not (daemon or foreground):
-        purge_time = prefs.get('PURGE_DENY')
-        if not purge_time:
-            lock_file.remove()
-            die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
-        else:
-            try:
-                p = Purge(prefs,
-                          purge_time)
-
-            except Exception as e:
+        if purge and not (daemon or foreground):
+            purge_time = prefs.get('PURGE_DENY')
+            if not purge_time:
                 lock_file.remove()
-                die(str(e))
+                die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
+            else:
+                try:
+                    removed_hosts = Purge(prefs, purge_time)
+                except Exception as e:
+                    lock_file.remove()
+                    die(str(e))
+
+        if iptables and removed_hosts:
+            firewall_iptables = IpTables(prefs)
+            firewall_iptables.remove_ips(removed_hosts)
 
     try:
         for f in logfiles:
@@ -257,12 +259,8 @@ if __name__ == '__main__':
             if sync_download:
                 new_hosts = sync.receive_new_hosts()
                 if new_hosts:
-                    # MMR: What is 'info' here?
-                    info("received new hosts: %s", str(new_hosts))
-                    # TODO sync method's don't exist what should these be doing?
-                    sync.get_denied_hosts()
-                    sync.update_hosts_deny(new_hosts)
-
+                    # Logging the newly received hosts
+                    info("Received new hosts: %s", str(new_hosts))
                     dh.get_denied_hosts()
                     dh.update_hosts_deny(new_hosts)
             sync.xmlrpc_disconnect()
