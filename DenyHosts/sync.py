@@ -127,6 +127,28 @@ class Sync(object):
         except Exception as e:
             error(e)
 
+    def send_release_used(self, dh_version):
+        debug('Sending release version to sync server for tracking')
+        try:
+            py_version = '.'.join([str(x) for x in sys.version_info[0:3]])
+            version_info = [py_version, dh_version]
+            if not self.__connected and not self.xmlrpc_connect():
+                error("Could not initiate xmlrpc connection")
+                return
+
+            for i in range(0, 3):
+                try:
+                    self.__server.version_report(version_info)
+                    break
+                except Exception as e:
+                    exception(e)
+                time.sleep(30)
+        except Exception as e:
+            exception('Failure reporting your setup: %s' % e)
+            pass
+        finally:
+            self.xmlrpc_disconnect()
+
     def send_new_hosts(self):
         debug("send_new_hosts()")
         self.__hosts_added = []
