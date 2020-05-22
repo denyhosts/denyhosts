@@ -25,6 +25,9 @@ This is not the purpose of this documentation.
 # Install the following package to be able to recover the project from Github using git :
 sudo apt-get install git
 
+# The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
+sudo apt install rsyslog
+ 
 # Install the following python packages and modules:
 sudo apt-get install python
 sudo apt-get install python-pip
@@ -32,6 +35,26 @@ sudo pip install ipaddr
 sudo pip install mock
 sudo pip install requests
 sudo pip install configparser
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Order in which I installed the packages.
+# I installed python3 last, but, I suppose it can be installed at the same time as python.
+sudo apt-get install python3
+
+# DenyHosts works with Iptables.
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Check if iptables is really an essential prerequisite. ( #155 )
+sudo apt-get install iptables
+
+# DenyHosts works with EXIM.
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Check if EXIM is really an essential prerequisite. ( #155 )
+sudo apt-get install exim4-base exim4-config exim4-daemon-light
 
 # Download Denyhosts from the master branch of Github :
 sudo git clone https://github.com/denyhosts/denyhosts.git
