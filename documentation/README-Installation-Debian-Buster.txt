@@ -31,10 +31,15 @@ sudo apt install rsyslog
 # Install the following python packages and modules:
 sudo apt-get install python
 sudo apt-get install python-pip
+#
+# The following 4 modules can be installed with a single line :
+pip install requirements.txt
+#
 sudo pip install ipaddr
 sudo pip install mock
 sudo pip install requests
 sudo pip install configparser
+#
 ###############################################
 # Think of the editor, need to be confirmed ! #
 ###############################################
