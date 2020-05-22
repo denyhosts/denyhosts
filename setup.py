@@ -3,7 +3,9 @@
 # Copyright 2014 (C) Jesse Smith <jessefrgsmith@yahoo.ca>
 
 from glob import glob
+import sys
 from os.path import join as ospj
+from os.path import exists as fcheck
 
 from distutils.core import setup
 
@@ -15,6 +17,27 @@ manpath = "/usr/share/man/man8"
 libpath = "/usr/share/denyhosts"
 scriptspath = ospj("scripts", libpath)
 pluginspath = ospj("plugins", libpath)
+denyhostsman = 'denyhosts.8'
+
+if 'rpm' in sys.argv[1]:
+    denyhostsman += '.gz'
+
+if fcheck(etcpath + '/' + 'denyhosts.conf'):
+    backup = ['Y', 'y', 'yes', 'YES', 'Yes', '']
+    backup_question = 'We have detected that you have an existing config file, would you like to back it up? [Y|N]: '
+    try:  # python 2.x
+        backup_file = raw_input(backup_question)
+    except NameError:  # python 3
+        backup_file = input(backup_question)
+
+    if backup_file in backup:
+        from distutils.file_util import copy_file
+        from time import time
+
+        copy_file(
+            (etcpath + '/' + 'denyhosts.conf'),
+            (etcpath + '/' + 'denyhosts.conf.{0}'.format(int(time())))
+        )
 
 setup(
     name="DenyHosts",
@@ -26,9 +49,10 @@ setup(
     scripts=['denyhosts.py', 'daemon-control-dist'],
     package_dir={'DenyHosts': 'DenyHosts'},
     packages=["DenyHosts"],
+    requires=["ipaddr"],
     data_files=[
         (etcpath, glob("denyhosts.conf")),
-        (manpath, glob("denyhosts.8")),
+        (manpath, glob(denyhostsman)),
     ],
     license="GPL v2",
     long_description=normalize_whitespace(

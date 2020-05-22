@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+import os  # do not edit
+import sys  # do not edit
+import platform # do not edit
+import signal  # do not edit
+import time  # do not edit
 # denyhosts     Bring up/down the DenyHosts daemon
 #
 # chkconfig: 2345 98 02
@@ -8,38 +13,55 @@
 ###############################################
 
 ###############################################
-#### Edit these to suit your configuration ####
+#    Edit these to suit your configuration    #
 ###############################################
 
-DENYHOSTS_BIN   = "/usr/sbin/denyhosts"
-DENYHOSTS_LOCK  = "/run/denyhosts.pid"
-DENYHOSTS_CFG   = "/etc/denyhosts.conf"
+DENYHOSTS_BIN = "/usr/sbin/denyhosts.py"
+DENYHOSTS_LOCK = "/run/denyhosts.pid"
+DENYHOSTS_CFG = "/etc/denyhosts.conf"
 
-PYTHON_BIN      = "/usr/bin/env python"
+PYTHON_BIN = "/usr/bin/env python"
+
+distro = platform.uname()[3]
+distro2 = platform.uname()[2]
+if distro.find('Debian') >= 0:
+    DENYHOSTS_BIN = "/usr/local/bin/denyhosts.py"
+elif distro.find('FreeBSD') >= 0:
+    DENYHOSTS_BIN = "/usr/local/bin/denyhosts.py"
+else:
+    #centos
+    if distro2.find('el6') >= 0 or distro2.find('el7') >= 0:
+        DENYHOSTS_BIN = "/usr/bin/denyhosts.py"
 
 ###############################################
-####         Do not edit below             ####
+###############################################
+#            Do not edit below                #
+###############################################
 ###############################################
 
-DENYHOSTS_BIN = "%s %s" % (PYTHON_BIN, DENYHOSTS_BIN)
 
-import os, sys, signal, time
+DENYHOSTS_BIN = '{0} {1}'.format(PYTHON_BIN, DENYHOSTS_BIN)
 
 # make sure 'ps' command is accessible (which should be
 # in either /usr/bin or /bin.  Modify the PATH so
 # popen can find it
 env = os.environ.get('PATH', "")
-os.environ['PATH'] = "/usr/bin:/bin:%s" % env
+os.environ['PATH'] = '/usr/bin:/bin:{0}'.format(env)
 
 STATE_NOT_RUNNING = -1
 STATE_LOCK_EXISTS = -2
 
+
 def usage():
-    print "Usage: %s {start [args...] | stop | restart [args...] | status | debug | condrestart [args...] }" % sys.argv[0]
-    print
-    print "For a list of valid 'args' refer to:"
-    print "$ denyhosts.py --help"
-    print
+    print(
+        'Usage: {0} start [args...] | stop | restart [args...] | status | debug | condrestart [args...]'.format(
+            sys.argv[0]
+        )
+    )
+    print()
+    print('For a list of valid "args" refer to:')
+    print("$ denyhosts.py --help")
+    print()
     sys.exit(0)
 
 
@@ -48,9 +70,8 @@ def getpid():
         fp = open(DENYHOSTS_LOCK, "r")
         pid = int(fp.readline().rstrip())
         fp.close()
-    except Exception, e:
+    except Exception as e:
         return STATE_NOT_RUNNING
-
 
     if not sys.platform.startswith('freebsd') and os.access("/proc", os.F_OK):
         # proc filesystem exists, look for pid
@@ -61,7 +82,7 @@ def getpid():
     else:
         # proc filesystem doesn't exist (or it doesn't contain PIDs), use 'ps'
         p = os.popen("ps -p %d" % pid, "r")
-        p.readline() # get the header line
+        p.readline()  # get the header line
         pid_running = p.readline()
         # pid_running will be '' if no process is found
         if pid_running:
@@ -70,51 +91,54 @@ def getpid():
             return STATE_LOCK_EXISTS
 
 
-def start(*args):
-    cmd = "%s --daemon " % DENYHOSTS_BIN
-    if args: cmd += ' '.join(args)
+def start(*sargs):
+    scmd = '{0} --daemon '.format(DENYHOSTS_BIN)
+    if sargs:
+        scmd += ' '.join(sargs)
 
-    print "starting DenyHosts:   ", cmd
+    print('starting DenyHosts:  {0}'.format(scmd))
 
-    os.system(cmd)
+    os.system(scmd)
 
 
 def stop():
     pid = getpid()
     if pid >= 0:
         os.kill(pid, signal.SIGTERM)
-        print "sent DenyHosts SIGTERM"
+        print('sent DenyHosts SIGTERM')
     else:
-        print "DenyHosts is not running"
+        print('DenyHosts is not running')
+
 
 def debug():
     pid = getpid()
     if pid >= 0:
         os.kill(pid, signal.SIGUSR1)
-        print "sent DenyHosts SIGUSR1"
+        print('sent DenyHosts SIGUSR1')
     else:
-        print "DenyHosts is not running"
+        print('DenyHosts is not running')
+
 
 def status():
     pid = getpid()
     if pid == STATE_LOCK_EXISTS:
-        print "%s exists but DenyHosts is not running" % DENYHOSTS_LOCK
+        print('{0} exists but DenyHosts is not running'.format(DENYHOSTS_LOCK))
     elif pid == STATE_NOT_RUNNING:
-        print "Denyhosts is not running"
+        print('Denyhosts is not running')
     else:
-        print "DenyHosts is running with pid = %d" % pid
+        print('DenyHosts is running with pid = {0}'.format(pid))
 
 
-def condrestart(*args):
+def condrestart(*cargs):
     pid = getpid()
     if pid >= 0:
-        restart(*args)
+        restart(*cargs)
 
 
-def restart(*args):
+def restart(*rargs):
     stop()
     time.sleep(1)
-    start(*args)
+    start(*rargs)
 
 
 if __name__ == '__main__':
@@ -149,9 +173,6 @@ if __name__ == '__main__':
                 args.append("--config=%s" % DENYHOSTS_CFG)
 
         cmd = cases[option]
-        apply(cmd, args)
+        getattr(sys.modules[__name__], 'cmd')(*args)
     except Exception:
         usage()
-
-
-

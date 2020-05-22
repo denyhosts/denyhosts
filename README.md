@@ -1,7 +1,7 @@
 DenyHosts
 =========
 
-[![Build Status](https://travis-ci.org/denyhosts/denyhosts.svg)](https://travis-ci.org/denyhosts/denyhosts)
+[![Build Status](https://travis-ci.org/denyhosts/denyhosts.svg?branch=master)](https://travis-ci.org/josev814/denyhosts.svg?branch=master)
 
 DenyHosts is a utility developed by Phil Schwartz and maintained by a
 number of developers which aims to thwart sshd (ssh server) brute force attacks.
@@ -11,13 +11,22 @@ Please refer to https://github.com/denyhosts/denyhosts for more information.
 Installation
 ============
 
+
+Requirements
+------------
+
+The DenyHosts software depends on the "ipaddr" Python module,
+which is available in most Linux and BSD repositories.
+
+
+
 Source Distribution
 -------------------
 
 If you downloaded the source distribution file (DenyHosts-#.#-tar.gz)
 then:
 
-    $ tar zxvf DenyHosts-3.0.tar.gz 
+    $ tar zxvf DenyHosts-3.1.tar.gz 
 
     $ cd denyhosts
 

@@ -3,14 +3,19 @@ from __future__ import print_function, unicode_literals
 from os.path import dirname, join as ospj
 from random import randint
 import unittest
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+import sys
+if sys.version_info < (3, 0): 
+    from SimpleXMLRPCServer import SimpleXMLRPCServer
+    from xmlrpclib import ServerProxy
+else:
+    from xmlrpc.server import SimpleXMLRPCServer
+    from xmlrpc.client import ServerProxy
 from tempfile import mkdtemp
 from threading import Lock, Thread, local as thread_local
-import xmlrpclib
-
 from DenyHosts.constants import SYNC_HOSTS, SYNC_RECEIVED_HOSTS, SYNC_TIMESTAMP
 from DenyHosts.prefs import Prefs
 from DenyHosts.sync import Sync
+from DenyHosts.sync import get_plural
 
 LOCAL_SYNC_SERVER_ADDRESS = ('127.0.0.1', 9911)
 LOCAL_SYNC_SERVER_URL = 'http://%s:%d' % LOCAL_SYNC_SERVER_ADDRESS
@@ -77,7 +82,7 @@ class SyncServerTest(unittest.TestCase):
         self.server_thread = Thread(target=self.sync_server)
         self.server_thread.start()
         self.lock.acquire()
-        self.remote_sync_server = xmlrpclib.ServerProxy(LOCAL_SYNC_SERVER_URL, allow_none=True)
+        self.remote_sync_server = ServerProxy(LOCAL_SYNC_SERVER_URL, allow_none=True)
         self.lock.release()
 
     def tearDown(self):
@@ -140,6 +145,13 @@ class SyncTestBasic(SyncServerTest):
         self.prefs._Prefs__data['SYNC_SERVER'] = LOCAL_SYNC_SERVER_URL
         self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync/static')
 
+    def test_connect_false(self):
+        syncserver = self.prefs._Prefs__data['SYNC_SERVER']
+        self.prefs._Prefs__data['SYNC_SERVER'] = None
+        sync = Sync(self.prefs)
+        self.assertFalse(sync.xmlrpc_connect())
+        self.prefs._Prefs__data['SYNC_SERVER'] = syncserver
+
     def test_connect_disconnect(self):
         sync = Sync(self.prefs)
         self.assertTrue(sync.xmlrpc_connect())
@@ -148,6 +160,7 @@ class SyncTestBasic(SyncServerTest):
         sync.xmlrpc_disconnect()
         self.assertTrue(sync._Sync__server is None)
         self.assertFalse(sync._Sync__connected)
+
 
 class SyncTestSendHosts(SyncServerTest):
     def setUp(self):
@@ -185,3 +198,10 @@ class SyncTestReceiveHosts(SyncServerTest):
         with open(filename) as f:
             hosts = [line.strip().split(':')[0] for line in f]
         self.assertEqual(self.test_hosts, hosts)
+
+class SyncTestPlaural(unittest.TestCase):
+    def test_plural_one(self):
+        self.assertEqual(get_plural(['test']), '')
+
+    def test_plural_multiple(self):
+        self.assertEqual(get_plural(['test', 'two']), 's')

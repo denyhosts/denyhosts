@@ -1,7 +1,28 @@
 language: python
 
 python:
-  - 2.6
   - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
 
-script: nosetests
+before_install:
+  - sudo apt-get install -y -qq postfix
+
+install:
+  - pip install -r requirements.txt
+  - pip install coverage
+
+before_script:
+  - sudo service postfix stop
+  - smtp-sink -c -d "%d.%H.%M.%S" -e -m 5 localhost:2500 1000 &
+
+script:
+  #- nosetests -v --with-coverage
+  - coverage run -m unittest discover
+  - coverage report -m
+
+notifications:
+  email: false

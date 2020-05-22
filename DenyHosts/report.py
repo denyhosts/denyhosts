@@ -1,19 +1,19 @@
 import logging
 import re
 import socket
-# Removing this as it causes runtime errors on Python3.4
-# from types import ListType, TupleType
 from .util import is_true
 try:
     import syslog
     HAS_SYSLOG = True
 except ImportError:
     HAS_SYSLOG = False
+    syslog = None
 
 debug = logging.getLogger("report").debug
-warn = logging.getLogger("report").warn
+warn = logging.getLogger("report").warning
 
 IP_ADDR_REGEX = re.compile(r"""(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})""")
+
 
 class Report:
     def __init__(self, hostname_lookup, use_syslog=False):
@@ -26,8 +26,10 @@ class Report:
         self.hostname_lookup = is_true(hostname_lookup)
 
     def empty(self):
-        if self.report: return 0
-        else: return 1
+        if self.report:
+            return 0
+        else:
+            return 1
 
     def clear(self):
         self.report = ""
@@ -38,7 +40,8 @@ class Report:
     def add_section(self, message, iterable):
         self.report += "%s:\n\n" % message
         for i in iterable:
-            if type(i) in (TupleType, ListType):
+            # checks the item type (list or tuple)
+            if isinstance(i, list) or isinstance(i, tuple):
                 extra = ": %d\n" % i[1]
                 i = i[0]
             else:
@@ -54,13 +57,14 @@ class Report:
                 syslog.syslog("%s - %s%s" %(message, hostname, extra))
         self.report += "\n" + "-" * 70 + "\n"
 
-
-    def get_hostname(self, text):
+    @staticmethod
+    def get_hostname(text):
         m = IP_ADDR_REGEX.search(text)
 
         if m:
             start = m.start()
             ip = m.group('ip')
+            # TODO does text variable even need to be assigned here?
             text = text[:start]
         else:
             return text
