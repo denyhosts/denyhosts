@@ -35,6 +35,14 @@ sudo pip install ipaddr
 sudo pip install mock
 sudo pip install requests
 sudo pip install configparser
+sudo apt-get install python3
+
+# DenyHosts works with Iptables.
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Check if Iptables is really an essential prerequisite.
+sudo apt-get install iptables
 
 # Download Denyhosts from the master branch of Github :
 sudo git clone https://github.com/denyhosts/denyhosts.git
