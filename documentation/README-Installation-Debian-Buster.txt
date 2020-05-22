@@ -25,6 +25,9 @@ This is not the purpose of this documentation.
 # Install the following package to be able to recover the project from Github using git :
 sudo apt-get install git
 
+# The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
+sudo apt install rsyslog
+ 
 # Install the following python packages and modules:
 sudo apt-get install python
 sudo apt-get install python-pip
