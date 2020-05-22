@@ -22,6 +22,7 @@ from .regex import *
 from .report import Report
 from .restricted import Restricted
 from .sync import Sync
+from .firewalls import IpTables
 from .util import die, is_true, parse_host, send_email, is_valid_ip_address, hostname_lookup
 from .version import VERSION
 
@@ -238,7 +239,10 @@ class DenyHosts(object):
             self.purge_counter += 1
             if self.purge_counter == purge_sleep_ratio:
                 try:
-                    Purge(self.__prefs, purge_time)
+                    purged_hosts = Purge(self.__prefs, purge_time)
+                    if purged_hosts and self.__iptables:
+                        firewall_iptables = IpTables(self.__prefs)
+                        firewall_iptables.remove_ips(purged_hosts)
                 except Exception as e:
                     logging.getLogger().exception(e)
                     raise
@@ -334,25 +338,8 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
             fp.write("%s\n" % output)
 
         if self.__iptables:
-            debug("Trying to create iptables rules")
-            try:
-                for host in new_hosts:
-                    my_host = str(host)
-                    if self.__blockport is not None and ',' in self.__blockport:
-                        new_rule = self.__iptables + " -I INPUT -p tcp -m multiport --dports " + self.__blockport + \
-                                   " -s " + my_host + " -j DROP"
-                    elif self.__blockport:
-                        new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + \
-                                   my_host + " -j DROP"
-                    else:
-                        new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
-                    debug("Running iptabes rule: %s", new_rule)
-                    info("Creating new firewall rule %s", new_rule)
-                    os.system(new_rule)
-
-            except Exception as e:
-                print(e)
-                print("Unable to write new firewall rule.")
+            firewall_iptables = IpTables(self.__prefs)
+            firewall_iptables.block_ips(new_hosts)
 
         if self.__pfctl and self.__pftable:
             debug("Trying to update PF table.")
