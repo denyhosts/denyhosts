@@ -32,13 +32,13 @@ sudo apt install rsyslog
 sudo apt-get install python
 sudo apt-get install python-pip
 #
-# The following 4 modules can be installed with a single line :
+# The following 4 modules can be installed with a single line, allows compliance with version recommendations.
+# sudo pip install ipaddr
+# sudo pip install mock
+# sudo pip install requests
+# sudo pip install configparser
+# The file is at the root of the DenyHosts repository. :
 pip install requirements.txt
-#
-sudo pip install ipaddr
-sudo pip install mock
-sudo pip install requests
-sudo pip install configparser
 #
 ###############################################
 # Think of the editor, need to be confirmed ! #
