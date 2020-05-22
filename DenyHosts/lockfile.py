@@ -2,6 +2,7 @@ import os
 import sys
 from .util import die
 
+
 class LockFile(object):
     def __init__(self, lockpath):
         self.lockpath = lockpath
@@ -13,9 +14,8 @@ class LockFile(object):
     def get_pid(self):
         pid = ""
         try:
-            fp = open(self.lockpath, "r")
-            pid = fp.read().strip()
-            fp.close()
+            with open(self.lockpath, "r") as fp:
+                pid = fp.read().strip()
         except IOError:
             pass
         return pid
@@ -25,7 +25,7 @@ class LockFile(object):
             self.fd = os.open(self.lockpath,
                               os.O_CREAT |  # create file
                               os.O_TRUNC |  # truncate it, if it exists
-                              os.O_WRONLY | # write-only
+                              os.O_WRONLY |  # write-only
                               os.O_EXCL,    # exclusive access
                               0o644)         # file mode
 
@@ -35,9 +35,9 @@ class LockFile(object):
 
         s = "%s\n" % os.getpid()
         if sys.version_info < (3, 0):
-             os.write(self.fd, s)
+            os.write(self.fd, s)
         else:
-             os.write(self.fd, bytes(s, 'UTF-8'))
+            os.write(self.fd, s.encode('UTF-8'))
         os.fsync(self.fd)
 
     def remove(self, die_=True):

@@ -45,12 +45,12 @@ ip=$1
 ipTablesLocation=`cat /etc/denyhosts.conf | grep IPTABLES\ = | awk '{ print $3 }'`
 
 # Get the output of iptables INPUTS where it matches the given ip and action of DROP then return an array of the ids of the iprules
-ipRuleIds=(`$ipTablesLocation -L INPUT --line-numbers | grep $ip | grep DROP | awk '{ print $1 }'`)
+ipRuleIds=(`$ipTablesLocation -L INPUT --line-numbers -n | grep $ip | grep DROP | awk '{ print $1 }'`)
 
 #change the IFS to explode content into an array using new line characters
 IFS=$'\r\n'
 # Get the output of iptables INPUTS where it matches the ip and DROP and get the target, protocol opt source and destination for the log
-ipRules=(`$ipTablesLocation -L INPUT --line-numbers | grep $ip | grep DROP | awk '{ print $2 $3 $4 $5 $6 }'`)
+ipRules=(`$ipTablesLocation -L INPUT --line-numbers -n | grep $ip | grep DROP | awk '{ print $2 $3 $4 $5 $6 }'`)
 
 #change IFS back to the original value
 unset IFS
@@ -65,7 +65,7 @@ then
 else
   #loop through the returned ip rules
   #start at the highest rule and go to the lowest to prevent other rules from being deleted on accident.
-  while [[ $ruleCount -ge 0 ]]
+  while [[ $ruleCount -gt 0 ]]
   do
     #decrement ruleCount down 1 since arrays start at 0 and not one, 
     #and keep reducing util we have 0 elements left
