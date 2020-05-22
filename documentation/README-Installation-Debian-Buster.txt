@@ -96,6 +96,7 @@ DENYHOSTS_BIN = "/usr/sbin/denyhosts.py"
 DENYHOSTS_LOCK = "/var/lock/subsys/denyhosts"
 DENYHOSTS_CFG = "/etc/denyhosts.conf"
 
+# The daemon is added in the /etc/init.d folder, but it would seem more coherent to add the denyhosts.service service directly, from this same location.
 # Continue the configuration steps by copying the following commands :
 cd /etc/init.d
 sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
