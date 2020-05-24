@@ -239,7 +239,8 @@ class DenyHosts(object):
             self.purge_counter += 1
             if self.purge_counter == purge_sleep_ratio:
                 try:
-                    purged_hosts = Purge(self.__prefs, purge_time)
+                    purger = Purge(self.__prefs, purge_time)
+                    purged_hosts = purger.run_purge()
                     if purged_hosts and self.__iptables:
                         firewall_iptables = IpTables(self.__prefs)
                         firewall_iptables.remove_ips(purged_hosts)
