@@ -203,7 +203,8 @@ if __name__ == '__main__':
                 die("You have provided the --purgeip flag however you have not listed any IP addresses to purge.")
             else:
                 try:
-                    removed_hosts = PurgeIP(prefs, purgeip_list)
+                    ip_purger = PurgeIP(prefs, purgeip_list)
+                    removed_hosts = ip_purger.run_purge()
                 except Exception as e:
                     lock_file.remove()
                     die(str(e))
@@ -212,7 +213,8 @@ if __name__ == '__main__':
         if purge_all and not daemon:
             purge_time = 1
             try:
-                removed_hosts = Purge(prefs, purge_time)
+                purger = Purge(prefs, purge_time)
+                removed_hosts = purger.run_purge()
             except Exception as e:
                 lock_file.remove()
                 die(str(e))
@@ -224,7 +226,8 @@ if __name__ == '__main__':
                 die("You have provided the --purge flag however you have not set PURGE_DENY in your configuration file.")
             else:
                 try:
-                    removed_hosts = Purge(prefs, purge_time)
+                    purger = Purge(prefs, purge_time)
+                    removed_hosts = purger.run_purge()
                 except Exception as e:
                     lock_file.remove()
                     die(str(e))
