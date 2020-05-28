@@ -134,9 +134,13 @@ if __name__ == '__main__':
     iptables = prefs.get('IPTABLES')
 
     if prefs.get('SYNC_SERVER'):
-        sync = Sync(prefs)
-        sync.send_release_used(VERSION)
-        del sync
+        try:
+            sync = Sync(prefs)
+            sync.send_release_used(VERSION)
+            del sync
+        except:
+            # more than likely sync server doesn't have the option yet
+            pass
 
     first_time = 0
     try:
