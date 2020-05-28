@@ -133,7 +133,7 @@ if __name__ == '__main__':
     prefs = Prefs(config_file)
     iptables = prefs.get('IPTABLES')
 
-    if not prefs.get('SYNC_SERVER'):
+    if prefs.get('SYNC_SERVER'):
         sync = Sync(prefs)
         sync.send_release_used(VERSION)
         del sync
