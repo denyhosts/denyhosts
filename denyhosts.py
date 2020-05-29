@@ -169,7 +169,9 @@ if __name__ == '__main__':
 
     setup_logging(prefs, enable_debug, verbose, daemon)
 
-    if prefs.get('SYNC_SERVER'):
+    # we will only sync to the server if the sync server is enabled and the sync_version is either true or commented out
+    # config file has it set to sync the version by default if the sync server is enabled
+    if prefs.get('SYNC_SERVER') and (is_true(prefs.get('SYNC_VERSION')) or prefs.get('SYNC_VERSION') is None):
         debug('Attempting to Sync Version: %s' % VERSION)
         try:
             sync = Sync(prefs)
