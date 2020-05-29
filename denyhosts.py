@@ -137,6 +137,15 @@ if __name__ == '__main__':
     prefs = Prefs(config_file)
     iptables = prefs.get('IPTABLES')
 
+    if prefs.get('SYNC_SERVER'):
+        try:
+            sync = Sync(prefs)
+            sync.send_release_used(VERSION)
+            del sync
+        except:
+            # more than likely sync server doesn't have the option yet
+            pass
+
     first_time = 0
     try:
         if not os.path.exists(prefs.get('WORK_DIR')):
