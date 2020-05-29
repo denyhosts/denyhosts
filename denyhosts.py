@@ -21,8 +21,12 @@ from DenyHosts.firewalls import IpTables
 from DenyHosts.constants import *
 from DenyHosts.sync import Sync
 
-info = logging.getLogger("denyhosts").info
+logging.basicConfig()
+logger = logging.getLogger('denyhosts')
+info = logger.info
+debug = logger.debug
 #################################################################################
+
 
 def usage():
     print("Usage:")
@@ -133,15 +137,6 @@ if __name__ == '__main__':
     prefs = Prefs(config_file)
     iptables = prefs.get('IPTABLES')
 
-    if prefs.get('SYNC_SERVER'):
-        try:
-            sync = Sync(prefs)
-            sync.send_release_used(VERSION)
-            del sync
-        except:
-            # more than likely sync server doesn't have the option yet
-            pass
-
     first_time = 0
     try:
         if not os.path.exists(prefs.get('WORK_DIR')):
@@ -164,6 +159,16 @@ if __name__ == '__main__':
         print("Unable to create file specified by HOSTS_DENY variable.")
 
     setup_logging(prefs, enable_debug, verbose, daemon)
+
+    if prefs.get('SYNC_SERVER'):
+        debug('Attempting to Sync Version: %s' % VERSION)
+        try:
+            sync = Sync(prefs)
+            sync.send_release_used(VERSION)
+            del sync
+        except:
+            # more than likely sync server doesn't have the option yet
+            pass
 
     if not logfiles or daemon:
         logfiles = [prefs.get('SECURE_LOG')]
