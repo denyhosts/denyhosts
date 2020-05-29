@@ -2,7 +2,7 @@
 
 if [ -d DenyHosts ]
 then
-    for location in $(whhereis python3)
+    for location in $(whereis python3)
     do
         if echo "${location}" | grep -Eq '.*bin.*python3[\.0-9]+$'
         then
