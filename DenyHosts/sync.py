@@ -6,13 +6,14 @@ import socket
 import requests
 
 if sys.version_info < (3, 0): 
-    from xmlrpclib import ServerProxy
+    from xmlrpclib import ServerProxy, Fault
 else:
-    from xmlrpc.client import ServerProxy, Transport, ProtocolError
+    from xmlrpc.client import ServerProxy, Transport, ProtocolError, Fault
 
 from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS, SOCKET_TIMEOUT
 
-logger = logging.getLogger("sync")
+logging.basicConfig()
+logger = logging.getLogger('sync')
 debug, info, error, exception = logger.debug, logger.info, logger.error, logger.exception
 
 
@@ -140,6 +141,10 @@ class Sync(object):
                 try:
                     self.__server.version_report(version_info)
                     break
+                except Fault as f:
+                    if 8001 == f.faultCode:
+                        debug('version_report procedure doesn\'t exist on the sync server: %s' % f.faultString)
+                        break
                 except Exception as e:
                     exception(e)
                 time.sleep(30)
