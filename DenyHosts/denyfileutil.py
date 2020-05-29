@@ -180,10 +180,6 @@ class Purge(DenyFileUtilBase):
             return purged_hosts
         return None
 
-        if num_purged > 0:
-            return purged_hosts
-        return None
-
     def create_temp(self, data):
         purged_hosts = []
         banned = self.purge_counter.get_banned_for_life()
