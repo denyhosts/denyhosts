@@ -22,7 +22,8 @@ from .regex import *
 from .report import Report
 from .restricted import Restricted
 from .sync import Sync
-from .util import die, is_true, parse_host, send_email, is_valid_ip_address
+from .firewalls import IpTables
+from .util import die, is_true, parse_host, send_email, is_valid_ip_address, hostname_lookup
 from .version import VERSION
 
 debug = logging.getLogger("denyhosts").debug
@@ -40,6 +41,7 @@ class DenyHosts(object):
         self.__lock_file = lock_file
         self.__first_time = first_time
         self.__noemail = noemail
+        self.__hostname_lookup = is_true(prefs.get("HOSTNAME_LOOKUP"))
         self.__report = Report(prefs.get("HOSTNAME_LOOKUP"), is_true(prefs['SYSLOG_REPORT']))
         self.__daemon = daemon
         self.__foreground = foreground
@@ -109,8 +111,7 @@ class DenyHosts(object):
             self.__lock_file.remove()
             self.rundaemon(logfile, last_offset)
 
-    @staticmethod
-    def killdaemon():
+    def killdaemon(self, signum, frame):
         debug("Received SIGTERM")
         info("DenyHosts daemon is shutting down")
         # signal handler
@@ -120,8 +121,7 @@ class DenyHosts(object):
         # exception handler (SystemExit)
         sys.exit(0)
 
-    @staticmethod
-    def toggledebug():
+    def toggledebug(self, signum, frame):
         level = logging.getLogger().getEffectiveLevel()
         if level == logging.INFO:
             level = logging.DEBUG
@@ -239,7 +239,11 @@ class DenyHosts(object):
             self.purge_counter += 1
             if self.purge_counter == purge_sleep_ratio:
                 try:
-                    Purge(self.__prefs, purge_time)
+                    purger = Purge(self.__prefs, purge_time)
+                    purged_hosts = purger.run_purge()
+                    if purged_hosts and self.__iptables:
+                        firewall_iptables = IpTables(self.__prefs)
+                        firewall_iptables.remove_ips(purged_hosts)
                 except Exception as e:
                     logging.getLogger().exception(e)
                     raise
@@ -335,25 +339,8 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
             fp.write("%s\n" % output)
 
         if self.__iptables:
-            debug("Trying to create iptables rules")
-            try:
-                for host in new_hosts:
-                    my_host = str(host)
-                    if self.__blockport is not None and ',' in self.__blockport:
-                        new_rule = self.__iptables + " -I INPUT -p tcp -m multiport --dports " + self.__blockport + \
-                                   " -s " + my_host + " -j DROP"
-                    elif self.__blockport:
-                        new_rule = self.__iptables + " -I INPUT -p tcp --dport " + self.__blockport + " -s " + \
-                                   my_host + " -j DROP"
-                    else:
-                        new_rule = self.__iptables + " -I INPUT -s " + my_host + " -j DROP"
-                    debug("Running iptabes rule: %s", new_rule)
-                    info("Creating new firewall rule %s", new_rule)
-                    os.system(new_rule)
-
-            except Exception as e:
-                print(e)
-                print("Unable to write new firewall rule.")
+            firewall_iptables = IpTables(self.__prefs)
+            firewall_iptables.block_ips(new_hosts)
 
         if self.__pfctl and self.__pftable:
             debug("Trying to update PF table.")
@@ -474,6 +461,8 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
                 user = ""
             try:
                 host = m.group("host")
+                if self.__hostname_lookup:
+                    host = hostname_lookup(host)
             except Exception:
                 error("regex pattern ( %s ) is missing 'host' group" % m.re.pattern)
                 continue

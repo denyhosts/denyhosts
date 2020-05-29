@@ -102,3 +102,9 @@ class UtilsTest(unittest.TestCase):
             util.normalize_whitespace('testing whitespace  for   denyhosts'),
             'testing whitespace for denyhosts'
         )
+
+    def test_get_hostname_bug_145(self):
+        self.assertEqual(
+            util.gethostbyname('68.ip-51-38-131.eu'),
+            '51.38.131.68'
+        )

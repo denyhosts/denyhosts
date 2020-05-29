@@ -67,6 +67,8 @@ class LoginAttempt(object):
             self.__abusive_hosts_valid[host].reset_count()
             # ??? maybe:
             self.__abusive_hosts_invalid[host].reset_count()
+            # reset hosts-root count
+            self.__abusive_hosts_root[host].reset_count()
 
         if success and self.__abusive_hosts_invalid[host].get_count() > self.__deny_threshold_invalid:
             # TODO num_failures variable isn't used, possibly remove it
