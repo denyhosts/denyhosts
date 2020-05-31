@@ -27,6 +27,12 @@ sudo apt-get install git
 
 # The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
 sudo apt install rsyslog
+sudo systemctl restart rsyslog
+# Check if the /var/log/auth.log file exists to allow DenyHosts to restart :
+cd /var/log
+ls
+# If it does not exist, create it :
+sudo touch /var/log/auth.log
 
 # Install the following python packages and modules:
 sudo apt-get install python
@@ -37,8 +43,8 @@ sudo apt-get install python-pip
 # sudo pip install mock
 # sudo pip install requests
 # sudo pip install configparser
-# The file is at the root of the DenyHosts repository. :
-pip install requirements.txt
+# The file is at the root of the DenyHosts repository :
+pip install -r requirements.txt
 #
 ###############################################
 # Think of the editor, need to be confirmed ! #
@@ -52,6 +58,7 @@ sudo apt-get install python3
 # Think of the editor, need to be confirmed ! #
 ###############################################
 # Check if iptables is really an essential prerequisite. ( #155 )
+# Denyhosts works without the Iptables package. Iptables is therefore not a prerequisite.
 sudo apt-get install iptables
 
 # DenyHosts works with EXIM.
@@ -118,13 +125,6 @@ sudo cp denyhosts.py /usr/sbin/
 # Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths : systemctl daemon-reload
 # Also reload the service : systemctl restart denyhosts
 
-# The /var/log/auth.log file does not exist by default on an LWS VPS, which prevents DenyHosts from restarting.
-# Check if the file exists :
-cd /var/log
-ls
-# If it does not exist, create it :
-sudo touch /var/log/auth.log
-
 ###############################################
 # Think of the editor, need to be confirmed ! #
 ###############################################
@@ -144,12 +144,13 @@ sudo systemctl restart denyhosts
 sudo systemctl status denyhosts
 
 # Copy the configuration proposed below, to strengthen the rules of Denyhosts.
-
+# This following configuration is proposed in French by Zer00CooL (ZerooCool on Github).
 # Edit the DenyHosts configuration file :
 sudo nano /etc/denyhosts.conf
 
-# Copy the following configuration, proposed in French by Zer00CooL (ZerooCool on Github).
-
+################################################################################################
+# Beginning - The configuration from DenyHosts : sudo nano /etc/denyhosts.conf
+################################################################################################
 # Le fichier journal qui contient les informations de journalisation du serveur SSH.
 # Identifier le fichier avec la commande : grep "sshd:" /var/log/*
 SECURE_LOG = /var/log/auth.log
@@ -275,17 +276,27 @@ SYNC_DOWNLOAD = yes
 SYNC_DOWNLOAD_THRESHOLD = 4
 # Durée minimum de la période d'attaque observée sur d'autres serveurs.
 SYNC_DOWNLOAD_RESILIENCY = 8h
+################################################################################################
+# End - The configuration from DenyHosts
+################################################################################################
 
+# Note for synchronization !
 # The current synchronization servers :
 # http://sync.denyhosts.org:9911
 # http://deny.resonatingmedia.com:9911
+#
 # The old synchronization server :
 # http://xmlrpc.denyhosts.net:9911
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Old server, but, same content ?
 
-# Restart Denyhosts to take the changes into account.
-# Deprecated debian commands :
+# Restart Denyhosts to apply the new configuration.
+# Deprecated commands :
 sudo /etc/init.d/denyhosts restart
 sudo service denyhosts restart
+#
 # Prefer this command to restart DenyHosts :
 sudo systemctl restart denyhosts
 
