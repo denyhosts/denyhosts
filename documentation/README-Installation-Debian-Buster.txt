@@ -25,6 +25,9 @@ This is not the purpose of this documentation.
 # Install the following package to be able to recover the project from Github using git :
 sudo apt-get install git
 
+# Package required :
+sudo apt install openssh-server
+
 # The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
 sudo apt install rsyslog
 sudo systemctl restart rsyslog
@@ -43,8 +46,8 @@ sudo apt-get install python-pip
 # sudo pip install mock
 # sudo pip install requests
 # sudo pip install configparser
-# The file is at the root of the DenyHosts repository :
-pip install -r requirements.txt
+# This file is at the root of the DenyHosts repository and can be install later :
+# pip install -r requirements.txt
 #
 ###############################################
 # Think of the editor, need to be confirmed ! #
@@ -59,16 +62,17 @@ sudo apt-get install python3
 ###############################################
 # Check if iptables is really an essential prerequisite. ( #155 )
 # Denyhosts works without the Iptables package. Iptables is therefore not a prerequisite.
-sudo apt-get install iptables
+# sudo apt-get install iptables
 
 # DenyHosts works with EXIM.
 ###############################################
 # Think of the editor, need to be confirmed ! #
 ###############################################
 # Check if EXIM is really an essential prerequisite. ( #155 )
-sudo apt-get install exim4-base exim4-config exim4-daemon-light
+# sudo apt-get install exim4-base exim4-config exim4-daemon-light
 
 # Download Denyhosts from the master branch of Github :
+cd ~
 sudo git clone https://github.com/denyhosts/denyhosts.git
 
 # Using git allows developers and those wishing to test a new version, or, as a fix, to change the stable main branch to a developing branch.
@@ -78,7 +82,11 @@ sudo git clone https://github.com/denyhosts/denyhosts.git
 
 # Go to the DenyHosts directory and run the following commands :
 cd denyhosts
+pip install -r requirements.txt
 sudo python setup.py install
+# We have detected that you have an existing config file, would you like to back it up ? [Y|N]:
+# N for no :
+N
 sudo cp denyhosts.conf /etc
 sudo cp daemon-control-dist daemon-control
 
@@ -103,6 +111,14 @@ DENYHOSTS_BIN = "/usr/sbin/denyhosts.py"
 DENYHOSTS_LOCK = "/var/lock/subsys/denyhosts"
 DENYHOSTS_CFG = "/etc/denyhosts.conf"
 
+cd ~
+sudo mv denyhosts /usr/share/
+cd /usr/share/denyhosts/
+sudo cp denyhosts.py /usr/sbin/
+# In the tutorial used initially, denyhosts.py was copied to the /usr/bin directory, but, synchronization seems to work only if I put it in /usr/sbin/.
+# Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths :
+sudo systemctl daemon-reload
+
 # First possibility :
 # The daemon-control is added in the /etc/init.d folder :
 cd /etc/init.d
@@ -114,16 +130,9 @@ sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
 # In both cases, the execution of denyhosts works correctly.
 # Simply using the service method will prevent errors from occurring by saying that there are no execution levels or lsb problems.
 # The service file must be added to /etc/systemd/system/denyhosts.service rather than adding it to /etc/init.d.
-# Adding to / etc / systemd / system will allow denyhosts services to start working with the systemctl start denyhosts command.
-sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/
-
-cd ~
-sudo mv denyhosts /usr/share/
+# Adding to /etc/systemd/system/ will allow denyhosts services to start working with the systemctl start denyhosts command.
 cd /usr/share/denyhosts/
-sudo cp denyhosts.py /usr/sbin/
-# In the tutorial used initially, denyhosts.py was copied to the /usr/bin directory, but, synchronization seems to work only if I put it in /usr/sbin/.
-# Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths : systemctl daemon-reload
-# Also reload the service : systemctl restart denyhosts
+sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/denyhosts.service
 
 ###############################################
 # Think of the editor, need to be confirmed ! #
@@ -134,6 +143,8 @@ sudo cp denyhosts.py /usr/sbin/
 # denyhosts.service is not a native service, redirecting to systemd-sysv-install.
 # Executing: /lib/systemd/systemd-sysv-install enable denyhosts
 # update-rc.d: error: denyhosts Default-Start contains no runlevels, aborting.
+
+# Also reload the service : systemctl restart denyhosts
 
 ###############################################
 # Think of the editor, need to be confirmed ! #
