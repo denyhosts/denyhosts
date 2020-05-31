@@ -27,6 +27,12 @@ sudo apt-get install git
 
 # The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
 sudo apt install rsyslog
+sudo systemctl restart rsyslog
+# Check if the /var/log/auth.log file exists to allow DenyHosts to restart :
+cd /var/log
+ls
+# If it does not exist, create it :
+sudo touch /var/log/auth.log
 
 # Install the following python packages and modules:
 sudo apt-get install python
@@ -118,13 +124,6 @@ sudo cp denyhosts.py /usr/sbin/
 # In the tutorial used initially, denyhosts.py was copied to the /usr/bin directory, but, synchronization seems to work only if I put it in /usr/sbin/.
 # Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths : systemctl daemon-reload
 # Also reload the service : systemctl restart denyhosts
-
-# The /var/log/auth.log file does not exist by default on an LWS VPS, which prevents DenyHosts from restarting.
-# Check if the file exists :
-cd /var/log
-ls
-# If it does not exist, create it :
-sudo touch /var/log/auth.log
 
 ###############################################
 # Think of the editor, need to be confirmed ! #
