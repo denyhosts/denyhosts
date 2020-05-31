@@ -37,8 +37,8 @@ sudo apt-get install python-pip
 # sudo pip install mock
 # sudo pip install requests
 # sudo pip install configparser
-# The file is at the root of the DenyHosts repository. :
-pip install requirements.txt
+# The file is at the root of the DenyHosts repository :
+pip install -r requirements.txt
 #
 ###############################################
 # Think of the editor, need to be confirmed ! #
@@ -52,6 +52,7 @@ sudo apt-get install python3
 # Think of the editor, need to be confirmed ! #
 ###############################################
 # Check if iptables is really an essential prerequisite. ( #155 )
+# Denyhosts works without the Iptables package. Iptables is therefore not a prerequisite.
 sudo apt-get install iptables
 
 # DenyHosts works with EXIM.
@@ -144,12 +145,13 @@ sudo systemctl restart denyhosts
 sudo systemctl status denyhosts
 
 # Copy the configuration proposed below, to strengthen the rules of Denyhosts.
-
+# This following configuration is proposed in French by Zer00CooL (ZerooCool on Github).
 # Edit the DenyHosts configuration file :
 sudo nano /etc/denyhosts.conf
 
-# Copy the following configuration, proposed in French by Zer00CooL (ZerooCool on Github).
-
+################################################################################################
+# Beginning - The configuration from DenyHosts : sudo nano /etc/denyhosts.conf
+################################################################################################
 # Le fichier journal qui contient les informations de journalisation du serveur SSH.
 # Identifier le fichier avec la commande : grep "sshd:" /var/log/*
 SECURE_LOG = /var/log/auth.log
@@ -275,17 +277,27 @@ SYNC_DOWNLOAD = yes
 SYNC_DOWNLOAD_THRESHOLD = 4
 # Durée minimum de la période d'attaque observée sur d'autres serveurs.
 SYNC_DOWNLOAD_RESILIENCY = 8h
+################################################################################################
+# End - The configuration from DenyHosts
+################################################################################################
 
+# Note for synchronization !
 # The current synchronization servers :
 # http://sync.denyhosts.org:9911
 # http://deny.resonatingmedia.com:9911
+#
 # The old synchronization server :
 # http://xmlrpc.denyhosts.net:9911
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Old server, but, same content ?
 
-# Restart Denyhosts to take the changes into account.
-# Deprecated debian commands :
+# Restart Denyhosts to apply the new configuration.
+# Deprecated commands :
 sudo /etc/init.d/denyhosts restart
 sudo service denyhosts restart
+#
 # Prefer this command to restart DenyHosts :
 sudo systemctl restart denyhosts
 
