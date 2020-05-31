@@ -61,6 +61,7 @@ class Prefs(dict):
                        'SUCCESSFUL_ENTRY_REGEX': None,
                        'SYNC_INTERVAL': '1h',
                        'SYNC_SERVER': None,
+                       'SYNC_VERSION': None,
                        'SYNC_UPLOAD': "yes",
                        'SYNC_DOWNLOAD': "yes",
                        'SYNC_DOWNLOAD_THRESHOLD': 3,
