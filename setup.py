@@ -87,7 +87,7 @@ touch(ospj(work_dir, ALLOWED_HOSTS))
 allowed_hosts = AllowedHosts(prefs)
 allowed_ips = list(allowed_hosts.allowed_hosts.keys())
 
-detect_ips_quest = 'Would you like us to attempt to detect your public ip? [Y|N] (default Y) '
+detect_ips_quest = 'In order to prevent SSH lockout, would you like us to attempt to detect your public ip? [Y|N] (default Y) '
 try:  # python 2.x
     detect_ips = raw_input(detect_ips_quest)
 except NameError:  # python 3
