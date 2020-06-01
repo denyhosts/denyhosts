@@ -12,8 +12,8 @@ The version offered from the Github repository is 3.1.2-2 (or higher).
 
 This documentation will certainly still evolve, nevertheless, it should allow, as it stands, to accompany you for a simplified installation of DenyHosts, without difficulties.
 
-Version 1.0 proposed by Zer00CooL
-Date : 20/05/2020
+Version 2.0 proposed by Zer00CooL
+Date : 02/06/2020
 
 #################################################
 # Packages required before installing DenyHosts #
