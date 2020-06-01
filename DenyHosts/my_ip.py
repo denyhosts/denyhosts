@@ -25,20 +25,26 @@ class MyIp(object):
 
     def get_remote_ip(self):
         for api in self.__remote_apis:
-            ip = self.__ip_regex.search(requests.get(api).text)
-            if ip:
-                ip = ip.group().strip()
-                if ip in self.__remote_ips.keys():
-                    self.__remote_ips[ip] = self.__remote_ips[ip] + 1
-                else:
-                    self.__remote_ips[ip] = 1
+            try:
+                ip = self.__ip_regex.search(requests.get(api).text)
+                if ip:
+                    ip = ip.group().strip()
+                    if ip in self.__remote_ips.keys():
+                        self.__remote_ips[ip] = self.__remote_ips[ip] + 1
+                    else:
+                        self.__remote_ips[ip] = 1
+            except:
+                pass
         for remote_parse in self.__remote_parse:
-            res = requests.get(remote_parse).text
-            ip = self.__ip_regex.search(res)
-            if ip:
-                ip = ip.group().strip()
-                if ip in self.__remote_ips.keys():
-                    self.__remote_ips[ip] = self.__remote_ips[ip] + 1
-                else:
-                    self.__remote_ips[ip] = 1
+            try:
+                res = requests.get(remote_parse).text
+                ip = self.__ip_regex.search(res)
+                if ip:
+                    ip = ip.group().strip()
+                    if ip in self.__remote_ips.keys():
+                        self.__remote_ips[ip] = self.__remote_ips[ip] + 1
+                    else:
+                        self.__remote_ips[ip] = 1
+            except:
+                pass
         return self.__remote_ips
