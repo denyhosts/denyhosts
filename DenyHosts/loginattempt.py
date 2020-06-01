@@ -205,7 +205,11 @@ class LoginAttempt(object):
     def save_abusive_hosts_restricted(self, abusive_hosts=None):
         if abusive_hosts is None:
             abusive_hosts = self.__abusive_hosts_restricted
-        self.__save_stats(ABUSIVE_HOSTS_RESTRICTED, abusive_hosts)
+        # Only write hosts-restricted file if there is a
+        # restricted-usernames file.
+        usernames_file = os.path.join(self.__work_dir, RESTRICTED_USERNAMES)
+        if os.path.isfile(usernames_file): 
+              self.__save_stats(ABUSIVE_HOSTS_RESTRICTED, abusive_hosts)
 
     def save_abusive_hosts_valid(self, abusive_hosts=None):
         if abusive_hosts is None:
