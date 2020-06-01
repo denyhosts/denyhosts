@@ -12,8 +12,8 @@ The version offered from the Github repository is 3.1.2-2 (or higher).
 
 This documentation will certainly still evolve, nevertheless, it should allow, as it stands, to accompany you for a simplified installation of DenyHosts, without difficulties.
 
-Version 1.0 proposed by Zer00CooL
-Date : 20/05/2020
+Version 2.0 proposed by Zer00CooL
+Date : 02/06/2020
 
 #################################################
 # Packages required before installing DenyHosts #
@@ -71,7 +71,8 @@ sudo apt-get install python3
 # Check if EXIM is really an essential prerequisite. ( #155 )
 # sudo apt-get install exim4-base exim4-config exim4-daemon-light
 
-# Download Denyhosts from the master branch of Github :
+# Download Denyhosts from the master branch of Github.
+# Note that I load Denyhosts in the user directory, but, it would be better to load it in the tmp/ directory
 cd ~
 sudo git clone https://github.com/denyhosts/denyhosts.git
 
@@ -84,7 +85,7 @@ git checkout bug_128
 # If you want to install the most recent version, then you can continue without having to take care of this step.
 
 # Go to the DenyHosts directory and run the following commands :
-cd denyhosts
+cd ~/denyhosts
 pip install -r requirements.txt
 sudo python setup.py install
 # We have detected that you have an existing config file, would you like to back it up ? [Y|N]:
@@ -122,12 +123,18 @@ sudo cp denyhosts.py /usr/sbin/
 # Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths :
 sudo systemctl daemon-reload
 
+###############################################
+# This First possibility does not seem suitable or obsolete !
+###############################################
 # First possibility :
 # The daemon-control is added in the /etc/init.d folder :
-cd /etc/init.d
-sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
-
+# cd /etc/init.d
+# sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
+#
 # Second possibility :
+###############################################
+# The good way :
+###############################################
 # It would be more consistent to add the denyhosts.service service to /etc/systemd/system/denyhosts.service from /usr/share/denyhosts/. (# 156)
 # The service file is created in the format that SystemD can use.
 # In both cases, the execution of denyhosts works correctly.
@@ -143,18 +150,20 @@ sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/denyhosts.ser
 # This command could be useless, in any case, for the moment, it is not used nor essential to validate the installation of DenyHosts.
 # It was observed on an old tutorial.
 # sudo systemctl enable denyhosts
-# denyhosts.service is not a native service, redirecting to systemd-sysv-install.
-# Executing: /lib/systemd/systemd-sysv-install enable denyhosts
-# update-rc.d: error: denyhosts Default-Start contains no runlevels, aborting.
 
-# Also reload the service : systemctl restart denyhosts
+# You can start the service :
+systemctl start denyhosts
 
 ###############################################
 # Think of the editor, need to be confirmed ! #
 ###############################################
-# During my test it seems to me that starting with start did not work.
+# During the test, with the first possibility, the start command did not work..
 # Currently prefer to launch with restart.
-sudo systemctl restart denyhosts
+# This problem now seems to be corrected using the second possibility during installation.
+# We were able to start previously with the start command.
+# It is no longer necessary to start like this :
+# sudo systemctl restart denyhosts
+# We can now observe the status of Denyhosts :
 sudo systemctl status denyhosts
 
 # Copy the configuration proposed below, to strengthen the rules of Denyhosts.
