@@ -75,13 +75,13 @@ sudo apt-get install python3
 cd ~
 sudo git clone https://github.com/denyhosts/denyhosts.git
 
-# Using git allows developers and those wishing to test a new version, or, for fix a bug.
+# Using git allows developers and users the ability to test a new version or a bug fix.
 # Currently and by default, you are using the stable master branch.
 # Change the stable main branch to a developing branch.
-# Exemple for test the branch for fix a new feature :
+# The following is an example of using the code associated with a bug designated as bug_128 on github.
 cd ~/denyhosts
 git checkout bug_128
-# Else, you can continue.
+# If you want to install the most recent version, then you can continue without having to take care of this step.
 
 # Go to the DenyHosts directory and run the following commands :
 cd denyhosts
