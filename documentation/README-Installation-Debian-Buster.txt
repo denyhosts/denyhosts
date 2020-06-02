@@ -56,13 +56,15 @@ sudo apt-get install python-pip
 # I installed python3 last, but, I suppose it can be installed at the same time as python.
 sudo apt-get install python3
 
-# DenyHosts works with Iptables.
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# Check if iptables is really an essential prerequisite. ( #155 )
-# Denyhosts works without the Iptables package. Iptables is therefore not a prerequisite.
+# DenyHosts works with Iptables but is not a prerequisite.
+# However, Iptables is enabled by default in the DenyHosts configuration.
+# If you use the default configuration, it will be more consistent to install Iptables.
 # sudo apt-get install iptables
+#
+# Denyhosts works without the Iptables package with TCP Wrapper.
+# You can disable Iptables in the Denyhosts configuration.
+# If this option is not set or commented out in the /etc/denyhosts.conf file, then the Iptables firewall is not used :
+# IPTABLES = /sbin/iptables
 
 # DenyHosts works with EXIM.
 ###############################################
@@ -144,14 +146,10 @@ sudo systemctl daemon-reload
 cd /usr/share/denyhosts/
 sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/denyhosts.service
 
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# This command could be useless, in any case, for the moment, it is not used nor essential to validate the installation of DenyHosts.
-# It was observed on an old tutorial.
-# sudo systemctl enable denyhosts
+# Activate the denyhosts service :
+sudo systemctl enable denyhosts
 
-# You can start the service :
+# Launch the denyhosts service :
 systemctl start denyhosts
 
 ###############################################
