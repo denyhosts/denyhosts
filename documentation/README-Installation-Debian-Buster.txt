@@ -19,14 +19,13 @@ Date : 02/06/2020
 # Packages required before installing DenyHosts #
 #################################################
 
-The SSH server must be installed and configured.
-This is not the purpose of this documentation.
+# The SSH server must be installed and configured.
+# This is not the purpose of this documentation.
+sudo apt install openssh-server
 
 # Install the following package to be able to recover the project from Github using git :
+# This is not the purpose of this documentation.
 sudo apt-get install git
-
-# Package required :
-sudo apt install openssh-server
 
 # The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
 sudo apt install rsyslog
@@ -38,8 +37,7 @@ ls
 sudo touch /var/log/auth.log
 
 # Install the following python packages and modules:
-sudo apt-get install python
-sudo apt-get install python-pip
+sudo apt-get install python python3 python-pip
 #
 # The following 4 modules can be installed with a single line, allows compliance with version recommendations.
 # sudo pip install ipaddr
@@ -48,21 +46,16 @@ sudo apt-get install python-pip
 # sudo pip install configparser
 # This file is at the root of the DenyHosts repository and can be install later :
 # pip install -r requirements.txt
-#
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# Order in which I installed the packages.
-# I installed python3 last, but, I suppose it can be installed at the same time as python.
-sudo apt-get install python3
 
-# DenyHosts works with Iptables.
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# Check if iptables is really an essential prerequisite. ( #155 )
-# Denyhosts works without the Iptables package. Iptables is therefore not a prerequisite.
+# DenyHosts works with Iptables but is not a prerequisite.
+# However, Iptables is enabled by default in the DenyHosts configuration.
+# If you use the default configuration, it will be more consistent to install Iptables.
 # sudo apt-get install iptables
+#
+# Denyhosts works without the Iptables package with TCP Wrapper.
+# You can disable Iptables in the Denyhosts configuration.
+# If this option is not set or commented out in the /etc/denyhosts.conf file, then the Iptables firewall is not used :
+# IPTABLES = /sbin/iptables
 
 # DenyHosts works with EXIM.
 ###############################################
@@ -144,14 +137,10 @@ sudo systemctl daemon-reload
 cd /usr/share/denyhosts/
 sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/denyhosts.service
 
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# This command could be useless, in any case, for the moment, it is not used nor essential to validate the installation of DenyHosts.
-# It was observed on an old tutorial.
-# sudo systemctl enable denyhosts
+# Activate the denyhosts service :
+sudo systemctl enable denyhosts
 
-# You can start the service :
+# Launch the denyhosts service :
 systemctl start denyhosts
 
 ###############################################
