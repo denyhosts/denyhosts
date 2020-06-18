@@ -43,8 +43,8 @@ if 'default' in config:
     if 'webhooktoken' in config['default'] and re.match(r'([\w\d\-/]+)', config['default']['webhooktoken'], re.IGNORECASE):
         SLACKTOKEN = re.findall(r'([\w\d\-/]+)', config['default']['webhooktoken'], re.IGNORECASE)[0]
     # channel to post in slack, include the # in front of the channel ex: #systems
-    if 'channel' in config['default'] and re.match(r'(^(@|#)[\w\d\-_/.]+)', config['default']['channel'],re.IGNORECASE):
-        SLACKCHANNEL = re.findall(r'((@|#)[\w\d\-_/.]+)', config['default']['channel'], re.IGNORECASE)[0][0]
+    if 'channel' in config['default'] and re.match(r'(^[@#][\w\d\-_/.]+)', config['default']['channel'],re.IGNORECASE):
+        SLACKCHANNEL = re.findall(r'([@#][\w\d\-_/.]+)', config['default']['channel'], re.IGNORECASE)[0][0]
 
 # Slack Web Hook ex: https://hooks.slack.com/services/xxxxxxx/xxxxxxxxx/xxxxxxxxxxxxxxxxxxxx
 slackWebHook = SLACKURL + SLACKTOKEN
