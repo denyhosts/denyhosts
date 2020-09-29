@@ -25,7 +25,7 @@ FAILED_ENTRY_REGEX7 = re.compile(r"""User (?P<user>.*) .*from (::ffff:)?(?P<host
 
 FAILED_ENTRY_REGEX8 = re.compile(r"""authentication error for (?P<user>.*) .*from (?P<host>.*)""")
 
-FAILED_ENTRY_REGEX9 = re.compile(r"""Connection closed by (?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \[preauth\]""")
+FAILED_ENTRY_REGEX9 =  re.compile(r"""Connection closed by (?P<host>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})( port \d+)? \[preauth\]""")
 
 # these are reserved for future versions
 FAILED_ENTRY_REGEX10 = None
