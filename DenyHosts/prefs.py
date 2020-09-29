@@ -10,6 +10,7 @@ info = logging.getLogger("prefs").info
 
 ENVIRON_REGEX = re.compile(r"""\$\[(?P<environ>[A-Z_]*)\]""")
 
+
 class Prefs(dict):
     def __getitem__(self, k):
         return self.get(k)
@@ -38,6 +39,8 @@ class Prefs(dict):
                        'PFCTL_PATH': None,
                        'PF_TABLE': None,
                        'PF_TABLE_FILE': None,
+                       'EMAIL_METHOD': 'SMTP',
+                       'SMTP_SSL': 'no',
                        'SMTP_USERNAME': None,
                        'SMTP_PASSWORD': None,
                        'SMTP_DATE_FORMAT': "%a, %d %b %Y %H:%M:%S %z",
@@ -58,6 +61,7 @@ class Prefs(dict):
                        'SUCCESSFUL_ENTRY_REGEX': None,
                        'SYNC_INTERVAL': '1h',
                        'SYNC_SERVER': None,
+                       'SYNC_VERSION': None,
                        'SYNC_UPLOAD': "yes",
                        'SYNC_DOWNLOAD': "yes",
                        'SYNC_DOWNLOAD_THRESHOLD': 3,
@@ -119,9 +123,9 @@ class Prefs(dict):
                                'SYNC_DOWNLOAD_RESILIENCY',
                                'AGE_RESET_ROOT'))
 
-
         self.process_defaults()
-        if path: self.load_settings(path)
+        if path:
+            self.load_settings(path)
 
     def process_defaults(self):
         for name in self.to_seconds:
@@ -129,7 +133,6 @@ class Prefs(dict):
                 self.__data[name] = calculate_seconds(self.__data[name])
             except Exception:
                 pass
-
 
     def load_settings(self, path):
         try:
@@ -147,8 +150,9 @@ class Prefs(dict):
                     name = m.group('name').upper()
                     value = self.environ_sub(m.group('value'))
 
-                    #print name, value
-                    if not value: value = None
+                    # print name, value
+                    if not value:
+                        value = None
                     if name in self.to_int:
                         value = int(value)
                     if name in self.to_seconds and value:
@@ -164,13 +168,11 @@ class Prefs(dict):
         self.check_required(path)
         self.make_absolute()
 
-
     def make_absolute(self):
         for key in self.make_abs:
             val = self.__data[key]
             if val:
                 self.__data[key] = os.path.abspath(val)
-
 
     def check_required(self, path):
         ok = 1
@@ -200,21 +202,19 @@ class Prefs(dict):
         if not ok:
             die("You must correct these problems found in: %s" % path)
 
-
     def environ_sub(self, value):
         while True:
             environ_match = ENVIRON_REGEX.search(value)
-            if not environ_match: return value
+            if not environ_match:
+                return value
             name = environ_match.group("environ")
             env = os.environ.get(name)
             if not env:
                 die("Could not find environment variable: %s" % name)
             value = ENVIRON_REGEX.sub(env, value)
 
-
     def get(self, name):
         return self.__data[name]
-
 
     def dump(self):
         print("Preferences:")
@@ -225,7 +225,6 @@ class Prefs(dict):
                     print("   %s: [%s]" % (key, rx.pattern))
             else:
                 print("   %s: [%s]" % (key, self.__data[key]))
-
 
     def dump_to_logger(self):
         keys = list(self.__data.keys())

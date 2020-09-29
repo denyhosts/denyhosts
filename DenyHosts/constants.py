@@ -15,8 +15,12 @@ ABUSIVE_HOSTS_RESTRICTED = "hosts-restricted"
 ABUSED_USERS_INVALID = "users-invalid"
 ABUSED_USERS_VALID = "users-valid"
 ABUSED_USERS_AND_HOSTS = "users-hosts"
-SUSPICIOUS_LOGINS = "suspicious-logins"   # successful logins AFTER invalid
-                                          #   attempts from same host
+
+"""
+successful logins AFTER invalid
+attempts from same host
+"""
+SUSPICIOUS_LOGINS = "suspicious-logins"
 
 ALLOWED_HOSTS = "allowed-hosts"
 ALLOWED_WARNED_HOSTS = "allowed-warned-hosts"
@@ -39,7 +43,7 @@ CONFIG_FILE = "/etc/denyhosts.conf"
 DENY_DELIMITER = "# DenyHosts:"
 ENTRY_DELIMITER = " | "
 
-TIME_SPEC_LOOKUP =  {
+TIME_SPEC_LOOKUP = {
     's': 1,        # s
     'm': 60,       # minute
     'h': 3600,     # hour
@@ -48,7 +52,9 @@ TIME_SPEC_LOOKUP =  {
     'y': 31536000, # year
 }
 
-SYNC_MIN_INTERVAL = 300 # 5 minutes
+SYNC_MIN_INTERVAL = 300  # 5 minutes
+# this is used to set a timeout for xmlrpc
+SOCKET_TIMEOUT = 30  # 10 seconds
 
 plat = sys.platform
 if plat.startswith("freebsd"):

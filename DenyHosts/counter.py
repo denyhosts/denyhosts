@@ -3,6 +3,7 @@ import time
 
 debug = logging.getLogger("counter").debug
 
+
 # TODO define __eq__ for this class
 class CounterRecord(object):
     def __init__(self, count=0, date=None):
@@ -39,8 +40,8 @@ class CounterRecord(object):
     def age_count(self, age):
         cutoff = int(time.time()) - age
         epoch = time.mktime(time.strptime(self.__date))
-        #debug("cutoff : %d", cutoff)
-        #debug("epoch  : %d", epoch)
+        # debug("cutoff : %d", cutoff)
+        # debug("epoch  : %d", epoch)
         if cutoff > epoch:
             self.__count = 0
 
@@ -61,8 +62,8 @@ class Counter(dict):
             return dict.__getitem__(self, k)
         except KeyError:
             count_rec = CounterRecord(0)
-            #debug("%s - %s", k, count_rec)
+            # debug("%s - %s", k, count_rec)
             self.__setitem__(k, count_rec)
-            #debug("dict: %s", dict.values(self))
-            #debug("count_rec: %s", count_rec)
+            # debug("dict: %s", dict.values(self))
+            # debug("count_rec: %s", count_rec)
             return count_rec
