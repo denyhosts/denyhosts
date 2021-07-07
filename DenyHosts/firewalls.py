@@ -20,7 +20,7 @@ class IpTables(object):
         try:
             for ip in ip_list:
                 block_ip = str(ip)
-                new_rule = self.__create_rule(block_ip)
+                new_rule = '%s %s' % (self.__iptables, self.__create_rule(block_ip))
                 info("Creating new firewall rule %s", new_rule)
                 os.system(new_rule)
         except Exception as e:
@@ -36,23 +36,24 @@ class IpTables(object):
             rule = self.__create_singleport_rule(block_ip)
         else:
             rule = self.__create_block_all_rule(block_ip)
-        return '%s -I ' % rule
+        return '-I %s' % rule
 
     def __create_singleport_rule(self, block_ip):
         debug("Generating INPUT block single port rule")
         sp_rule = "INPUT -p tcp --dport %s -s %s -j DROP" % \
-                  (self.__iptables, self.__blockport, block_ip)
+                  (self.__blockport, block_ip)
         return sp_rule
 
     def __create_multiport_rule(self, block_ip):
         debug("Generating INPUT block multi-port rule")
         mp_rule = "INPUT -p tcp -m multiport --dports %s -s %s -j DROP" % \
-                  (self.__iptables, self.__blockport, block_ip)
+                  (self.__blockport, block_ip)
         return mp_rule
 
-    def __create_block_all_rule(self, block_ip):
+    @staticmethod
+    def __create_block_all_rule(block_ip):
         debug("Generating INPUT block all ports rule")
-        ba_rule = "INPUT -s %s -j DROP" % (self.__iptables, block_ip)
+        ba_rule = "INPUT -s %s -j DROP" % block_ip
         return ba_rule
 
     def remove_ips(self, ip_list):
@@ -76,4 +77,4 @@ class IpTables(object):
             rule = self.__create_singleport_rule(blocked_ip)
         else:
             rule = self.__create_block_all_rule(blocked_ip)
-        return '%s -D ' % rule
+        return '%s -D %s' % (self.__iptables, rule)
