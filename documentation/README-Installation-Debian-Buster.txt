@@ -12,66 +12,78 @@ The version offered from the Github repository is 3.1.2-2 (or higher).
 
 This documentation will certainly still evolve, nevertheless, it should allow, as it stands, to accompany you for a simplified installation of DenyHosts, without difficulties.
 
-Version 1.0 proposed by Zer00CooL
-Date : 20/05/2020
+Version 2.0 proposed by Zer00CooL
+Date : 02/06/2020
 
 #################################################
 # Packages required before installing DenyHosts #
 #################################################
 
-The SSH server must be installed and configured.
-This is not the purpose of this documentation.
+# The SSH server must be installed and configured.
+# This is not the purpose of this documentation.
+sudo apt install openssh-server
 
 # Install the following package to be able to recover the project from Github using git :
+# This is not the purpose of this documentation.
 sudo apt-get install git
 
 # The auth.log file is not always completed following an identification attempt by SSH, but, Denyhosts is based on this file!
 sudo apt install rsyslog
+sudo systemctl restart rsyslog
+# Check if the /var/log/auth.log file exists to allow DenyHosts to restart :
+cd /var/log
+ls
+# If it does not exist, create it :
+sudo touch /var/log/auth.log
 
 # Install the following python packages and modules:
-sudo apt-get install python
-sudo apt-get install python-pip
+sudo apt-get install python python3 python-pip
 #
 # The following 4 modules can be installed with a single line, allows compliance with version recommendations.
 # sudo pip install ipaddr
 # sudo pip install mock
 # sudo pip install requests
 # sudo pip install configparser
-# The file is at the root of the DenyHosts repository. :
-pip install requirements.txt
-#
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# Order in which I installed the packages.
-# I installed python3 last, but, I suppose it can be installed at the same time as python.
-sudo apt-get install python3
+# This file is at the root of the DenyHosts repository and can be install later :
+# pip install -r requirements.txt
 
-# DenyHosts works with Iptables.
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# Check if iptables is really an essential prerequisite. ( #155 )
-sudo apt-get install iptables
+# DenyHosts works with Iptables but is not a prerequisite.
+# However, Iptables is enabled by default in the DenyHosts configuration.
+# If you use the default configuration, it will be more consistent to install Iptables.
+# sudo apt-get install iptables
+#
+# Denyhosts works without the Iptables package with TCP Wrapper.
+# You can disable Iptables in the Denyhosts configuration.
+# If this option is not set or commented out in the /etc/denyhosts.conf file, then the Iptables firewall is not used :
+# IPTABLES = /sbin/iptables
 
 # DenyHosts works with EXIM.
 ###############################################
 # Think of the editor, need to be confirmed ! #
 ###############################################
 # Check if EXIM is really an essential prerequisite. ( #155 )
-sudo apt-get install exim4-base exim4-config exim4-daemon-light
+# sudo apt-get install exim4-base exim4-config exim4-daemon-light
 
-# Download Denyhosts from the master branch of Github :
+# Download Denyhosts from the master branch of Github.
+# Note that I load Denyhosts in the user directory, but, it would be better to load it in the tmp/ directory
+cd ~
 sudo git clone https://github.com/denyhosts/denyhosts.git
 
-# Using git allows developers and those wishing to test a new version, or, as a fix, to change the stable main branch to a developing branch.
-# It is at this point in the installation that you may need to change the branch on which you are positioned.
+# Using git allows developers and users the ability to test a new version or a bug fix.
 # Currently and by default, you are using the stable master branch.
-# You can continue.
+# Change the stable main branch to a developing branch.
+# The following is an example of using the code associated with a bug designated as bug_128 on github.
+cd ~/denyhosts
+git checkout bug_128
+# If you want to install the most recent version, then you can continue without having to take care of this step.
 
 # Go to the DenyHosts directory and run the following commands :
-cd denyhosts
+cd ~/denyhosts
+pip install -r requirements.txt
 sudo python setup.py install
+# We have detected that you have an existing config file, would you like to back it up ? [Y|N]:
+# N for no :
+N
 sudo cp denyhosts.conf /etc
 sudo cp daemon-control-dist daemon-control
 
@@ -96,60 +108,61 @@ DENYHOSTS_BIN = "/usr/sbin/denyhosts.py"
 DENYHOSTS_LOCK = "/var/lock/subsys/denyhosts"
 DENYHOSTS_CFG = "/etc/denyhosts.conf"
 
-# First possibility :
-# The daemon-control is added in the /etc/init.d folder :
-cd /etc/init.d
-sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
-
-# Second possibility :
-# It would be more consistent to add the denyhosts.service service to /etc/systemd/system/denyhosts.service from /usr/share/denyhosts/. (# 156)
-# The service file is created in the format that SystemD can use.
-# In both cases, the execution of denyhosts works correctly.
-# Simply using the service method will prevent errors from occurring by saying that there are no execution levels or lsb problems.
-# The service file must be added to /etc/systemd/system/denyhosts.service rather than adding it to /etc/init.d.
-# Adding to / etc / systemd / system will allow denyhosts services to start working with the systemctl start denyhosts command.
-sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/
-
 cd ~
 sudo mv denyhosts /usr/share/
 cd /usr/share/denyhosts/
 sudo cp denyhosts.py /usr/sbin/
 # In the tutorial used initially, denyhosts.py was copied to the /usr/bin directory, but, synchronization seems to work only if I put it in /usr/sbin/.
-# Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths : systemctl daemon-reload
-# Also reload the service : systemctl restart denyhosts
+# Reload the daemons to use updated values in the event of a change in the configuration of the proposed paths :
+sudo systemctl daemon-reload
 
-# The /var/log/auth.log file does not exist by default on an LWS VPS, which prevents DenyHosts from restarting.
-# Check if the file exists :
-cd /var/log
-ls
-# If it does not exist, create it :
-sudo touch /var/log/auth.log
+###############################################
+# This First possibility does not seem suitable or obsolete !
+###############################################
+# First possibility :
+# The daemon-control is added in the /etc/init.d folder :
+# cd /etc/init.d
+# sudo ln -s /usr/share/denyhosts/daemon-control denyhosts
+#
+# Second possibility :
+###############################################
+# The good way :
+###############################################
+# It would be more consistent to add the denyhosts.service service to /etc/systemd/system/denyhosts.service from /usr/share/denyhosts/. (# 156)
+# The service file is created in the format that SystemD can use.
+# In both cases, the execution of denyhosts works correctly.
+# Simply using the service method will prevent errors from occurring by saying that there are no execution levels or lsb problems.
+# The service file must be added to /etc/systemd/system/denyhosts.service rather than adding it to /etc/init.d.
+# Adding to /etc/systemd/system/ will allow denyhosts services to start working with the systemctl start denyhosts command.
+cd /usr/share/denyhosts/
+sudo cp /usr/share/denyhosts/denyhosts.service /etc/systemd/system/denyhosts.service
+
+# Activate the denyhosts service :
+sudo systemctl enable denyhosts
+
+# Launch the denyhosts service :
+systemctl start denyhosts
 
 ###############################################
 # Think of the editor, need to be confirmed ! #
 ###############################################
-# This command could be useless, in any case, for the moment, it is not used nor essential to validate the installation of DenyHosts.
-# It was observed on an old tutorial.
-# sudo systemctl enable denyhosts
-# denyhosts.service is not a native service, redirecting to systemd-sysv-install.
-# Executing: /lib/systemd/systemd-sysv-install enable denyhosts
-# update-rc.d: error: denyhosts Default-Start contains no runlevels, aborting.
-
-###############################################
-# Think of the editor, need to be confirmed ! #
-###############################################
-# During my test it seems to me that starting with start did not work.
+# During the test, with the first possibility, the start command did not work..
 # Currently prefer to launch with restart.
-sudo systemctl restart denyhosts
+# This problem now seems to be corrected using the second possibility during installation.
+# We were able to start previously with the start command.
+# It is no longer necessary to start like this :
+# sudo systemctl restart denyhosts
+# We can now observe the status of Denyhosts :
 sudo systemctl status denyhosts
 
 # Copy the configuration proposed below, to strengthen the rules of Denyhosts.
-
+# This following configuration is proposed in French by Zer00CooL (ZerooCool on Github).
 # Edit the DenyHosts configuration file :
 sudo nano /etc/denyhosts.conf
 
-# Copy the following configuration, proposed in French by Zer00CooL (ZerooCool on Github).
-
+################################################################################################
+# Beginning - The configuration from DenyHosts : sudo nano /etc/denyhosts.conf
+################################################################################################
 # Le fichier journal qui contient les informations de journalisation du serveur SSH.
 # Identifier le fichier avec la commande : grep "sshd:" /var/log/*
 SECURE_LOG = /var/log/auth.log
@@ -275,17 +288,27 @@ SYNC_DOWNLOAD = yes
 SYNC_DOWNLOAD_THRESHOLD = 4
 # Durée minimum de la période d'attaque observée sur d'autres serveurs.
 SYNC_DOWNLOAD_RESILIENCY = 8h
+################################################################################################
+# End - The configuration from DenyHosts
+################################################################################################
 
+# Note for synchronization !
 # The current synchronization servers :
 # http://sync.denyhosts.org:9911
 # http://deny.resonatingmedia.com:9911
+#
 # The old synchronization server :
 # http://xmlrpc.denyhosts.net:9911
+###############################################
+# Think of the editor, need to be confirmed ! #
+###############################################
+# Old server, but, same content ?
 
-# Restart Denyhosts to take the changes into account.
-# Deprecated debian commands :
+# Restart Denyhosts to apply the new configuration.
+# Deprecated commands :
 sudo /etc/init.d/denyhosts restart
 sudo service denyhosts restart
+#
 # Prefer this command to restart DenyHosts :
 sudo systemctl restart denyhosts
 

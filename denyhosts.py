@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
     # we will only sync to the server if the sync server is enabled and the sync_version is either true or commented out
     # config file has it set to sync the version by default if the sync server is enabled
-    if prefs.get('SYNC_SERVER') and (is_true(prefs.get('SYNC_VERSION')) or prefs.get('SYNC_VERSION') is None):
+    if prefs.get('SYNC_SERVER') and (prefs.get('SYNC_VERSION') is None or is_true(prefs.get('SYNC_VERSION'))):
         debug('Attempting to Sync Version: %s' % VERSION)
         try:
             sync = Sync(prefs)
