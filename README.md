@@ -44,6 +44,23 @@ It is assumed that you are familiar with installing a binary package
 on your particular operating system. If you are unsure how to do
 this, you may wish to install from source instead.
 
+## Building Debian
+
+First you need to have the package python3-stdeb.  You can install it
+using `apt`:
+
+    apt install python3-stdeb
+
+Alternative option is to install via `pip`.
+
+    pip3 install stdeb
+
+To build your deb package:
+
+    python3 setup.py  --command-packages=stdeb.command bdist_deb
+
+it will be saved into directory "deb_dist".
+
 
 All Distributions
 -----------------
