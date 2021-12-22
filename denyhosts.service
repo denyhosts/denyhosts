@@ -4,8 +4,9 @@ Before=sshd.service
 
 [Service]
 Type=forking
+# this is bad... remove and do it on denyhosts.py instead
 ExecStartPre=/bin/rm -f /run/denyhosts.pid
-ExecStart=/usr/local/bin/denyhosts.py --daemon --config=/etc/denyhosts.conf
+ExecStart=/usr/bin/denyhosts.py --daemon --config=/etc/denyhosts.conf
 PIDFile=/run/denyhosts.pid
 
 [Install]
