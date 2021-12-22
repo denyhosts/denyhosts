@@ -5,10 +5,7 @@ import sys
 import socket
 import requests
 
-if sys.version_info < (3, 0): 
-    from xmlrpclib import ServerProxy, Fault
-else:
-    from xmlrpc.client import ServerProxy, Transport, ProtocolError, Fault
+from xmlrpc.client import ServerProxy, Transport, ProtocolError, Fault
 
 from .constants import SYNC_TIMESTAMP, SYNC_HOSTS, SYNC_HOSTS_TMP, SYNC_RECEIVED_HOSTS, SOCKET_TIMEOUT
 
@@ -32,7 +29,7 @@ if sys.version_info >= (3, 0):
             headers = {"User-Agent": "my-user-agent",
                        "Content-Type": "text/xml",
                        "Accept-Encoding": "gzip"}
-            url = "http://%s%s" % (host, handler)
+            url = f"http://{host}{handler}"
             response = None
             try:
                 response = requests.post(url, data=data, headers=headers, timeout=SOCKET_TIMEOUT)
@@ -74,17 +71,10 @@ class Sync(object):
 
     def xmlrpc_connect(self):
         debug("xmlrpc_conect()")
-        # python 2
-        if self.__pymajor_version == 2:
-            socket.setdefaulttimeout(SOCKET_TIMEOUT)  # set global socket timeout
         for i in range(0, 3):
-            debug("XMLRPC Connection attempt: %d" % i)
+            debug(f"XMLRPC Connection attempt: {i}")
             try:
-                # python 2
-                if self.__pymajor_version == 2:
-                    self.__server = ServerProxy(self.__sync_server)
-                else:
-                    self.__server = ServerProxy(self.__sync_server, transport=RequestsTransport())
+                self.__server = ServerProxy(self.__sync_server, transport=RequestsTransport())
                 debug("Connected To SYNC Server")
                 self.__connected = True
                 break
@@ -93,10 +83,7 @@ class Sync(object):
                 self.__connected = False
             time.sleep(30)
         if not self.__connected:
-            error('Failed to connect to %s after 3 attempts' % self.__sync_server)
-        # python 2
-        if self.__pymajor_version == 2:
-            socket.setdefaulttimeout(self.__default_timeout)  # set timeout back to the default
+            error(f'Failed to connect to {self.__sync_server} after 3 attempts')
         return self.__connected
 
     def xmlrpc_disconnect(self):
@@ -143,13 +130,13 @@ class Sync(object):
                     break
                 except Fault as f:
                     if 8001 == f.faultCode:
-                        debug('version_report procedure doesn\'t exist on the sync server: %s' % f.faultString)
+                        debug(f'version_report procedure doesn\'t exist on the sync server: {f.faultString}')
                         break
                 except Exception as e:
                     exception(e)
                 time.sleep(30)
         except Exception as e:
-            exception('Failure reporting your setup: %s' % e)
+            exception(f'Failure reporting your setup: {e}')
             pass
         finally:
             self.xmlrpc_disconnect()
@@ -211,7 +198,7 @@ class Sync(object):
             self.set_sync_timestamp(timestamp)
             hosts = data['hosts']
             info("received %d new host%s", len(hosts), get_plural(hosts))
-            debug("hosts added %s", hosts)
+            debug(f"hosts added {hosts}")
             self.__save_received_hosts(hosts, timestamp)
             return hosts
         except Exception as e:
@@ -253,10 +240,9 @@ class Sync(object):
             timestr = time.ctime(float(timestamp))
             with open(os.path.join(self.__work_dir, SYNC_RECEIVED_HOSTS), "a") as fp:
                 for host in hosts:
-                    fp.write("%s:%s\n" % (host, timestr))
+                    fp.write(f"{host}:{timestr}\n")
         except IOError as e:
             error(e)
             return
         finally:
             fp.close()
-
