@@ -1,8 +1,16 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import platform
 import sys
 import logging
+
+
+currentVersion = sys.version_info.major    
+currentVersion += sys.version_info.minor  / 10.
+
+if currentVersion < 3.6:
+    raise Exception("It requires minimal Python 3.6 to run")
+
 sys.path.insert(0, '/usr/share/denyhosts')
 
 import DenyHosts.python_version
