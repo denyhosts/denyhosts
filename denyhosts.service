@@ -1,13 +1,14 @@
 [Unit]
 Description=SSH log watcher
+Wants=network-online.target
 Before=sshd.service
 
 [Service]
-Type=forking
-# this is bad... remove and do it on denyhosts.py instead
-ExecStartPre=/bin/rm -f /run/denyhosts.pid
-ExecStart=/usr/bin/denyhosts.py --daemon --config=/etc/denyhosts.conf
+Type=simple
+ExecStart=/usr/bin/denyhosts.py --foreground --config=/etc/denyhosts.conf
 PIDFile=/run/denyhosts.pid
+Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
