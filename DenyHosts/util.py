@@ -9,12 +9,7 @@ import sys
 from textwrap import dedent
 import time
 py_version = sys.version_info
-if py_version[0] == 2:
-    # python 2
-    from ipaddr import IPAddress
-elif py_version[0] == 3:
-    # python 3
-    from ipaddress import ip_address
+from ipaddress import ip_address
 
 import re
 from socket import gethostbyname
@@ -54,11 +49,11 @@ def setup_logging(prefs, enable_debug, verbose, daemon):
             prefs.dump_to_logger()
 
 
-def die(msg, ex=None):
+def die(msg, ex=None, errorcode=1):
     print(msg)
     if ex:
         print(ex)
-    sys.exit(1)
+    sys.exit(errorcode)
 
 
 def is_true(s):
@@ -217,10 +212,7 @@ def hostname_lookup(process_host):
 
 def is_valid_ip_address(process_ip):
     ip = None
-    if py_version[0] == 2:
-        # python 2
-        ip = IPAddress(process_ip)
-    elif py_version[0] == 3:
+    if py_version[0] == 3:
         # python 3
         ip = ip_address(process_ip)
 
