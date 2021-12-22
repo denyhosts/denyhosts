@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
 import logging
@@ -6,20 +6,20 @@ import logging
 warn = logging.getLogger("denyfileutil").warning
 
 
-def show_restricted_usernames():
+def show_restricted_usernames(keys, user_dict):
     i = 0
     for key in keys:
         usernames = user_dict.get(key)
         for user in usernames:
             i += 1
-            print('{0}'.format(user))
+            print(f'{user}')
             if i >= num:
                 break
         if i >= num:
             break
 
 
-def get_work_dir():
+def get_work_dir() -> str:
     workdir = None
     try:
         workdir = sys.argv[1]
@@ -31,7 +31,7 @@ def get_work_dir():
     return workdir
 
 
-def get_max_displayed():
+def get_max_displayed() -> int:
     maxdisplay = 10
     if 2 in sys.argv:
         maxdisplay = int(sys.argv[2])
@@ -39,54 +39,47 @@ def get_max_displayed():
 
 
 def usage():
-    print('{0} WORK_DIR [num_results]'.format(sys.argv[0]))
+    program = sys.argv[0]
+    print(f'{program} WORK_DIR [num_results]')
     sys.exit(1)
 
 
-work_dir = get_work_dir()
-num = get_max_displayed()
-fname = os.path.join(work_dir, 'users-invalid')
+if __name__ == '__main__':
 
-if os.path.exists(fname) is False:
-    print('{0} does not exist'.format(fname))
-    sys.exit(1)
+    work_dir = get_work_dir()
+    num = get_max_displayed()
+    fname = os.path.join(work_dir, 'users-invalid')
 
-user_dict = {}
+    if not os.path.exists(fname):
+        print(f'{fname} does not exist')
+        sys.exit(1)
 
-try:
-    with open(fname, 'r') as fp:
-        for line in fp:
-            try:
-                line_list = line.split(':')
-                username = line_list[0]
-                attempts = int(line_list[1])
-                # timestamp = line_list[2].strip()
-            except IndexError as ie:
-                warn('File: {} missing index on line {}'.format(fname, line))
-                continue
-            except Exception:
-                continue
+    user_dict = {}
 
-            if hasattr(user_dict, 'get') and callable(getattr(user_dict, 'get')):  # python 2
-                ip_attempts = user_dict.get(attempts, [])
-            else:
-                # method get doesn't exist in Python 3
+    try:
+        with open(fname) as fp:
+            for line in fp.readlines():
+                try:
+                    line_list = line.split(':')
+                    username = line_list[0]
+                    attempts = int(line_list[1])
+                    # timestamp = line_list[2].strip()
+                except IndexError as ie:
+                    warn(f'File: {fname} missing index on line {line}')
+                    continue
+                except Exception:
+                    continue
+
                 ip_attempts = user_dict['attempts'], []
+                ip_attempts.append(username)
+                user_dict[attempts] = ip_attempts
+    except IOError as ioe:
+        iomsg = f'Error when attempting to read from {fname}. Error: {ioe}')
+        print(iomsg)
+        warn(iomsg)
+        sys.exit(1)
 
-            ip_attempts.append(username)
-            user_dict[attempts] = ip_attempts
-except IOError as ioe:
-    iomsg = 'Error when attempting to read from {0}. Error: {1}'.format(fname, ioe)
-    print(iomsg)
-    warn(iomsg)
-    sys.exit(1)
-
-keys = user_dict.keys()
-
-if isinstance(keys, list):  # python 2
-    keys.sort()
-    keys.reverse()
-else:  # python 3
+    keys = user_dict.keys()
     sorted(keys).reverse()
 
-show_restricted_usernames()
+    show_restricted_usernames(keys, user_dict)
