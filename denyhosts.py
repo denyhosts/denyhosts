@@ -3,6 +3,7 @@ import os
 import platform
 import sys
 import logging
+import argparse
 
 
 currentVersion = sys.version_info.major    
@@ -35,41 +36,6 @@ info = logger.info
 debug = logger.debug
 #################################################################################
 
-
-def usage():
-    print("Usage:")
-    print('{0} [-f logfile | --file=logfile] [ -c configfile | --config configfile] '
-          '[-i | --ignore] [-n | --noemail] [--purge] [--purge-all] [--purgeip ip] '
-          '[--migrate] [--daemon] [--sync] [--version]'.format(sys.argv[0]))
-    print("\n\n")
-    print(" --config: The pathname of the configuration file")
-    print(" --file:   The name of log file to parse")
-    print(" --ignore: Ignore last processed offset (start processing from beginning)")
-    print(" --noemail: Do not send an email report")
-    print(" --unlock: if lockfile exists, remove it and run as normal")
-    print(" --migrate: migrate your HOSTS_DENY file so that it is suitable for --purge")
-    print(" --purge: expire entries older than your PURGE_DENY setting")
-    print(" --purge-all: expire all entries")
-    print(" --purgeip: expire designated IP entry immediately")
-    print(" --daemon: run DenyHosts in daemon mode")
-    print(" --foreground: run DenyHosts in foreground mode")
-    print(" --sync: run DenyHosts synchronization mode")
-    print(" --version: Prints the version of DenyHosts and exits")
-
-    print("\n")
-    print("Note: multiple --file args can be processed. ")
-    print("If multiple files are provided, --ignore is implied")
-    print("\n")
-    print("Note: multiple --purgeip arguments can be processed. ")
-    print("\n")
-    print("When run in --daemon mode the following flags are ignored:")
-    print("     --file, --purge, --purge-all, --purgeip, --migrate, --sync, --verbose")
-
-
-#################################################################################
-#################################################################################
-
-
 if __name__ == '__main__':
     logfiles = []
     purgeip_list = []
@@ -88,55 +54,56 @@ if __name__ == '__main__':
     upgrade099 = 0
     unlock = 0
     args = sys.argv[1:]
-    try:
-        (opts, getopts) = getopt.getopt(args, 'f:c:dinuvps?hV',
-                                        ["file=", "ignore", "verbose", "debug",
-                                         "help", "noemail", "config=", "version",
-                                         "migrate", "purge", "purge-all", "purgeip", "daemon", "foreground",
-                                         "unlock", "sync", "upgrade099"])
-    except GetoptError:
-        print("\nInvalid command line option detected.")
-        usage()
-        sys.exit(1)
 
-    for opt, arg in opts:
-        if opt in ('-h', '-?', '--help'):
-            usage()
-            sys.exit(0)
-        if opt in ('-f', '--file'):
-            logfiles.append(arg)
-        if opt in ('-i', '--ignore'):
-            ignore_offset = 1
-        if opt in ('-n', '--noemail'):
-            noemail = 1
-        if opt in ('-v', '--verbose'):
-            verbose = 1
-        if opt in ('-d', '--debug'):
-            enable_debug = 1
-        if opt in ('-c', '--config'):
-            config_file = arg
-        if opt in ('-m', '--migrate'):
-            migrate = 1
-        if opt in ('-p', '--purge'):
-            purge = 1
-        if opt in ('-s', '--sync'):
-            sync_mode = 1
-        if opt in ('-s', '--unlock'):
-            unlock = 1
-        if opt == '--daemon':
-            daemon = 1
-        if opt == '--foreground':
-            foreground = 1
-        if opt == '--purge-all':
-            purge_all = 1
-        if opt == '--purgeip':
-            purgeip_list = getopts
-            purgeip = 1
-        if opt == '--upgrade099':
-            upgrade099 = 1
-        if opt == '--version':
-            print("DenyHosts version:", VERSION)
-            sys.exit(0)
+    parser = argparse.ArgumentParser(description='',
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     epilog='Note: multiple --file args can be processed.\n' + \
+                                     'If multiple files are provided, --ignore is implied\n\n' + \
+                                     'Note: multiple --purgeip arguments can be processed.\n\n' + \
+                                     'When run in --daemon mode the following flags are ignored:\n' + \
+                                     '     --file, --purge, --purge-all, --purgeip, --migrate, --sync, --verbose')
+
+    parser.add_argument('-c', '--config', metavar='config', help='The pathname of the configuration file')
+    parser.add_argument('-f', '--file', metavar='file', help='The name of log file to parse')
+    parser.add_argument('-i', '--ignore', action='store_true', help='Ignore last processed offset (start processing from beginning')
+    parser.add_argument('-n', '--noemail', action='store_true', help='Do not send an email report')
+    parser.add_argument('-s', '--unlock', action='store_true', help='if lockfile exists, remove it and run as normal')
+    parser.add_argument('-m', '--migrate', action='store_true', help='migrate your HOSTS_DENY file so that it is suitable for --purge')
+    parser.add_argument('-p', '--purge', action='store_true', help='expire entries older than your PURGE_DENY setting')
+    parser.add_argument('--purge-all', action='store_true', help='expire all entries')
+    parser.add_argument('--purgeip', metavar='purgeip', help='expire designated IP entry immediately')
+    parser.add_argument('--daemon', action='store_true', help='run DenyHosts in daemon mode')
+    parser.add_argument('--foreground', action='store_true', help='run DenyHosts in foreground mode')
+    parser.add_argument('--sync', action='store_true', help='run DenyHosts synchronization mode')
+    parser.add_argument('-v', '--version', action='store_true',  help='Prints the version of DenyHosts and exits')
+    parser.add_argument('-d', '--debug', action='store_true', help='debug mode activated')
+    parser.add_argument('--upgrade099', action='store_true', help='')
+    parser.add_argument('--verbose', action='store_true', help='')
+
+    args = parser.parse_args()
+    print(args)
+
+
+    config_file = args.config
+    if args.version:
+        print("DenyHosts version:", VERSION)
+        sys.exit(0)
+    if args.file: logfiles.append(args.file)
+    if args.ignore: ignore_offset = 1
+    if args.noemail: noemail = 1
+    if args.verbose: verbose = 1
+    if args.debug: enable_debug = 1
+    if args.migrate: migrate = 1
+    if args.purge: purge = 1
+    if args.sync: sync_mode = 1
+    if args.unlock: unlock = 1
+    if args.foreground: foreground = 1
+    if purge_all: purge_all = 1
+    if args.purgeip:
+        purgeip_list = args.purgeip
+        purgeip = 1
+    if args.upgrade099: upgrade099 = 1
+
 
     # This is generally expected to be in the environment, but there's no
     # non-hackish way to get systemd to set it, so just hack it in here.
