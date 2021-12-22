@@ -39,31 +39,28 @@ class PurgeCounter(object):
     def get_data(self):
         counter = Counter()
         try:
-            fp = open(self.filename, "r")
+            with open(self.filename) as fp:
+                for line in fp.readlines():
+                    line = line.rstrip()
+                    try:
+                        host, count, timestamp = line.strip().split(':', 2)
+                    except Exception:
+                        continue
+                    counter[host] = CounterRecord(int(count), timestamp)
         except IOError:
-            return counter
-
-        for line in fp:
-            try:
-                host, count, timestamp = line.strip().split(':', 2)
-            except Exception:
-                continue
-            counter[host] = CounterRecord(int(count), timestamp)
-
-        fp.close()
+            pass
         return counter
 
     def write_data(self, data):
         try:
-            fp = open(self.filename, "w")
             keys = list(data.keys())
             keys.sort()
-
-            for key in keys:
-                fp.write("%s:%s\n" % (key, data[key]))
-            fp.close()
+            with open(self.filename, "w") as fp:
+                for key in keys:
+                    info = data[key]
+                    fp.write(f"{key}:{info}\n")
         except Exception as e:
-            error("error saving %s: %s", self.filename, str(e))
+            error(f"error saving {self.filename}: {str(e)}")
 
     def increment(self, purged_hosts):
         data = self.get_data()
