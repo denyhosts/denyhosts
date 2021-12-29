@@ -234,5 +234,10 @@ class Prefs(dict):
             if key == 'USERDEF_FAILED_ENTRY_REGEX':
                 for rx in self.__data[key]:
                     info("   %s: [%s]" % (key, rx.pattern))
+            elif (key == 'SMTP_PASSWORD') or (key == 'SMTP_USERNAME'):
+                if self.__data[key] is not None:
+                    info("   %s: [%s]", key, r"<redacted>")
+                else:
+                    info("   %s: [%s]", key, self.__data[key])
             else:
                 info("   %s: [%s]", key, self.__data[key])
