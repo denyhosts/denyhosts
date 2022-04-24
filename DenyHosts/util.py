@@ -23,6 +23,7 @@ from .constants import BSD_STYLE, TIME_SPEC_LOOKUP
 from .regex import TIME_SPEC_REGEX
 
 debug = logging.getLogger("util").debug
+error = logging.getLogger("util").error
 ipv4_regex = re.compile(r'^([0-9]+\.){3}[0-9]+$')
 
 
@@ -137,56 +138,58 @@ def send_email(prefs, report_str):
     msg += report_str
     try:
         method = prefs.get('EMAIL_METHOD')
-        if is_true(prefs.get('SMTP_SSL')):
-            smtp = SMTP_SSL()
-        else:
-            smtp = SMTP()
-
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            smtp.set_debuglevel(1)
-
-        smtp.connect(
-            prefs.get('SMTP_HOST'),
-            prefs.get('SMTP_PORT')
-        )
-
-        # If the server supports ESMTP and TLS, then convert the message exchange to TLS via the
-        # STARTTLS command.
-        if smtp.ehlo()[0] == 250:
-            if smtp.has_extn('starttls'):
-                (code, resp) = smtp.starttls()
-                if code != 220:
-                    raise SMTPResponseException(code, resp)
-                (code, resp) = smtp.ehlo()
-                if code != 250:
-                    raise SMTPResponseException(code, resp)
+        if method == 'SMTP':
+            if is_true(prefs.get('SMTP_SSL')):
+                smtp = SMTP_SSL()
             else:
-                # The server does not support esmtp.
+                smtp = SMTP()
 
-                # The Python library SMTP class handles executing HELO/EHLO commands inside
-                # login/sendmail methods when neither helo()/ehlo() methods have been
-                # previously called.  Because we have already called ehlo() above, we must
-                # manually fallback to calling helo() here.
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                smtp.set_debuglevel(1)
 
-                (code, resp) = smtp.helo()
-                if not (200 <= code <= 299):
-                    raise SMTPHeloError(code, resp)
+            smtp.connect(
+                prefs.get('SMTP_HOST'),
+                prefs.get('SMTP_PORT')
+            )
 
-            username = prefs.get('SMTP_USERNAME')
-            password = prefs.get('SMTP_PASSWORD')
+            # If the server supports ESMTP and TLS, then convert the message exchange to TLS via the
+            # STARTTLS command.
+            if smtp.ehlo()[0] == 250:
+                if smtp.has_extn('starttls'):
+                    (code, resp) = smtp.starttls()
+                    if code != 220:
+                        raise SMTPResponseException(code, resp)
+                    (code, resp) = smtp.ehlo()
+                    if code != 250:
+                        raise SMTPResponseException(code, resp)
+                else:
+                    # The server does not support esmtp.
 
-            if username and password:
-                smtp.login(username, password)
+                    # The Python library SMTP class handles executing HELO/EHLO commands inside
+                    # login/sendmail methods when neither helo()/ehlo() methods have been
+                    # previously called.  Because we have already called ehlo() above, we must
+                    # manually fallback to calling helo() here.
 
-            smtp.sendmail(prefs.get('SMTP_FROM'), recipients, msg)
-            debug("sent email to: %s" % prefs.get("ADMIN_EMAIL"))
+                    (code, resp) = smtp.helo()
+                    if not (200 <= code <= 299):
+                        raise SMTPHeloError(code, resp)
+
+                username = prefs.get('SMTP_USERNAME')
+                password = prefs.get('SMTP_PASSWORD')
+
+                if username and password:
+                    smtp.login(username, password)
+
+                smtp.sendmail(prefs.get('SMTP_FROM'), recipients, msg)
+                debug("sent email to: %s" % prefs.get("ADMIN_EMAIL"))
         elif method == 'SENDMAIL':
             msg = MIMEText(report_str)
             msg["From"] = prefs.get("SMTP_FROM")
             msg["To"] = prefs.get("ADMIN_EMAIL")
             msg["Subject"] = prefs.get("SMTP_SUBJECT")
             p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
-            p.communicate(msg.as_string())
+            # the next supports Both Python 2.X and 3.X
+            p.communicate(msg.as_bytes() if sys.version_info >= (3,0) else msg.as_string())
         elif method == 'MAIL':
             p = Popen(['mail', '-s', prefs.get("SMTP_SUBJECT")] + recipients, stdin=PIPE)
             p.communicate(report_str)
@@ -195,6 +198,8 @@ def send_email(prefs, report_str):
         else:
             raise Exception("Unknown e-mail method: %s" % method)
     except Exception as e:
+        # what good is the looging if you don't use it?
+        error("Error sending email: %s" % str(e))
         print("Error sending email")
         print(e)
         print("Email message follows:")
