@@ -217,12 +217,15 @@ def hostname_lookup(process_host):
 
 def is_valid_ip_address(process_ip):
     ip = None
-    if py_version[0] == 2:
-        # python 2
-        ip = IPAddress(process_ip)
-    elif py_version[0] == 3:
-        # python 3
-        ip = ip_address(process_ip)
+    try:
+        if py_version[0] == 2:
+            # python 2
+            ip = IPAddress(process_ip)
+        elif py_version[0] == 3:
+            # python 3
+            ip = ip_address(process_ip)
+    except:
+        pass
 
     if ip is None or ip.is_reserved or ip.is_private or \
             ip.is_loopback or ip.is_unspecified or \
