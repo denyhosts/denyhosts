@@ -48,5 +48,5 @@ jobs:
         smtp-sink -c -d "%d.%H.%M.%S" -e -m 5 localhost:2500 1000 &
     - name: Test with coverage
       run: |
-        coverage run -m unnittest discover
+        coverage run -m pytest
         coverage report -m
