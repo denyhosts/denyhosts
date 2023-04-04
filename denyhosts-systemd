@@ -1,0 +1,24 @@
+#
+# copy this file to /etc/systemd/system/denyhosts.service
+# then:
+#     sudo systemctl daemon-reload
+#     sudo systemctl enable denyhosts
+#     sudo systemctl start denyhosts
+#
+[Unit]
+Description=Denyhosts service
+Documentation=man:denyhosts(8)
+After=network.target sshd.service
+ConditionPathExists=/etc/denyhosts.conf
+
+[Service]
+ExecStart=/usr/share/denyhosts/daemon-control start
+ExecReload=/usr/share/denyhosts/daemon-control restart
+ExecStop=/usr/share/denyhosts/daemon-control stop
+Restart=on-failure
+Type=forking
+WorkingDirectory=/var/lib/denyhosts
+
+[Install]
+WantedBy=multi-user.target
+Alias=denyhosts.service
