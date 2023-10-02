@@ -7,7 +7,7 @@ import sys
 from os.path import join as ospj
 from os.path import exists as fcheck
 
-from distutils.core import setup
+from setuptools import setup
 
 from DenyHosts.util import normalize_whitespace
 from DenyHosts.version import VERSION
