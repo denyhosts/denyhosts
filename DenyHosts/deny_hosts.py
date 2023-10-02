@@ -443,7 +443,7 @@ allowed based on your %s file""" % (self.__prefs.get("HOSTS_DENY"),
                     # debug("matched (host=%s): %s", m.group("host"), rx.pattern)
                     invalid = self.is_valid(m)
             # otherwise, did the line match one of the userdef regexes?
-            elif not m:
+            if (not m) and self.__prefs.get("USERDEF_FAILED_ENTRY_REGEX"):
                 for rxx in self.__prefs.get('USERDEF_FAILED_ENTRY_REGEX'):
                     m = rxx.search(line)
                     if m:

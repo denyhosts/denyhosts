@@ -1,0 +1,70 @@
+name: "Bug Report"
+description: Create a new ticket for a bug.
+title: "[BUG] - <title>"
+labels: [
+  "bug"
+]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: Please enter an explicit description of your issue
+      placeholder: Short and explicit description of your incident...
+    validations:
+      required: true
+  - type: input
+    id: denyhosts-version
+    attributes:
+      label: "DenyHosts Version"
+      description: Please enter the denyhosts version you are using
+      placeholder: ex. 3.1.2.202005311635
+    validations:
+      required: true
+  - type: textarea
+    id: reprod
+    attributes:
+      label: "Reproduction steps"
+      description: Please enter an explicit description of your issue
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: "Screenshots"
+      description: If applicable, add screenshots to help explain your problem.
+      value: |
+        ![DESCRIPTION](LINK.png)
+      render: bash
+    validations:
+      required: false
+  - type: input
+    id: video
+    attributes:
+      label: "Video Linke"
+      description: If applicable, add a video displaying the issue.
+      placeholder: ex. https://youtube.com/watch/asdfasdfsaf
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs"
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: bash
+    validations:
+      required: false
+  - type: input
+    id: os
+    attributes:
+      label: "OS"
+      description: Include the OS you're using.
+      placeholder: ex. Debian 11
+    validations:
+      required: true
