@@ -129,7 +129,7 @@ class SyncTestDynamicTimestamp(unittest.TestCase):
         self.prefs = Prefs()
         self.prefs._Prefs__data['WORK_DIR'] = ospj(dirname(__file__), 'data/sync/dynamic')
         self.sync = Sync(self.prefs)
-        self.value = randint(0, 1e9)
+        self.value = randint(0, int(1e9))
 
     def test_set_sync_timestamp(self):
         self.sync.set_sync_timestamp(str(self.value))
