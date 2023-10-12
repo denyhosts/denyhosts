@@ -15,6 +15,9 @@ Installation
 Requirements
 ------------
 
+- python 3.6 or higher
+- python3-ipaddr
+
 The DenyHosts software depends on the "ipaddr" Python module,
 which is available in most Linux and BSD repositories.
 
@@ -32,7 +35,7 @@ then:
 
 as root:
 
-    # python setup.py install
+    # python3 setup.py install
 
 This will install the DenyHosts modules into python's site-packages
 directory.
@@ -43,6 +46,23 @@ Binary Distribution (rpm, deb, etc)
 It is assumed that you are familiar with installing a binary package
 on your particular operating system. If you are unsure how to do
 this, you may wish to install from source instead.
+
+## Building Debian
+
+First you need to have the package python3-stdeb.  You can install it
+using `apt`:
+
+    apt install python3-stdeb
+
+Alternative option is to install via `pip`.
+
+    pip3 install stdeb
+
+To build your deb package:
+
+    python3 setup.py  --command-packages=stdeb.command bdist_deb
+
+it will be saved into directory "deb_dist".
 
 
 All Distributions
@@ -114,7 +134,7 @@ line, usually supply a few common parameters. Usually, when running
 DenyHosts from the command line (or from the /etc/rc.local script) we
 can launch the program by running
 
-     # python /usr/local/bin/denyhosts --config /etc/denyhosts.conf --daemon
+     # python3 /usr/local/bin/denyhosts --config /etc/denyhosts.conf --daemon
 
 The above command launches DenyHosts and runs it in the background. DenyHosts
 will use the /etc/denyhosts.conf configuration file to dictate its behavour.
