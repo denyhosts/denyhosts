@@ -28,7 +28,10 @@ class DenyHostsMigrateTest(unittest.TestCase):
         """
         Migrate(self.deny_file)
         self.assertTrue(filecmp.cmp(self.template, self.backup))
-        self.assertTrue(DENY_DELIMITER in open(self.deny_file).read())
+        deny_data = None
+        with open(self.deny_file, 'r') as fh:
+            deny_data = fh.read()
+        self.assertTrue(DENY_DELIMITER in deny_data)
 
     def tearDown(self):
         remove(self.deny_file)

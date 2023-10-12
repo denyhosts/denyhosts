@@ -71,9 +71,9 @@ def createdaemon():
             # Give the child complete control over permissions.
             os.umask(0)
         else:
-            os._exit(0)  # Exit parent (the first child) of the second child.
+            os._exit(os.EX_OK)  # Exit parent (the first child) of the second child.
     else:
-        os._exit(0)  # Exit parent of the first child.
+        os._exit(os.EX_OK)  # Exit parent of the first child.
 
     std_fds = 3  # 0,1,2
     for fd in range(0, std_fds):
@@ -109,4 +109,4 @@ if __name__ == "__main__":
         )
     )
 
-    sys.exit(0)
+    sys.exit(os.EX_OK)
