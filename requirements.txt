@@ -2,3 +2,4 @@ ipaddr >= 2.1 ; python_version < '3.0'
 mock ; python_version < '3.3'
 requests
 configparser ; python_version < '3.4'
+urllib3>=2.2.2 # not directly required, pinned by Snyk to avoid a vulnerability
