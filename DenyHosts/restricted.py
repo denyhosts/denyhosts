@@ -14,9 +14,7 @@ class Restricted:
             with open(self.filename, "r") as fp:
                 for line in fp:
                     line = line.strip()
-                    if not line:
-                        continue
-                    if line[0] == '#':
+                    if not line or line[0] == '#':
                         continue
                     self.__data.add(line)
         except IOError:
