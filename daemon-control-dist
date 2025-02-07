@@ -73,7 +73,6 @@ def getpid():
     try:
         with open(DENYHOSTS_LOCK, "r") as fp:
             pid = int(fp.readline().rstrip())
-        fp.close()
     except FileNotFoundError:
         return STATE_NOT_RUNNING
     except PermissionError:
