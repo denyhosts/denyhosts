@@ -73,7 +73,9 @@ class AllowedHosts(object):
                     # lookup ip address of host
                     ip = gethostbyname(line)
                     self.allowed_hosts[ip] = 1
-                except Exception:
+                except IOError:  # failed to gethostbyname
+                    pass
+                except NameError:  # ip is empty
                     pass
 
         fp.close()
