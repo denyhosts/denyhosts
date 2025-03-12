@@ -49,12 +49,10 @@ class FileTracker(object):
 
     def update_first_line(self):
         try:
-            fp = open(self.logfile, "r")
-            first_line = fp.readline()[:-1]
+            with open(self.logfile, "r") as fp:
+                first_line = fp.readline()[:-1]
         except IOError as e:
             raise e
-        finally:
-            fp.close()
 
         self.__first_line = first_line
 

@@ -11,12 +11,12 @@ class Restricted:
 
     def load_restricted(self):
         try:
-            fp = open(self.filename, "r")
-            for line in fp:
-                line = line.strip()
-                if not line: continue
-                if line[0] == '#': continue
-                self.__data.add(line)
+            with open(self.filename, "r") as fp:
+                for line in fp:
+                    line = line.strip()
+                    if not line or line[0] == '#':
+                        continue
+                    self.__data.add(line)
         except IOError:
             pass
 
