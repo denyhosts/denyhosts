@@ -55,6 +55,22 @@ setup(
         (manpath, glob(denyhostsman)),
     ],
     license="GPL v2",
+    python_requires=">=3.8",
+    classifiers=[
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "Operating System :: POSIX :: Linux",
+        "Topic :: Security",
+        "Topic :: System :: Systems Administration",
+    ],
     long_description=normalize_whitespace(
         """
         DenyHosts is a python program that automatically blocks ssh attacks
